@@ -112,7 +112,7 @@ Chaque page légale suit ce template :
 
 Pages existantes conservées et enrichies :
 - Résumé exécutif (défauts URGENT / MAJEUR / À SURVEILLER / CONFORMES)
-- Une page par section d'inspection avec photos et commentaires
+- Sections d'inspection en flux continu — **aucun saut de page entre sections** : le rapport enchaîne directement d'une section à l'autre sans interruption. Les sauts de page ne surviennent que naturellement lors de l'impression selon le contenu.
 - Guide d'entretien (existant)
 - Annexe normes (existante)
 
