@@ -1,0 +1,25 @@
+# Données sensibles
+config.js
+
+# Cache navigateur / PWA
+*.cache
+
+# Système
+.DS_Store
+Thumbs.db
+desktop.ini
+.antigravityignore
+
+# Éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Sauvegardes temporaires
+*.bak
+*.tmp
+*.fixed

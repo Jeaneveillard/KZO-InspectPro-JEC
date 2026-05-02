@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git push *)",
+      "Bash(python -c \"open\\('templates.js'\\).read\\(\\); print\\('templates.js readable'\\)\")",
+      "Bash(python -c \"import re; src = open\\('templates.js'\\).read\\(\\); o=src.count\\('{'\\); c=src.count\\('}'\\); print\\(f'braces: {o} open / {c} close — {\\\\\"OK\\\\\" if o==c else \\\\\"MISMATCH\\\\\"}'\\)\")",
+      "Bash(git commit -m ' *)",
+      "Bash(curl -s \"https://jeaneveillard.github.io/Kzo-inspectpro/templates.js\")"
+    ]
+  }
+}

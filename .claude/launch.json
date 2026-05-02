@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "KZO Dev Server",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NonInteractive", "-File", "serve.ps1", "-Port", "8000"],
+      "port": 8000
+    }
+  ]
+}

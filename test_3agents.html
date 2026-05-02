@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Pipeline 3 Agents IA — KZO InspectPro</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-deep:    #0f172a;
+    --bg-card:    #1e293b;
+    --bg-input:   #0f172a;
+    --border:     #334155;
+    --accent:     #3b82f6;
+    --accent-dk:  #2563eb;
+    --success:    #22c55e;
+    --warn:       #f59e0b;
+    --danger:     #ef4444;
+    --text:       #e2e8f0;
+    --text-muted: #94a3b8;
+    --radius:     10px;
+  }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  h1 .badge {
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: .05em;
+    padding: 2px 8px;
+    border-radius: 99px;
+    vertical-align: middle;
+  }
+  .subtitle {
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    font-size: 0.9rem;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+  .card-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .step-badge {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+  }
+
+  /* Config rows */
+  .agent-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .agent-row:last-child { border-bottom: none; }
+  .agent-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  .agent-label span {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  .input-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  select, input[type="text"], input[type="password"], textarea {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s;
+  }
+  select:focus, input:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  select { cursor: pointer; min-width: 140px; }
+  input[type="password"] { flex: 1; font-family: monospace; letter-spacing: .05em; }
+  input[type="text"] { flex: 1; }
+
+  /* Warning banner */
+  #groq-vision-warn {
+    display: none;
+    background: #451a03;
+    border: 1px solid #92400e;
+    border-radius: 8px;
+    color: #fed7aa;
+    font-size: 0.83rem;
+    padding: 10px 14px;
+    margin-top: 12px;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  #groq-vision-warn.visible { display: flex; }
+  #groq-vision-warn .warn-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+  /* Photo upload */
+  .photo-area {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    position: relative;
+  }
+  .photo-area:hover, .photo-area.drag-over {
+    border-color: var(--accent);
+    background: rgba(59,130,246,.05);
+  }
+  .photo-area input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .photo-icon { font-size: 2.5rem; color: var(--text-muted); }
+  .photo-label { color: var(--text-muted); font-size: 0.85rem; margin-top: 6px; }
+  .photo-label strong { color: var(--accent); }
+
+  #photo-preview-wrap { display: none; text-align: center; margin-top: 14px; }
+  #photo-preview {
+    max-width: 100%; max-height: 220px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  #photo-name {
+    font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;
+  }
+
+  /* Section selector */
+  .section-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+  }
+  .section-row label { font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; }
+  .section-row select { flex: 1; }
+
+  /* Run button */
+  #run-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: .03em;
+    transition: background .15s, transform .1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  #run-btn:hover:not(:disabled) { background: var(--accent-dk); }
+  #run-btn:active:not(:disabled) { transform: scale(0.98); }
+  #run-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* Progress */
+  #progress-box {
+    display: none;
+  }
+  .progress-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .progress-step:last-child { border-bottom: none; }
+  .step-icon {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-icon.pending  { background: #1e293b; border: 2px solid var(--border); color: var(--text-muted); }
+  .step-icon.running  { background: #1d4ed8; border: 2px solid var(--accent); color: #fff; animation: pulse 1s ease-in-out infinite; }
+  .step-icon.done     { background: #166534; border: 2px solid var(--success); color: #fff; }
+  .step-icon.error    { background: #7f1d1d; border: 2px solid var(--danger); color: #fff; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+
+  .step-text { flex: 1; }
+  .step-name { font-weight: 600; color: var(--text); }
+  .step-msg  { color: var(--text-muted); font-size: 0.8rem; margin-top: 2px; }
+
+  /* Results */
+  #results-box { display: none; }
+
+  .niveau-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    margin-bottom: 14px;
+  }
+  .niveau-CRITIQUE { background: #450a0a; border: 1px solid var(--danger); color: #fca5a5; }
+  .niveau-MAJEUR   { background: #431407; border: 1px solid #f97316; color: #fdba74; }
+  .niveau-MINEUR   { background: #422006; border: 1px solid var(--warn); color: #fde68a; }
+  .niveau-CONFORME { background: #052e16; border: 1px solid var(--success); color: #86efac; }
+  .niveau-INCONNU  { background: #1e293b; border: 1px solid var(--border); color: var(--text-muted); }
+
+  .defaut-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 0; }
+  .defaut-item {
+    background: var(--bg-deep);
+    border-radius: 8px;
+    padding: 10px 14px;
+    border-left: 3px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .defaut-item.URGENT  { border-color: var(--danger); }
+  .defaut-item.IMPORTANT { border-color: var(--warn); }
+  .defaut-item.ENTRETIEN { border-color: var(--success); }
+  .defaut-element { font-weight: 600; color: var(--text); }
+  .defaut-desc    { color: var(--text-muted); margin-top: 3px; }
+  .defaut-gravite {
+    display: inline-block;
+    margin-top: 5px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 99px;
+    letter-spacing: .06em;
+  }
+  .defaut-gravite.URGENT    { background: #450a0a; color: #fca5a5; }
+  .defaut-gravite.IMPORTANT { background: #431407; color: #fdba74; }
+  .defaut-gravite.ENTRETIEN { background: #052e16; color: #86efac; }
+
+  .rapport-box {
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  #copy-btn {
+    margin-top: 12px;
+    padding: 8px 20px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 7px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #copy-btn:hover { background: var(--accent); color: #fff; }
+  #copy-btn.copied { border-color: var(--success); color: var(--success); }
+
+  /* Error display */
+  #error-box {
+    display: none;
+    background: #450a0a;
+    border: 1px solid var(--danger);
+    border-radius: 8px;
+    padding: 14px 16px;
+    color: #fca5a5;
+    font-size: 0.85rem;
+    margin-top: 14px;
+  }
+  #error-box strong { display: block; margin-bottom: 4px; }
+
+  /* Utility */
+  .mt { margin-top: 14px; }
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+
+  @media (max-width: 600px) {
+    .agent-row { grid-template-columns: 1fr; }
+    .input-group { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🔍 Pipeline 3 Agents IA <span class="badge">BETA</span></h1>
+<p class="subtitle">KZO InspectPro — Test du système multi-agents REIBH 2024 / BNQ 3009-500 / CNB 2020</p>
+
+<!-- ═══════════════════════════════════════
+     CARTE 1 : CONFIGURATION DES AGENTS
+═══════════════════════════════════════ -->
+<div class="card">
+  <div class="card-title">
+    <span class="step-badge">⚙</span>
+    Configuration des providers IA par agent
+  </div>
+
+  <!-- Agent 1 -->
+  <div class="agent-row">
+    <div class="agent-label">
+      Agent 1
+      <span>Détecteur Visuel</span>
+    </div>
+    <div class="input-group">
+      <select id="provider-agent1" onchange="onProviderChange()">
+        <option value="anthropic">Anthropic (Claude)</option>
+        <option value="gemini" selected>Gemini (Google)</option>
+        <option value="openai">OpenAI (GPT-4o)</option>
+        <option value="groq">Groq (Llama 3.3)</option>
+      </select>
+      <input type="password" id="key-agent1" placeholder="Clé API agent 1 (ou laisser vide = clé globale)">
+    </div>
+  </div>
+
+  <!-- Agent 2 -->
+  <div class="agent-row">
+    <div class="agent-label">
+      Agent 2
+      <span>Expert REIBH 2024</span>
+    </div>
+    <div class="input-group">
+      <select id="provider-agent2">
+        <option value="anthropic">Anthropic (Claude)</option>
+        <option value="gemini" selected>Gemini (Google)</option>
+        <option value="openai">OpenAI (GPT-4o)</option>
+        <option value="groq">Groq (Llama 3.3)</option>
+      </select>
+      <input type="password" id="key-agent2" placeholder="Clé API agent 2 (ou laisser vide = clé globale)">
+    </div>
+  </div>
+
+  <!-- Agent 3 -->
+  <div class="agent-row">
+    <div class="agent-label">
+      Agent 3
+      <span>Rédacteur Pro</span>
+    </div>
+    <div class="input-group">
+      <select id="provider-agent3">
+        <option value="anthropic">Anthropic (Claude)</option>
+        <option value="gemini" selected>Gemini (Google)</option>
+        <option value="openai">OpenAI (GPT-4o)</option>
+        <option value="groq">Groq (Llama 3.3)</option>
+      </select>
+      <input type="password" id="key-agent3" placeholder="Clé API agent 3 (ou laisser vide = clé globale)">
+    </div>
+  </div>
+
+  <!-- Avertissement Groq + vision -->
+  <div id="groq-vision-warn">
+    <span class="warn-icon">⚠️</span>
+    <span>
+      <strong>Groq ne supporte pas l'analyse d'images (vision).</strong>
+      L'Agent 1 est un agent visuel — il nécessite <strong>Anthropic, Gemini ou OpenAI</strong> pour analyser les photos.
+      Veuillez changer le provider de l'Agent 1.
+    </span>
+  </div>
+
+  <div class="mt" style="font-size:0.78rem; color:#64748b;">
+    ℹ️ Laissez les champs clé vides pour utiliser la clé globale stockée (localStorage <code>inspectpro_api_key</code> ou <code>config.js</code>).
+    Les clés saisies ici sont sauvegardées en localStorage uniquement pour cette session.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     CARTE 2 : PHOTO + SECTION
+═══════════════════════════════════════ -->
+<div class="card">
+  <div class="card-title">
+    <span class="step-badge">📷</span>
+    Photo & Section d'inspection
+  </div>
+
+  <div class="photo-area" id="photo-area">
+    <input type="file" id="photo-input" accept="image/*" onchange="onPhotoSelected(event)">
+    <div class="photo-icon">📸</div>
+    <div class="photo-label">
+      <strong>Cliquez ou glissez</strong> une photo de défaut ici<br>
+      <span style="font-size:0.75rem">JPEG, PNG, WebP — max 5 Mo recommandé</span>
+    </div>
+  </div>
+
+  <div id="photo-preview-wrap">
+    <img id="photo-preview" alt="Aperçu photo">
+    <div id="photo-name"></div>
+    <button onclick="clearPhoto()" style="margin-top:8px; background:transparent; border:1px solid #475569; color:#94a3b8; border-radius:6px; padding:4px 12px; font-size:0.78rem; cursor:pointer;">
+      ✕ Changer la photo
+    </button>
+  </div>
+
+  <div class="section-row">
+    <label for="section-select">Section :</label>
+    <select id="section-select">
+      <option value="Fondations">Fondations</option>
+      <option value="Structure">Structure</option>
+      <option value="Toiture">Toiture</option>
+      <option value="Revêtement extérieur">Revêtement extérieur</option>
+      <option value="Fenêtres et portes">Fenêtres et portes</option>
+      <option value="Plomberie">Plomberie</option>
+      <option value="Électricité">Électricité</option>
+      <option value="Chauffage et ventilation">Chauffage et ventilation</option>
+      <option value="Isolation et étanchéité">Isolation et étanchéité</option>
+      <option value="Sous-sol et vide sanitaire">Sous-sol et vide sanitaire</option>
+      <option value="Comble et grenier">Comble et grenier</option>
+      <option value="Garage attaché">Garage attaché</option>
+      <option value="Matières dangereuses">Matières dangereuses</option>
+      <option value="Général">Général</option>
+    </select>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     BOUTON LANCER
+═══════════════════════════════════════ -->
+<button id="run-btn" onclick="lancerPipeline()">
+  ▶ Lancer le pipeline 3 agents
+</button>
+
+<!-- ═══════════════════════════════════════
+     PROGRESSION
+═══════════════════════════════════════ -->
+<div class="card" id="progress-box" style="margin-top:18px;">
+  <div class="card-title">⏳ Progression du pipeline</div>
+  <div id="steps-container">
+    <!-- Généré dynamiquement -->
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ERREUR
+═══════════════════════════════════════ -->
+<div id="error-box">
+  <strong>❌ Erreur</strong>
+  <span id="error-msg"></span>
+</div>
+
+<!-- ═══════════════════════════════════════
+     RÉSULTATS
+═══════════════════════════════════════ -->
+<div id="results-box">
+
+  <!-- Niveau global -->
+  <div class="card">
+    <div class="card-title">
+      <span class="step-badge">📊</span>
+      Niveau global de conformité
+    </div>
+    <span id="niveau-badge" class="niveau-badge niveau-INCONNU">—</span>
+    <div id="recommandation-principale" style="font-size:0.88rem; color:var(--text-muted); font-style:italic;"></div>
+  </div>
+
+  <!-- Défauts détectés -->
+  <div class="card">
+    <div class="card-title">
+      <span class="step-badge">🔎</span>
+      Défauts détectés (Agent 1)
+    </div>
+    <div id="defauts-list" class="defaut-list">
+      <!-- Généré dynamiquement -->
+    </div>
+  </div>
+
+  <!-- Texte de rapport -->
+  <div class="card">
+    <div class="card-title">
+      <span class="step-badge">📝</span>
+      Texte de rapport professionnel (Agent 3)
+    </div>
+    <div id="rapport-text" class="rapport-box"></div>
+    <button id="copy-btn" onclick="copyRapport()">
+      📋 Copier le texte
+    </button>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCRIPT
+═══════════════════════════════════════ -->
+<!-- Config locale (clés API) — ne pas versionner -->
+<script>
+  // Charge config.js si disponible, sinon crée un objet vide pour éviter les erreurs
+  window.KZO_CONFIG = window.KZO_CONFIG || { provider: 'gemini', apiKey: '' };
+</script>
+<script src="config.js" onerror="console.warn('config.js non trouvé — utilisation de localStorage uniquement.')"></script>
+<script src="ai_agents.js"></script>
+
+<script>
+// ─────────────────────────────────────────
+// ÉTAT LOCAL
+// ─────────────────────────────────────────
+let photoBase64 = null;
+let photoMime   = 'image/jpeg';
+
+// ─────────────────────────────────────────
+// INIT : Restaurer les valeurs localStorage
+// ─────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  ['agent1','agent2','agent3'].forEach(a => {
+    const p = localStorage.getItem('inspectpro_api_provider_' + a);
+    const k = localStorage.getItem('inspectpro_api_key_' + a);
+    if (p) document.getElementById('provider-' + a).value = p;
+    if (k) document.getElementById('key-' + a).value = k;
+  });
+  onProviderChange();
+
+  // Drag & drop
+  const area = document.getElementById('photo-area');
+  area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag-over'); });
+  area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+  area.addEventListener('drop', e => {
+    e.preventDefault();
+    area.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) loadPhotoFile(file);
+  });
+});
+
+// ─────────────────────────────────────────
+// PROVIDER CHANGE → avertissement Groq
+// ─────────────────────────────────────────
+function onProviderChange() {
+  const p1 = document.getElementById('provider-agent1').value;
+  const warn = document.getElementById('groq-vision-warn');
+  if (p1 === 'groq') {
+    warn.classList.add('visible');
+  } else {
+    warn.classList.remove('visible');
+  }
+}
+
+// ─────────────────────────────────────────
+// PHOTO
+// ─────────────────────────────────────────
+function onPhotoSelected(evt) {
+  const file = evt.target.files[0];
+  if (file) loadPhotoFile(file);
+}
+
+function loadPhotoFile(file) {
+  if (!file.type.startsWith('image/')) {
+    alert('Veuillez sélectionner un fichier image (JPEG, PNG, WebP).');
+    return;
+  }
+  photoMime = file.type;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    // Extraire la partie base64 seulement
+    photoBase64 = dataUrl.split(',')[1];
+    // Afficher l'aperçu
+    document.getElementById('photo-preview').src = dataUrl;
+    document.getElementById('photo-name').textContent = file.name + ' (' + (file.size / 1024).toFixed(0) + ' Ko)';
+    document.getElementById('photo-preview-wrap').style.display = 'block';
+    document.getElementById('photo-area').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearPhoto() {
+  photoBase64 = null;
+  document.getElementById('photo-input').value = '';
+  document.getElementById('photo-preview-wrap').style.display = 'none';
+  document.getElementById('photo-area').style.display = 'block';
+}
+
+// ─────────────────────────────────────────
+// SAUVEGARDER CONFIG EN LOCALSTORAGE
+// ─────────────────────────────────────────
+function saveConfig() {
+  ['agent1','agent2','agent3'].forEach(a => {
+    const p = document.getElementById('provider-' + a).value;
+    const k = document.getElementById('key-' + a).value.trim();
+    localStorage.setItem('inspectpro_api_provider_' + a, p);
+    if (k) localStorage.setItem('inspectpro_api_key_' + a, k);
+    else    localStorage.removeItem('inspectpro_api_key_' + a);
+  });
+}
+
+// ─────────────────────────────────────────
+// PROGRESSION UI
+// ─────────────────────────────────────────
+const stepDefs = [
+  { key: 'agent1',  label: 'Agent 1 — Détecteur Visuel'        },
+  { key: 'agent2',  label: 'Agent 2 — Expert REIBH 2024'       },
+  { key: 'agent3',  label: 'Agent 3 — Rédacteur Professionnel' }
+];
+
+let stepStates = {}; // key → { status, msg }
+
+function initProgressUI() {
+  stepStates = {};
+  stepDefs.forEach(s => { stepStates[s.key] = { status: 'pending', msg: 'En attente...' }; });
+  renderProgress();
+}
+
+function renderProgress() {
+  const container = document.getElementById('steps-container');
+  container.innerHTML = '';
+  const icons = { pending: '○', running: '↻', done: '✓', error: '✕' };
+
+  stepDefs.forEach(s => {
+    const state  = stepStates[s.key] || { status: 'pending', msg: '' };
+    const icon   = icons[state.status] || '○';
+
+    const row     = document.createElement('div');
+    row.className = 'progress-step';
+
+    const iconEl  = document.createElement('div');
+    iconEl.className = 'step-icon ' + state.status;
+    iconEl.textContent = icon;
+
+    const textEl  = document.createElement('div');
+    textEl.className = 'step-text';
+
+    const nameEl  = document.createElement('div');
+    nameEl.className = 'step-name';
+    nameEl.textContent = s.label;   // toujours hardcodé, mais textContent par sécurité
+
+    const msgEl   = document.createElement('div');
+    msgEl.className = 'step-msg';
+    msgEl.textContent = state.msg || '';  // ← textContent : résistant à toute injection
+
+    textEl.appendChild(nameEl);
+    textEl.appendChild(msgEl);
+    row.appendChild(iconEl);
+    row.appendChild(textEl);
+    container.appendChild(row);
+  });
+}
+
+function updateStep(etape, message) {
+  // Mapper les étapes de progression vers nos 3 agents
+  if (etape === 'agent1')        { stepStates.agent1  = { status: 'running', msg: message }; }
+  if (etape === 'agent1_done')   { stepStates.agent1  = { status: 'done',    msg: message }; }
+  if (etape === 'agent2')        { stepStates.agent2  = { status: 'running', msg: message }; }
+  if (etape === 'agent2_done')   { stepStates.agent2  = { status: 'done',    msg: message }; }
+  if (etape === 'agent3')        { stepStates.agent3  = { status: 'running', msg: message }; }
+  if (etape === 'agent3_done')   { stepStates.agent3  = { status: 'done',    msg: message }; }
+  if (etape === 'pipeline_done') {
+    // Marquer tous ceux qui sont encore "running" ou "pending" comme done
+    stepDefs.forEach(s => {
+      if (stepStates[s.key].status !== 'done') {
+        stepStates[s.key] = { status: 'done', msg: 'Terminé.' };
+      }
+    });
+  }
+  if (etape === 'erreur') {
+    // Marquer le step en cours comme erreur, les suivants en pending bloqué
+    stepDefs.forEach(s => {
+      if (stepStates[s.key].status === 'running') {
+        stepStates[s.key] = { status: 'error', msg: message };
+      }
+    });
+  }
+  renderProgress();
+}
+
+// ─────────────────────────────────────────
+// AFFICHER LES RÉSULTATS
+// ─────────────────────────────────────────
+function afficherResultats(result) {
+  const { texteRapport, defauts, evaluations, niveauGlobal, recommandationPrincipale } = result;
+
+  // Badge niveau
+  const badge = document.getElementById('niveau-badge');
+  badge.textContent = '● ' + (niveauGlobal || 'INCONNU');
+  badge.className = 'niveau-badge niveau-' + (niveauGlobal || 'INCONNU');
+
+  // Recommandation principale
+  const recElt = document.getElementById('recommandation-principale');
+  // Sécurité : textContent pour la recommandation (déjà HTML-escapée dans texteRapport via Agent 3)
+  recElt.textContent = recommandationPrincipale || '';
+
+  // Liste des défauts
+  const list = document.getElementById('defauts-list');
+  if (!defauts || defauts.length === 0) {
+    list.innerHTML = '<div style="color:var(--success); font-size:0.85rem;">✅ Aucun défaut détecté sur cette photo.</div>';
+  } else {
+    list.innerHTML = defauts.map(d => {
+      // Sécurité : on crée les textes via textContent
+      const wrap  = document.createElement('div');
+      wrap.className = 'defaut-item ' + (d.gravite || 'ENTRETIEN');
+
+      const elElt = document.createElement('div');
+      elElt.className = 'defaut-element';
+      elElt.textContent = d.element || '—';
+
+      const descElt = document.createElement('div');
+      descElt.className = 'defaut-desc';
+      descElt.textContent = d.defaut || '';
+
+      const gravElt = document.createElement('span');
+      gravElt.className = 'defaut-gravite ' + (d.gravite || 'ENTRETIEN');
+      gravElt.textContent = d.gravite || 'ENTRETIEN';
+
+      wrap.appendChild(elElt);
+      wrap.appendChild(descElt);
+      wrap.appendChild(gravElt);
+      return wrap.outerHTML;
+    }).join('');
+  }
+
+  // Texte rapport (déjà HTML-escapé par Agent 3 dans ai_agents.js)
+  const rapportElt = document.getElementById('rapport-text');
+  rapportElt.innerHTML = texteRapport
+    ? texteRapport.replace(/\n/g, '<br>')
+    : '<em style="color:var(--text-muted)">Aucun texte généré.</em>';
+
+  document.getElementById('results-box').style.display = 'block';
+  document.getElementById('results-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─────────────────────────────────────────
+// COPIER LE RAPPORT
+// ─────────────────────────────────────────
+function copyRapport() {
+  const el = document.getElementById('rapport-text');
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✅ Copié !';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.innerHTML = '📋 Copier le texte';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+}
+
+// ─────────────────────────────────────────
+// LANCER LE PIPELINE
+// ─────────────────────────────────────────
+async function lancerPipeline() {
+  // Validation
+  if (!photoBase64) {
+    alert('⚠️ Veuillez d\'abord sélectionner une photo de défaut.');
+    return;
+  }
+  const p1 = document.getElementById('provider-agent1').value;
+  if (p1 === 'groq') {
+    alert('⚠️ Groq ne supporte pas la vision. Veuillez changer le provider de l\'Agent 1 (Anthropic, Gemini ou OpenAI).');
+    return;
+  }
+
+  // Sauvegarder config
+  saveConfig();
+
+  const sectionName = document.getElementById('section-select').value;
+
+  // Reset UI
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('error-box').style.display = 'none';
+  document.getElementById('results-box').style.display = 'none';
+  document.getElementById('progress-box').style.display = 'block';
+  initProgressUI();
+
+  try {
+    const result = await AIAgents.runPipeline3Agents(
+      photoBase64,
+      photoMime,
+      sectionName,
+      function(etape, message) {
+        updateStep(etape, message);
+      }
+    );
+    afficherResultats(result);
+  } catch(err) {
+    updateStep('erreur', err.message);
+    document.getElementById('error-box').style.display = 'block';
+    document.getElementById('error-msg').textContent = err.message;
+  } finally {
+    document.getElementById('run-btn').disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>
