@@ -36,6 +36,38 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => toast.remove(), duration + 300);
     }
 
+    // Popup prévisualisation IA — title: string, text: string, onInsert: Function
+    function showAiPreview(title, text, onInsert) {
+        const modal = document.getElementById('aiPreviewModal');
+        const titleEl = document.getElementById('aiPreviewTitle');
+        const contentEl = document.getElementById('aiPreviewContent');
+        const insertBtn = document.getElementById('insertAiPreviewBtn');
+        const cancelBtn = document.getElementById('cancelAiPreviewBtn');
+        const closeBtn = document.getElementById('closeAiPreviewBtn');
+
+        if (!modal) return;
+
+        titleEl.textContent = title;
+        contentEl.textContent = text;
+
+        modal.style.display = 'flex';
+
+        // Cloner pour nettoyer les anciens listeners
+        const newInsert = insertBtn.cloneNode(true);
+        const newCancel = cancelBtn.cloneNode(true);
+        const newClose = closeBtn.cloneNode(true);
+        insertBtn.parentNode.replaceChild(newInsert, insertBtn);
+        cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+        closeBtn.parentNode.replaceChild(newClose, closeBtn);
+
+        newInsert.addEventListener('click', () => {
+            modal.style.display = 'none';
+            onInsert();
+        });
+        newCancel.addEventListener('click', () => { modal.style.display = 'none'; });
+        newClose.addEventListener('click', () => { modal.style.display = 'none'; });
+    }
+
     // Compression photo avant stockage localStorage (évite la saturation)
     function compressImage(file, maxWidth = 1200, quality = 0.75) {
         return new Promise((resolve) => {
@@ -1326,7 +1358,12 @@ document.addEventListener('DOMContentLoaded', () => {
             secCommentBlock.style.cssText = 'margin-top: 8px; margin-bottom: 24px; padding: 18px; background: #eff6ff; border: 2px solid #93c5fd; border-radius: 10px;';
             const secId = 'section_' + index;
             secCommentBlock.innerHTML = `
-                <div style="font-weight: 700; font-size: 1rem; color: #1e40af; margin-bottom: 12px;">🗂️ Commentaire global — ${section.title}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                    <div style="font-weight:700; font-size:1rem; color:#1e40af;">🗂️ Commentaire global — ${section.title}</div>
+                    <button type="button" id="ia_synthese_${index}" style="padding:6px 14px; background:linear-gradient(135deg,#059669,#0d9488); color:white; border:none; border-radius:20px; font-size:0.8rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                        ✨ IA Synthèse
+                    </button>
+                </div>
                 <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
                     <button type="button" class="sev-btn-sec" data-sev="urgent"
                         style="padding: 8px 18px; border-radius: 20px; border: 2px solid #ef4444; background: white; color: #ef4444; font-weight: 700; font-size: 0.85rem; cursor: pointer;">
@@ -1389,6 +1426,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 activeSec[secId].text = secTxtArea.value;
                 saveAppState();
             });
+
+            // Bouton IA Synthèse
+            const iaSyntheseBtn = secCommentBlock.querySelector('#ia_synthese_' + index);
+            if (iaSyntheseBtn) {
+                iaSyntheseBtn.addEventListener('click', async () => {
+                    iaSyntheseBtn.textContent = '⏳ Génération...';
+                    iaSyntheseBtn.disabled = true;
+                    try {
+                        const texte = await AIAgents.generateSectionSynthesis(section, index);
+                        showAiPreview(
+                            '✨ Synthèse IA — ' + section.title,
+                            texte,
+                            () => {
+                                const activeSec = getActiveSectionComments();
+                                if (!activeSec[secId]) activeSec[secId] = {};
+                                activeSec[secId].text = texte;
+                                saveAppState();
+                                const ta = secCommentBlock.querySelector('#sec_txt_' + secId);
+                                if (ta) { ta.value = texte; ta.dispatchEvent(new Event('input')); }
+                                showToast('Synthèse insérée dans le commentaire de section.', 'success');
+                            }
+                        );
+                    } catch(err) {
+                        showToast('Erreur IA : ' + err.message, 'error');
+                    } finally {
+                        iaSyntheseBtn.textContent = '✨ IA Synthèse';
+                        iaSyntheseBtn.disabled = false;
+                    }
+                });
+            }
         }
 
         // Update nav buttons
