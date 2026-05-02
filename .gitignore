@@ -3,6 +3,7 @@ config.js
 
 # Cache navigateur / PWA
 *.cache
+sw.js.map
 
 # Système
 .DS_Store
@@ -18,8 +19,16 @@ desktop.ini
 
 # Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Sauvegardes temporaires
 *.bak
 *.tmp
 *.fixed
+
+# Claude Code — fichiers de travail internes
+.claude/worktrees/
+.claude/settings.local.json
+.claude/todo.json
