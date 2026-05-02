@@ -471,6 +471,32 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('inspectpro_inspector_name', inspectionData.clientInfo.inspectorName);
     }
 
+    // Bouton IA Rapport Complet (top-bar)
+    const iaRapportBtn = document.getElementById('iaRapportBtn');
+    if (iaRapportBtn) {
+        iaRapportBtn.addEventListener('click', async () => {
+            iaRapportBtn.textContent = '⏳ Génération...';
+            iaRapportBtn.disabled = true;
+            try {
+                const texte = await AIAgents.generateFullReport();
+                showAiPreview(
+                    '📄 Rapport Narratif Complet IA',
+                    texte,
+                    () => {
+                        inspectionData.rapportNarratifIA = texte;
+                        saveAppState();
+                        showToast('Rapport narratif sauvegardé.', 'success');
+                    }
+                );
+            } catch(err) {
+                showToast('Erreur IA : ' + err.message, 'error');
+            } finally {
+                iaRapportBtn.textContent = '📄 IA Rapport';
+                iaRapportBtn.disabled = false;
+            }
+        });
+    }
+
     // Modal Profil Entreprise
     const cpBtn = document.getElementById('companyProfileBtn');
     const cpModal = document.getElementById('companyProfileModal');
