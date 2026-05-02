@@ -15,9 +15,11 @@
 
 - L'analyse se déclenche **automatiquement** après chaque upload — aucune action manuelle requise
 - L'inspecteur a **toujours la main** : bouton "Ignorer" ou "Appliquer"
-- Si aucune clé API n'est configurée → upload fonctionne normalement, analyse silencieusement ignorée
+- L'inspecteur dispose **toujours** d'une clé API (Anthropic, Groq ou Gemini — au minimum une)
+- Si aucune clé API n'est configurée → upload fonctionne normalement, analyse silencieusement ignorée (cas exceptionnel)
 - Si erreur IA → toast discret, upload préservé, aucun blocage
-- Groq ne supporte pas la vision → fallback automatique vers un provider vision compatible (Gemini, OpenAI, Anthropic)
+- Groq ne supporte pas la vision → fallback automatique vers le premier provider vision disponible (Gemini, OpenAI, Anthropic dans cet ordre)
+- Architecture extensible : la liste des providers vision est définie dans un tableau pour faciliter l'ajout de futurs providers
 - `sanitizeHTML()` sur toute réponse IA insérée dans le DOM
 
 ---
@@ -75,9 +77,13 @@ Ajoutée dans `ai_agents.js` avant la fermeture `};`, après `generateFullReport
 
 ### Logique
 1. Vérifie qu'une clé API est configurée — si non, retourne `null` silencieusement
-2. Détermine le provider à utiliser :
-   - Si provider actif = `'groq'` → utilise `'gemini'` en fallback (Groq ne supporte pas la vision)
-   - Sinon → utilise le provider actif
+2. Détermine le provider vision à utiliser :
+   ```js
+   const VISION_PROVIDERS = ['anthropic', 'gemini', 'openai']; // extensible
+   const activeProvider = localStorage.getItem('inspectpro_api_provider') || 'gemini';
+   const visionProvider = VISION_PROVIDERS.includes(activeProvider) ? activeProvider : VISION_PROVIDERS[0];
+   ```
+   Si le provider actif ne supporte pas la vision (ex: Groq), utilise le premier provider vision disponible dans `VISION_PROVIDERS`. Ajouter un nouveau provider vision = ajouter son nom dans ce tableau.
 3. Construit le prompt vision :
 ```
 Tu es un inspecteur en bâtiment certifié RBQ au Québec.
