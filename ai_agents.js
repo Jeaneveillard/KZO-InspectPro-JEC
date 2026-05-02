@@ -1010,6 +1010,82 @@ const AIAgents = {
             niveauGlobal: agent2Result.niveau_global || 'INCONNU',
             recommandationPrincipale: agent2Result.recommandation_principale || ''
         };
+    },
+
+    // Génère une synthèse narrative pour une section d'inspection
+    generateSectionSynthesis: async function(section, sectionIndex) {
+        const defauts = [];
+        const surveiller = [];
+        let conformeCount = 0;
+
+        section.subSections.forEach(sub => {
+            sub.fields.forEach(f => {
+                if (f.type !== 'checkbox') return;
+                const state = (inspectionData.fieldStates || {})[f.id];
+                if (state === 'defaut') defauts.push(f.label);
+                else if (state === 'surveiller') surveiller.push(f.label);
+                else if (state === 'conforme') conformeCount++;
+            });
+        });
+
+        const secKey = 'section_' + sectionIndex;
+        const notesUnit = (inspectionData.sectionComments || {})[secKey];
+        const notesExistantes = notesUnit ? (notesUnit.text || '') : '';
+
+        if (defauts.length === 0 && surveiller.length === 0) {
+            return `Section "${section.title}" — Aucun défaut ni élément à surveiller n'a été coché. Tous les éléments visibles et accessibles apparaissent en état général satisfaisant au moment de l'inspection.`;
+        }
+
+        const parts = [];
+        if (defauts.length > 0) parts.push(`Défauts détectés (${defauts.length}) : ${defauts.join(' / ')}`);
+        if (surveiller.length > 0) parts.push(`Éléments à surveiller (${surveiller.length}) : ${surveiller.join(' / ')}`);
+        if (conformeCount > 0) parts.push(`Éléments conformes : ${conformeCount}`);
+        if (notesExistantes) parts.push(`Notes de l'inspecteur : ${notesExistantes}`);
+
+        const prompt = `Tu es un inspecteur en bâtiment certifié RBQ au Québec, rédigeant un rapport selon la norme REIBH 2024 et BNQ 3009-500.\n\nSection inspectée : "${section.title}"\n${parts.join('\n')}\n\nRédige un paragraphe de synthèse professionnel en français québécois (voix impersonnelle, style AIBQ) qui :\n1. Décrit les défauts observés et leur nature\n2. Évalue la sévérité globale (URGENT / MAJEUR / À SURVEILLER selon la gravité)\n3. Recommande les actions correctives et le type de spécialiste à consulter\n4. Conclut par : "Cette observation est basée sur une inspection visuelle et non destructive selon REIBH 2024."\n\nLongueur : 150 à 250 mots. Ton : factuel, professionnel, non alarmiste. Ne pas inventer de défauts non mentionnés.`;
+
+        return await AIAgents.askAssistant(prompt);
+    },
+
+    // Génère un rapport narratif complet de toute l'inspection
+    generateFullReport: async function() {
+        const clientName = inspectionData.clientInfo.name || 'Client';
+        const address = inspectionData.clientInfo.address || 'Adresse non renseignée';
+        const inspectorName = inspectionData.clientInfo.inspectorName || 'Inspecteur';
+        const inspDate = inspectionData['inspection_date'] || new Date().toLocaleDateString('fr-CA');
+        const propType = (typeof document !== 'undefined' && document.getElementById('prop_type'))
+            ? document.getElementById('prop_type').value || 'Non précisé'
+            : 'Non précisé';
+        const norme = (typeof document !== 'undefined' && document.getElementById('norme_pratique'))
+            ? document.getElementById('norme_pratique').value || 'REIBH 2024'
+            : 'REIBH 2024';
+
+        const sectionsResume = [];
+        let hasAnyField = false;
+
+        inspectionData.sections.forEach((section, idx) => {
+            if (section.id === 's_cover' || section.id === 's_admin') return;
+            const defauts = [], surveiller = [];
+            section.subSections.forEach(sub => {
+                sub.fields.forEach(f => {
+                    if (f.type !== 'checkbox') return;
+                    const state = (inspectionData.fieldStates || {})[f.id];
+                    if (state === 'defaut') { defauts.push(f.label); hasAnyField = true; }
+                    else if (state === 'surveiller') { surveiller.push(f.label); hasAnyField = true; }
+                });
+            });
+            if (defauts.length > 0 || surveiller.length > 0) {
+                sectionsResume.push(`## ${section.title}\n- Défauts (${defauts.length}) : ${defauts.join(' / ') || 'aucun'}\n- Surveillance (${surveiller.length}) : ${surveiller.join(' / ') || 'aucun'}`);
+            }
+        });
+
+        if (!hasAnyField) {
+            return 'Aucun champ n\'a été renseigné. Veuillez remplir au moins une section d\'inspection avant de générer le rapport narratif.';
+        }
+
+        const prompt = `Tu es un inspecteur en bâtiment certifié RBQ au Québec, rédigeant le rapport final selon REIBH 2024 et BNQ 3009-500.\n\nInformations générales :\n- Client : ${clientName}\n- Adresse : ${address}\n- Date : ${inspDate}\n- Inspecteur : ${inspectorName}\n- Type de bâtiment : ${propType}\n- Norme de pratique : ${norme}\n\nRésumé de l'inspection par section :\n${sectionsResume.join('\n\n')}\n\nGénère un rapport narratif complet comprenant :\n1. Introduction (nature visuelle non invasive, portée de l'inspection)\n2. Synthèse par section (un paragraphe par section avec défauts et recommandations)\n3. Points critiques prioritaires classés URGENT > MAJEUR > À SURVEILLER\n4. Conclusion et recommandations générales\n5. Mention légale REIBH 2024\n\nStyle : voix impersonnelle, factuelle, professionnelle. Langue : français québécois. Longueur : 500 à 800 mots. Ne pas inventer de défauts non mentionnés.`;
+
+        return await AIAgents.askAssistant(prompt);
     }
 
 };
