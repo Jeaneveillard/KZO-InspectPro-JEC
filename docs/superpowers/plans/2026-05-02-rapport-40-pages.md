@@ -1,94 +1,35 @@
-# Rapport 40+ Pages — Plan d'implémentation
+# Rapport 40+ Pages — Plan d'implémentation (v2)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Transformer le rapport PDF en un document professionnel 40+ pages avec pages légales pré-remplies, documents signés intégrés, table des matières, et sections d'inspection en flux continu sans sauts de page forcés.
+**Goal:** Transformer le rapport PDF en 40+ pages : table des matières auto-générée, description narrative de la maison, formulaires légaux uploadés par l'inspecteur (toujours ou conditionnels selon case à cocher), sections d'inspection en flux continu sans sauts de page forcés.
 
-**Architecture:** `legal_docs.js` (nouveau) contient les textes légaux de l'inspecteur. `boilerplate.js` reçoit 4 nouvelles fonctions de page. `data.js` reçoit 7 nouveaux champs dans `s_admin`. `app.js` réorganise l'ordre des pages et supprime les `class="page-break"` des divs de section pour un flux continu.
+**Architecture:** `boilerplate.js` reçoit 3 nouvelles fonctions. `data.js` reçoit les champs upload + checkbox dans `s_admin`. `app.js` gère les handlers upload (base64 → `inspectionData.clientInfo`) et réorganise `generateReport()`. Pas de nouveau fichier JS.
 
-**Tech Stack:** JavaScript vanilla, HTML/CSS inline, `window.print()` pour PDF, localStorage, base64 pour images uploadées.
+**Tech Stack:** JavaScript vanilla, HTML/CSS inline, `window.print()` PDF, base64 via `compressImage()` existant.
 
 ---
 
 ## Fichiers modifiés
 
-| Fichier | Rôle |
-|---------|------|
-| `legal_docs.js` | **CRÉER** — objet `LEGAL_DOCS` avec 6 textes légaux (placeholders) |
-| `data.js` | Ajouter 7 champs dans `ss_admin_2` |
-| `boilerplate.js` | Ajouter 4 fonctions : `tableDesMatières`, `ficheDescriptionMaison`, `pageDocumentsRecus`, `pageDocumentLegal` |
-| `app.js` | Handlers upload nouveaux champs + réorganisation ordre pages + suppression page-break sections |
-| `KZO_Inspect.html` | Ajout `<script src="legal_docs.js">` + bump `?v=N` |
+| Fichier | Modifications |
+|---------|--------------|
+| `data.js` | +11 champs dans `ss_admin_2` (uploads + checkboxes) |
+| `boilerplate.js` | +3 fonctions : `tableDesMatières`, `ficheDescriptionMaison`, `pageDocumentUpload` |
+| `app.js` | Handlers upload nouveaux champs + réorganisation `generateReport()` + suppression `class="page-break"` sections |
+| `KZO_Inspect.html` | Bump `?v=N` sur `boilerplate.js`, `app.js`, `data.js` |
 | `sw.js` | Bump `CACHE_NAME` v16 → v17 |
 
 ---
 
-## Task 1 : Créer `legal_docs.js`
-
-**Files:**
-- Create: `C:/Users/jeane/Desktop/Amboul/JEC/legal_docs.js`
-
-- [ ] **Étape 1 — Créer le fichier**
-
-Créer `C:/Users/jeane/Desktop/Amboul/JEC/legal_docs.js` avec ce contenu exact :
-
-```js
-// ================================================================
-//  JEC / KZO InspectPro — Documents légaux de l'inspecteur
-//  Remplacez chaque [COLLER TON TEXTE ICI] par votre texte.
-//  Ce fichier ne doit PAS être versionné s'il contient des
-//  informations confidentielles — ajoutez-le au .gitignore si besoin.
-// ================================================================
-
-const LEGAL_DOCS = {
-
-    // Page 2 du rapport — Lettre de remerciement
-    lettreRemerciement: `[COLLER VOTRE LETTRE DE REMERCIEMENT ICI]`,
-
-    // Page 6 — Clause du contrat
-    clauseContrat: `[COLLER LE TEXTE DE LA CLAUSE DU CONTRAT ICI]`,
-
-    // Page 7 — Contrat d'inspection
-    contratInspection: `[COLLER LE TEXTE DU CONTRAT D'INSPECTION ICI]`,
-
-    // Page 8 — Contrat client
-    contratClient: `[COLLER LE TEXTE DU CONTRAT CLIENT ICI]`,
-
-    // Page 9 — Déclaration de conflit d'intérêt
-    declarationConflitInteret: `[COLLER LE TEXTE DE LA DÉCLARATION DE CONFLIT D'INTÉRÊT ICI]`,
-
-    // Page 10 — Formulaire de limitations
-    formulaireLimitations: `[COLLER LE TEXTE DU FORMULAIRE DE LIMITATIONS ICI]`
-
-};
-```
-
-- [ ] **Étape 2 — Vérifier**
-
-Confirmer que le fichier existe :
-```bash
-ls "C:/Users/jeane/Desktop/Amboul/JEC/legal_docs.js"
-```
-Résultat attendu : le fichier est listé.
-
-- [ ] **Étape 3 — Commit**
-
-```bash
-cd "C:/Users/jeane/Desktop/Amboul/JEC"
-git add legal_docs.js
-git commit -m "feat: ajout legal_docs.js avec placeholders documents légaux inspecteur"
-```
-
----
-
-## Task 2 : Nouveaux champs dans `data.js`
+## Task 1 : Nouveaux champs dans `data.js`
 
 **Files:**
 - Modify: `C:/Users/jeane/Desktop/Amboul/JEC/data.js`
 
-- [ ] **Étape 1 — Lire data.js**
+- [ ] **Étape 1 — Lire data.js et localiser ss_admin_2**
 
-Lire `data.js`. Localiser la sous-section `ss_admin_2` :
+Lire `data.js`. Trouver :
 ```js
 { id: "ss_admin_2", title: "Pièces jointes & Synchronisation", fields: [
     { id: "client_docs", type: "file", label: "Déclaration du vendeur / Documents remis" },
@@ -96,52 +37,68 @@ Lire `data.js`. Localiser la sous-section `ss_admin_2` :
 ]}
 ```
 
-- [ ] **Étape 2 — Ajouter les 7 nouveaux champs**
+- [ ] **Étape 2 — Remplacer ss_admin_2 par la version enrichie**
 
-Remplacer le bloc `ss_admin_2` par :
+Remplacer le bloc `ss_admin_2` entier par :
 ```js
 { id: "ss_admin_2", title: "Pièces jointes & Synchronisation", fields: [
-    { id: "description_narrative", type: "text", label: "Description narrative de la propriété avant inspection", placeholder: "Décrivez l'état général apparent, les conditions d'accès, les limitations observées avant l'inspection..." },
-    { id: "client_docs", type: "file", label: "📎 Documents reçus (déclaration vendeur, plans, etc.)" },
-    { id: "doc_clause_signe", type: "file", label: "✍️ Clause du contrat — scan signé (inspecteur)" },
-    { id: "doc_contrat_signe", type: "file", label: "✍️ Contrat d'inspection — scan signé (inspecteur + client)" },
-    { id: "doc_contrat_client_signe", type: "file", label: "✍️ Contrat client — scan signé (client)" },
-    { id: "doc_conflit_signe", type: "file", label: "✍️ Déclaration conflit d'intérêt — scan signé (inspecteur)" },
-    { id: "doc_limitations_signe", type: "file", label: "✍️ Formulaire de limitations — scan signé (inspecteur + client)" },
+    { id: "description_narrative", type: "text",
+      label: "Description narrative de la propriété avant inspection",
+      placeholder: "État général apparent, conditions d'accès, limitations observées avant l'inspection..." },
+    { id: "doc_lettre_remerciement", type: "file",
+      label: "📄 Lettre de remerciement — votre formulaire (photo/scan)" },
+    { id: "client_docs", type: "file",
+      label: "📎 Documents reçus (déclaration vendeur, plans, etc.)" },
+    { id: "doc_clause_contrat", type: "file",
+      label: "📄 Clause du contrat — votre formulaire (photo/scan)" },
+    { id: "doc_contrat_inspection", type: "file",
+      label: "📄 Contrat d'inspection — votre formulaire (photo/scan)" },
+    { id: "include_contrat_client", type: "checkbox",
+      label: "Inclure le contrat client dans le rapport" },
+    { id: "doc_contrat_client", type: "file",
+      label: "📄 Contrat client — votre formulaire (photo/scan)" },
+    { id: "include_conflit_interet", type: "checkbox",
+      label: "Inclure la déclaration de conflit d'intérêt" },
+    { id: "doc_conflit_interet", type: "file",
+      label: "📄 Déclaration conflit d'intérêt — votre formulaire (photo/scan)" },
+    { id: "include_limitations", type: "checkbox",
+      label: "Inclure le formulaire de limitations" },
+    { id: "doc_limitations", type: "file",
+      label: "📄 Formulaire de limitations — votre formulaire (photo/scan)" },
     { id: "sync_status", type: "action", label: "🔄 Forcer la sauvegarde locale" }
 ]}
 ```
 
 - [ ] **Étape 3 — Vérifier**
 
-Lire les lignes modifiées dans `data.js` et confirmer que les 7 champs sont présents dans `ss_admin_2` avec les bons `id`.
+Lire le bloc `ss_admin_2` modifié et confirmer que les 11 nouveaux champs + `sync_status` sont présents.
 
 - [ ] **Étape 4 — Commit**
 
 ```bash
 cd "C:/Users/jeane/Desktop/Amboul/JEC"
 git add data.js
-git commit -m "feat: ajout 7 champs s_admin (description narrative + 5 uploads documents signés)"
+git commit -m "feat: +11 champs s_admin (uploads formulaires + checkboxes conditionnels)"
 ```
 
 ---
 
-## Task 3 : 4 nouvelles fonctions dans `boilerplate.js`
+## Task 2 : 3 nouvelles fonctions dans `boilerplate.js`
 
 **Files:**
 - Modify: `C:/Users/jeane/Desktop/Amboul/JEC/boilerplate.js`
 
 - [ ] **Étape 1 — Lire la fin de boilerplate.js**
 
-Lire les 20 dernières lignes de `boilerplate.js`. Localiser la fermeture de l'objet BOILERPLATE :
+Lire les 10 dernières lignes de `boilerplate.js`. Identifier la fermeture :
 ```js
     }
 };
 ```
 
-- [ ] **Étape 2 — Ajouter les 4 nouvelles fonctions**
+- [ ] **Étape 2 — Ajouter les 3 fonctions avant `};`**
 
-Remplacer la fermeture `};` finale par :
+Remplacer la fermeture `};` par :
 
 ```js
     },
@@ -149,27 +106,29 @@ Remplacer la fermeture `};` finale par :
     // Table des matières auto-générée
     tableDesMatières: function(sections) {
         const items = [
-            'Lettre de remerciement',
-            'Table des matières',
-            'Description de la propriété',
-            'Documents reçus',
-            'Clause du contrat',
-            'Contrat d\'inspection',
-            'Contrat client',
-            'Déclaration de conflit d\'intérêt',
-            'Formulaire de limitations',
-            'Rapport d\'inspection'
+            { label: 'Lettre de remerciement', indent: false },
+            { label: 'Table des matières', indent: false },
+            { label: 'Description de la propriété', indent: false },
+            { label: 'Documents reçus', indent: false },
+            { label: 'Clause du contrat', indent: false },
+            { label: "Contrat d'inspection", indent: false },
+            { label: 'Contrat client', indent: false },
+            { label: "Déclaration de conflit d'intérêt", indent: false },
+            { label: 'Formulaire de limitations', indent: false },
+            { label: "Rapport d'inspection", indent: false }
         ];
         sections.forEach(s => {
             if (s.id === 's_cover' || s.id === 's_admin') return;
-            items.push('  — ' + s.title);
+            items.push({ label: s.title, indent: true });
         });
-        items.push('Guide d\'entretien');
-        items.push('Annexe — Normes de pratique');
+        items.push({ label: "Guide d'entretien", indent: false });
+        items.push({ label: 'Annexe — Normes de pratique', indent: false });
 
-        const rows = items.map((item, i) =>
+        const rows = items.map(item =>
             `<tr style="border-bottom:1px solid #f1f5f9;">
-                <td style="padding:10px 16px; color:${item.startsWith('  —') ? '#475569' : '#0f172a'}; font-size:${item.startsWith('  —') ? '0.9rem' : '1rem'}; font-weight:${item.startsWith('  —') ? '400' : '600'};">${item.replace(/^  — /, '↳ ')}</td>
+                <td style="padding:${item.indent ? '8px 16px 8px 32px' : '12px 16px'}; color:${item.indent ? '#475569' : '#0f172a'}; font-size:${item.indent ? '0.9rem' : '1rem'}; font-weight:${item.indent ? '400' : '600'};">
+                    ${item.indent ? '↳ ' : ''}${item.label}
+                </td>
             </tr>`
         ).join('');
 
@@ -181,16 +140,15 @@ Remplacer la fermeture `};` finale par :
         </div>`;
     },
 
-    // Fiche description maison + paragraphe narratif
+    // Fiche description de la propriété + paragraphe narratif
     ficheDescriptionMaison: function(infos) {
         const { typeBatiment, typeGarage, superficie, annee, meteo, temperature, norme, dateInspection, narratif } = infos;
         const narratifHtml = narratif
             ? `<div style="margin-top:28px; padding:24px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;">
-                <h3 style="color:#1e40af; margin-bottom:14px; font-size:1.1rem;">Description narrative</h3>
+                <h3 style="color:#1e40af; margin-bottom:14px; font-size:1.1rem;">📝 Description narrative</h3>
                 <p style="color:#334155; line-height:1.8; font-size:0.95rem; white-space:pre-wrap;">${narratif}</p>
                </div>`
             : '';
-
         return `<div class="page-break" style="padding:50px 60px;">
             <h2 style="color:#1A56DB; border-bottom:3px solid #1A56DB; padding-bottom:12px; margin-bottom:30px; font-size:1.8rem;">Description de la propriété avant inspection</h2>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; background:#f8fafc; padding:24px; border-radius:10px; border:1px solid #e2e8f0;">
@@ -207,71 +165,16 @@ Remplacer la fermeture `};` finale par :
         </div>`;
     },
 
-    // Page documents reçus avec scan intégré
-    pageDocumentsRecus: function(scanUrl) {
-        const scanHtml = scanUrl
-            ? `<div style="margin-top:24px;">
-                <h3 style="color:#475569; font-size:1rem; margin-bottom:12px;">📎 Document joint :</h3>
-                <img src="${scanUrl}" style="width:100%; max-height:80vh; object-fit:contain; border:1px solid #e2e8f0; border-radius:8px;">
-               </div>`
-            : `<div style="margin-top:24px; padding:24px; background:#f8fafc; border:2px dashed #cbd5e1; border-radius:10px; text-align:center; color:#94a3b8; font-size:0.95rem;">
-                Aucun document joint — à ajouter via l'application avant impression
+    // Page générique pour afficher un formulaire uploadé (image pleine page)
+    pageDocumentUpload: function(titre, imageUrl) {
+        const contenu = imageUrl
+            ? `<img src="${imageUrl}" style="width:100%; max-height:88vh; object-fit:contain; border:1px solid #e2e8f0; border-radius:4px;">`
+            : `<div style="margin-top:24px; padding:40px; background:#f8fafc; border:2px dashed #cbd5e1; border-radius:10px; text-align:center; color:#94a3b8; font-size:0.95rem;">
+                Document non uploadé — à ajouter dans l'application avant impression
                </div>`;
-
-        return `<div class="page-break" style="padding:50px 60px;">
-            <h2 style="color:#1A56DB; border-bottom:3px solid #1A56DB; padding-bottom:12px; margin-bottom:30px; font-size:1.8rem;">Documents reçus</h2>
-            <p style="color:#475569; font-size:0.95rem; margin-bottom:20px; font-style:italic;">Les documents ci-joints ont été remis à l'inspecteur avant ou lors de la visite. Leur contenu n'a pas été vérifié dans le cadre de cette inspection visuelle.</p>
-            ${scanHtml}
-        </div>`;
-    },
-
-    // Template générique pour les 5 documents légaux
-    pageDocumentLegal: function(titre, texte, infos, signataires, scanUrl) {
-        const { inspectorName, clientName, address, date, prix, norme, dossierId } = infos;
-
-        const sigLines = signataires.map(s =>
-            `<div style="margin-top:30px; padding:20px; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc;">
-                <div style="font-weight:700; color:#1e293b; margin-bottom:8px;">${s.role} : ${s.nom}</div>
-                <div style="display:flex; gap:40px; margin-top:16px; align-items:flex-end;">
-                    <div style="flex:2;">
-                        <div style="border-bottom:1px solid #94a3b8; height:40px;"></div>
-                        <div style="font-size:0.8rem; color:#64748b; margin-top:4px;">Signature</div>
-                    </div>
-                    <div style="flex:1;">
-                        <div style="border-bottom:1px solid #94a3b8; height:40px;"></div>
-                        <div style="font-size:0.8rem; color:#64748b; margin-top:4px;">Date</div>
-                    </div>
-                </div>
-             </div>`
-        ).join('');
-
-        const scanHtml = scanUrl
-            ? `<div class="page-break" style="padding:20px 0;">
-                <h3 style="color:#475569; font-size:1rem; margin-bottom:12px;">✍️ Document signé :</h3>
-                <img src="${scanUrl}" style="width:100%; max-height:85vh; object-fit:contain; border:1px solid #e2e8f0; border-radius:8px;">
-               </div>`
-            : '';
-
-        return `<div class="page-break" style="padding:50px 60px;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
-                <div>
-                    <h2 style="color:#1A56DB; border-bottom:3px solid #1A56DB; padding-bottom:12px; font-size:1.8rem;">${titre}</h2>
-                </div>
-                <div style="text-align:right; font-size:0.85rem; color:#64748b; line-height:1.8;">
-                    <div>No dossier : ${dossierId || ''}</div>
-                    <div>Date : ${date}</div>
-                    <div>Norme : ${norme || 'REIBH 2024'}</div>
-                </div>
-            </div>
-            <div style="margin-bottom:20px; padding:16px; background:#f1f5f9; border-radius:8px; font-size:0.9rem; line-height:1.6;">
-                <strong>Inspecteur :</strong> ${inspectorName} &nbsp;|&nbsp;
-                <strong>Client :</strong> ${clientName} &nbsp;|&nbsp;
-                <strong>Adresse :</strong> ${address}
-                ${prix ? ` &nbsp;|&nbsp; <strong>Honoraires :</strong> ${prix}$` : ''}
-            </div>
-            <div style="white-space:pre-wrap; line-height:1.8; font-size:0.95rem; color:#1e293b; margin-bottom:30px;">${texte}</div>
-            ${sigLines}
-            ${scanHtml}
+        return `<div class="page-break" style="padding:30px 60px;">
+            <h2 style="color:#1A56DB; border-bottom:2px solid #1A56DB; padding-bottom:10px; margin-bottom:24px; font-size:1.4rem;">${titre}</h2>
+            ${contenu}
         </div>`;
     }
 
@@ -280,335 +183,228 @@ Remplacer la fermeture `};` finale par :
 
 - [ ] **Étape 3 — Vérifier la syntaxe**
 
-Lire les 30 dernières lignes de `boilerplate.js` et confirmer :
-- `tableDesMatières`, `ficheDescriptionMaison`, `pageDocumentsRecus`, `pageDocumentLegal` sont présents
-- Le fichier se termine par `};`
+Lire les 20 dernières lignes de `boilerplate.js`. Confirmer :
+- `tableDesMatières`, `ficheDescriptionMaison`, `pageDocumentUpload` présents
+- Fichier se termine par `};`
 
 - [ ] **Étape 4 — Commit**
 
 ```bash
 cd "C:/Users/jeane/Desktop/Amboul/JEC"
 git add boilerplate.js
-git commit -m "feat: 4 nouvelles fonctions boilerplate (tableDesMatières, ficheDescriptionMaison, pageDocumentsRecus, pageDocumentLegal)"
+git commit -m "feat: +3 fonctions boilerplate (tableDesMatières, ficheDescriptionMaison, pageDocumentUpload)"
 ```
 
 ---
 
-## Task 4 : Réorganisation rapport + flux continu dans `app.js`
+## Task 3 : Handlers upload dans `app.js`
 
 **Files:**
 - Modify: `C:/Users/jeane/Desktop/Amboul/JEC/app.js`
 
-Cette task est la plus importante. Elle a deux parties :
-- **4A** : Handlers pour sauvegarder les nouvelles uploads dans `inspectionData.clientInfo`
-- **4B** : Réorganiser l'ordre des pages dans `generateReport()` + supprimer page-break des sections
+Les nouveaux champs `file` dans `s_admin` doivent sauvegarder leur base64 dans `inspectionData.clientInfo[fieldId + 'Url']`, exactement comme `signatureUrl` et `sealUrl`.
 
-### Partie 4A — Handlers upload nouveaux champs
-
-- [ ] **Étape 1 — Lire le handler d'upload existant pour inspector_signature**
-
-Dans `app.js`, chercher `inspector_signature` pour comprendre le pattern de sauvegarde des fichiers. Chercher aussi `client_docs` pour voir comment les fichiers uploadés sont stockés.
+- [ ] **Étape 1 — Trouver le pattern existant pour les uploads de s_admin**
 
 ```bash
-grep -n "inspector_signature\|client_docs\|signatureUrl\|sealUrl\|inspectionData.clientInfo" "C:/Users/jeane/Desktop/Amboul/JEC/app.js" | head -20
+grep -n "inspector_signature\|inspector_seal\|signatureUrl\|sealUrl\|compressImage\|clientInfo\[" "C:/Users/jeane/Desktop/Amboul/JEC/app.js" | head -20
 ```
 
-- [ ] **Étape 2 — Trouver où ajouter les nouveaux handlers**
+Lire les lignes autour des résultats pour comprendre exactement comment les champs `file` de `s_admin` sont gérés.
 
-Chercher dans `app.js` le bloc qui gère les champs `file` de type générique dans `s_admin`. Les nouveaux champs (`doc_clause_signe`, `doc_contrat_signe`, etc.) doivent sauvegarder leur base64 dans `inspectionData.clientInfo`.
+- [ ] **Étape 2 — Identifier le bloc de rendu des champs file dans s_admin**
 
-Chercher le pattern :
-```js
-} else if (field.type === 'file') {
+Chercher dans `app.js` le gestionnaire qui traite `field.type === 'file'` pour les champs de `s_admin`. Ce bloc rend le bouton upload et déclenche `compressImage()`.
+
+```bash
+grep -n "type.*file\|field\.type.*file\|inspector_signature\|fileInput\|compressImage" "C:/Users/jeane/Desktop/Amboul/JEC/app.js" | head -30
 ```
-ou similaire dans la boucle de rendu de `s_admin`.
 
-- [ ] **Étape 3 — Ajouter la logique de sauvegarde pour les 5 nouveaux champs file**
+- [ ] **Étape 3 — Ajouter la liste des nouveaux champs à sauvegarder dans clientInfo**
 
-Dans la fonction qui gère le rendu et les événements des champs file (probablement vers ligne 800-900), après le handler existant pour `client_docs`, ajouter :
+Dans la logique de rendu/sauvegarde des champs file (probablement une condition `if (field.id === 'inspector_signature')` ou similaire), étendre le traitement pour inclure les nouveaux champs. Chercher où `inspectionData.clientInfo.signatureUrl` est assigné et dupliquer ce pattern pour :
 
 ```js
-// Sauvegarde des scans de documents légaux signés
-const SIGNED_DOC_FIELDS = ['doc_clause_signe', 'doc_contrat_signe', 'doc_contrat_client_signe', 'doc_conflit_signe', 'doc_limitations_signe', 'client_docs'];
-if (SIGNED_DOC_FIELDS.includes(field.id)) {
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*'; // compressImage() ne supporte pas les PDF
-    fileInput.id = field.id + '_input';
-    fileInput.style.display = 'none';
-    
-    const uploadBtn = document.createElement('button');
-    uploadBtn.type = 'button';
-    uploadBtn.className = 'btn secondary';
-    uploadBtn.style.cssText = 'margin-top:8px; font-size:0.85rem;';
-    uploadBtn.textContent = '📎 Choisir un fichier';
-    
-    const preview = document.createElement('div');
-    preview.style.cssText = 'margin-top:8px; font-size:0.85rem; color:#059669;';
-    
-    // Afficher si déjà uploadé
-    const existingUrl = inspectionData.clientInfo[field.id + 'Url'];
-    if (existingUrl) preview.textContent = '✅ Fichier chargé';
-    
-    uploadBtn.addEventListener('click', () => fileInput.click());
-    
-    fileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const check = validateFile(file);
-        if (!check.valid) { showToast(check.error, 'error'); return; }
-        const compressed = await compressImage(file, 1600, 0.85);
-        inspectionData.clientInfo[field.id + 'Url'] = compressed;
+const CLIENT_INFO_FILE_FIELDS = [
+    'inspector_signature', 'inspector_seal',
+    'doc_lettre_remerciement', 'client_docs',
+    'doc_clause_contrat', 'doc_contrat_inspection',
+    'doc_contrat_client', 'doc_conflit_interet', 'doc_limitations'
+];
+
+// Dans le handler de l'input file :
+if (CLIENT_INFO_FILE_FIELDS.includes(field.id)) {
+    compressImage(file).then(base64 => {
+        inspectionData.clientInfo[field.id + 'Url'] = base64;
         saveAppState();
-        preview.textContent = '✅ ' + file.name;
         showToast('Document chargé.', 'success');
     });
-    
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'margin-bottom:16px; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;';
-    wrapper.innerHTML = `<label style="font-weight:600; color:#374151; font-size:0.9rem;">${field.label}</label>`;
-    wrapper.appendChild(fileInput);
-    wrapper.appendChild(uploadBtn);
-    wrapper.appendChild(preview);
-    div.appendChild(wrapper);
-    continue; // Ne pas utiliser le rendu générique pour ces champs
 }
 ```
 
-**Note :** Si `app.js` gère déjà les champs `file` de façon générique avec upload + base64, adapter ce code pour s'intégrer au pattern existant plutôt que de le dupliquer. L'objectif est que le base64 soit stocké dans `inspectionData.clientInfo[field.id + 'Url']`.
+**Note :** Adapter ce pattern au code existant plutôt que le copier tel quel — l'objectif est que `compressImage(file)` → base64 → `inspectionData.clientInfo[field.id + 'Url']` → `saveAppState()` pour chaque nouveau champ file.
 
-- [ ] **Étape 4 — Commit 4A**
-
-```bash
-cd "C:/Users/jeane/Desktop/Amboul/JEC"
-git add app.js
-git commit -m "feat: handlers upload scans documents légaux signés → inspectionData.clientInfo"
-```
-
-### Partie 4B — Réorganiser l'ordre des pages + flux continu sections
-
-- [ ] **Étape 5 — Lire le bloc generateReport() dans app.js**
-
-Lire `app.js` de la ligne 2095 à 2425 pour voir l'ordre complet actuel des pages.
-
-- [ ] **Étape 6 — Supprimer page-break des divs de section**
-
-Dans la boucle sections (ligne ~2277), localiser :
-```js
-html += `<div class="page-break" style="padding-top: 50px;">
-         <h2 style="color: #1A56DB; margin-bottom: 20px; border-bottom: 2px solid #1A56DB; padding-bottom: 10px; font-size: 1.8rem;">${section.title}</h2>
-```
-Remplacer par (supprimer `class="page-break"`, ajouter séparateur visuel) :
-```js
-html += `<div style="padding-top: 40px; margin-top: 30px; border-top: 2px solid #e2e8f0;">
-         <h2 style="color: #1A56DB; margin-bottom: 20px; border-bottom: 2px solid #1A56DB; padding-bottom: 10px; font-size: 1.8rem;">${section.title}</h2>
-```
-
-- [ ] **Étape 7 — Réorganiser l'ordre des pages dans generateReport()**
-
-Après le bloc de la page de couverture (ligne ~2199) et avant `BOILERPLATE.facture`, remplacer tout le bloc jusqu'à `// CORPS DU RAPPORT` par le nouvel ordre :
-
-```js
-        // Préparer les infos communes pour les documents légaux
-        const legalInfos = {
-            inspectorName: safeInspectorName,
-            clientName: clientName,
-            address: address,
-            date: dateInspection,
-            prix: prix,
-            norme: safeNorme,
-            dossierId: safeDossierId
-        };
-
-        // PAGE 2 — LETTRE DE REMERCIEMENT
-        if (typeof LEGAL_DOCS !== 'undefined' && LEGAL_DOCS.lettreRemerciement) {
-            html += BOILERPLATE.lettreIntro(clientName, safeNorme, safeInspectorName, signatureUrl, sealUrl);
-        } else if (BOILERPLATE.lettreRemerciement) {
-            html += BOILERPLATE.lettreRemerciement(clientName, address, safeInspectorName,
-                sanitizeHTML(window.AppCompanyProfile ? window.AppCompanyProfile.name : 'KZO InspectPro'),
-                signatureUrl);
-        }
-
-        // PAGE 3 — TABLE DES MATIÈRES
-        if (BOILERPLATE.tableDesMatières) {
-            html += BOILERPLATE.tableDesMatières(inspectionData.sections);
-        }
-
-        // PAGE 4 — DESCRIPTION DE LA MAISON
-        if (BOILERPLATE.ficheDescriptionMaison) {
-            const narratifRaw = document.getElementById('description_narrative')?.value || '';
-            html += BOILERPLATE.ficheDescriptionMaison({
-                typeBatiment, typeGarage, superficie, annee, meteo, temperature,
-                norme: safeNorme,
-                dateInspection,
-                narratif: sanitizeHTML(narratifRaw)
-            });
-        }
-
-        // PAGE 5 — DOCUMENTS REÇUS
-        if (BOILERPLATE.pageDocumentsRecus) {
-            const docsUrl = inspectionData.clientInfo['client_docsUrl'] || null;
-            html += BOILERPLATE.pageDocumentsRecus(docsUrl);
-        }
-
-        // PAGES 6-10 — DOCUMENTS LÉGAUX
-        if (BOILERPLATE.pageDocumentLegal && typeof LEGAL_DOCS !== 'undefined') {
-            html += BOILERPLATE.pageDocumentLegal(
-                'Clause du contrat', LEGAL_DOCS.clauseContrat, legalInfos,
-                [{ role: 'Inspecteur', nom: safeInspectorName }],
-                inspectionData.clientInfo['doc_clause_signeUrl'] || null
-            );
-            html += BOILERPLATE.pageDocumentLegal(
-                "Contrat d'inspection", LEGAL_DOCS.contratInspection, legalInfos,
-                [{ role: 'Inspecteur', nom: safeInspectorName }, { role: 'Client', nom: clientName }],
-                inspectionData.clientInfo['doc_contrat_signeUrl'] || null
-            );
-            html += BOILERPLATE.pageDocumentLegal(
-                'Contrat client', LEGAL_DOCS.contratClient, legalInfos,
-                [{ role: 'Client', nom: clientName }],
-                inspectionData.clientInfo['doc_contrat_client_signeUrl'] || null
-            );
-            html += BOILERPLATE.pageDocumentLegal(
-                "Déclaration de conflit d'intérêt", LEGAL_DOCS.declarationConflitInteret, legalInfos,
-                [{ role: 'Inspecteur', nom: safeInspectorName }],
-                inspectionData.clientInfo['doc_conflit_signeUrl'] || null
-            );
-            html += BOILERPLATE.pageDocumentLegal(
-                'Formulaire de limitations', LEGAL_DOCS.formulaireLimitations, legalInfos,
-                [{ role: 'Inspecteur', nom: safeInspectorName }, { role: 'Client', nom: clientName }],
-                inspectionData.clientInfo['doc_limitations_signeUrl'] || null
-            );
-        }
-
-        // FACTURE
-        html += BOILERPLATE.facture(clientName, address, sanitizeHTML(String(prix)), safeDossierId);
-
-        // COMMENT LIRE CE RAPPORT
-        if (BOILERPLATE.commentLire) html += BOILERPLATE.commentLire;
-
-        // LOCALISATION
-        if (BOILERPLATE.localisation) html += BOILERPLATE.localisation(address);
-
-        // CONVENTIONS
-        html += BOILERPLATE.conventions;
-
-        // SOMMAIRE EXÉCUTIF
-```
-
-- [ ] **Étape 8 — Supprimer le doublon lettre de remerciement en fin de rapport**
-
-Localiser vers la ligne 2404 :
-```js
-        // LETTRE DE REMERCIEMENT
-        if (BOILERPLATE.lettreRemerciement) {
-            html += BOILERPLATE.lettreRemerciement(
-```
-Supprimer ce bloc entier (la lettre est maintenant en page 2, pas en fin de rapport).
-
-- [ ] **Étape 9 — Vérifier visuellement**
-
-Lire les lignes 2200-2430 de `app.js` et confirmer l'ordre :
-1. Lettre de remerciement / lettreIntro
-2. tableDesMatières
-3. ficheDescriptionMaison
-4. pageDocumentsRecus
-5. 5× pageDocumentLegal
-6. facture
-7. commentLire
-8. localisation
-9. conventions
-10. Sommaire exécutif
-11. Sections en flux continu (sans `class="page-break"`)
-12. attestation
-13. guideEntretien
-14. normesPratique
-
-- [ ] **Étape 10 — Commit 4B**
+- [ ] **Étape 4 — Commit handlers**
 
 ```bash
 cd "C:/Users/jeane/Desktop/Amboul/JEC"
 git add app.js
-git commit -m "feat: réorganisation rapport 40p + flux continu sections (suppression page-break)"
+git commit -m "feat: handlers upload formulaires légaux → inspectionData.clientInfo"
 ```
 
 ---
 
-## Task 5 : KZO_Inspect.html + bump versions
+## Task 4 : Réorganisation `generateReport()` + flux continu sections
+
+**Files:**
+- Modify: `C:/Users/jeane/Desktop/Amboul/JEC/app.js`
+
+- [ ] **Étape 1 — Lire generateReport() en entier**
+
+Lire `app.js` de la ligne 2095 à 2425 pour mémoriser l'ordre actuel exact des pages.
+
+- [ ] **Étape 2 — Supprimer `class="page-break"` des divs de section**
+
+Dans la boucle sections (chercher `html += \`<div class="page-break" style="padding-top: 50px;">`), remplacer par :
+```js
+html += `<div style="padding-top: 40px; margin-top: 30px; border-top: 2px solid #e2e8f0;">
+```
+
+- [ ] **Étape 3 — Ajouter les nouvelles pages AVANT la facture**
+
+Après la page de couverture (ligne ~2199) et AVANT `html += BOILERPLATE.facture(...)`, insérer le bloc suivant :
+
+```js
+        // PAGE 2 — LETTRE DE REMERCIEMENT
+        const lettreUrl = inspectionData.clientInfo['doc_lettre_remerciementUrl'] || null;
+        if (lettreUrl || BOILERPLATE.lettreRemerciement) {
+            if (lettreUrl) {
+                html += BOILERPLATE.pageDocumentUpload('Lettre de remerciement', lettreUrl);
+            } else if (BOILERPLATE.lettreRemerciement) {
+                html += BOILERPLATE.lettreRemerciement(
+                    clientName, address, safeInspectorName,
+                    sanitizeHTML(window.AppCompanyProfile ? window.AppCompanyProfile.name : 'KZO InspectPro'),
+                    signatureUrl
+                );
+            }
+        }
+
+        // PAGE 3 — TABLE DES MATIÈRES
+        html += BOILERPLATE.tableDesMatières(inspectionData.sections);
+
+        // PAGE 4 — DESCRIPTION DE LA PROPRIÉTÉ
+        const narratifRaw = document.getElementById('description_narrative')?.value || '';
+        html += BOILERPLATE.ficheDescriptionMaison({
+            typeBatiment, typeGarage, superficie, annee, meteo, temperature,
+            norme: safeNorme,
+            dateInspection,
+            narratif: sanitizeHTML(narratifRaw)
+        });
+
+        // PAGE 5 — DOCUMENTS REÇUS
+        const docsUrl = inspectionData.clientInfo['client_docsUrl'] || null;
+        if (docsUrl) html += BOILERPLATE.pageDocumentUpload('Documents reçus', docsUrl);
+
+        // PAGE 6 — CLAUSE DU CONTRAT (toujours)
+        html += BOILERPLATE.pageDocumentUpload('Clause du contrat',
+            inspectionData.clientInfo['doc_clause_contratUrl'] || null);
+
+        // PAGE 7 — CONTRAT D'INSPECTION (toujours)
+        html += BOILERPLATE.pageDocumentUpload("Contrat d'inspection",
+            inspectionData.clientInfo['doc_contrat_inspectionUrl'] || null);
+
+        // PAGE 8 — CONTRAT CLIENT (conditionnel)
+        if (unitFieldStates['include_contrat_client'] === 'conforme') {
+            html += BOILERPLATE.pageDocumentUpload('Contrat client',
+                inspectionData.clientInfo['doc_contrat_clientUrl'] || null);
+        }
+
+        // PAGE 9 — DÉCLARATION CONFLIT D'INTÉRÊT (conditionnel)
+        if (unitFieldStates['include_conflit_interet'] === 'conforme') {
+            html += BOILERPLATE.pageDocumentUpload("Déclaration de conflit d'intérêt",
+                inspectionData.clientInfo['doc_conflit_interetUrl'] || null);
+        }
+
+        // PAGE 10 — FORMULAIRE DE LIMITATIONS (conditionnel)
+        if (unitFieldStates['include_limitations'] === 'conforme') {
+            html += BOILERPLATE.pageDocumentUpload('Formulaire de limitations',
+                inspectionData.clientInfo['doc_limitationsUrl'] || null);
+        }
+```
+
+- [ ] **Étape 4 — Supprimer le doublon lettre de remerciement en fin de rapport**
+
+Chercher vers la ligne 2404 :
+```js
+        // LETTRE DE REMERCIEMENT
+        if (BOILERPLATE.lettreRemerciement) {
+```
+Supprimer ce bloc — la lettre est maintenant gérée en page 2.
+
+- [ ] **Étape 5 — Vérifier l'ordre final**
+
+Lire les lignes 2200–2430 et confirmer l'ordre :
+1. Lettre remerciement (upload ou existante)
+2. tableDesMatières
+3. ficheDescriptionMaison
+4. Documents reçus (si uploadés)
+5. Clause contrat (toujours)
+6. Contrat inspection (toujours)
+7. Contrat client (si coché)
+8. Conflit intérêt (si coché)
+9. Limitations (si coché)
+10. BOILERPLATE.facture (existant)
+11. commentLire (existant)
+12. localisation (existant)
+13. conventions (existant)
+14. Sommaire exécutif (existant)
+15. Sections flux continu (sans class="page-break")
+16. attestation (existant)
+17. guideEntretien (existant)
+18. normesPratique (existant)
+
+- [ ] **Étape 6 — Commit**
+
+```bash
+cd "C:/Users/jeane/Desktop/Amboul/JEC"
+git add app.js
+git commit -m "feat: rapport 40p — nouvelles pages + flux continu sections + pages conditionnelles"
+```
+
+---
+
+## Task 5 : Bump versions + push GitHub
 
 **Files:**
 - Modify: `C:/Users/jeane/Desktop/Amboul/JEC/KZO_Inspect.html`
 - Modify: `C:/Users/jeane/Desktop/Amboul/JEC/sw.js`
 
-- [ ] **Étape 1 — Ajouter legal_docs.js dans KZO_Inspect.html**
+- [ ] **Étape 1 — Bumper les versions dans KZO_Inspect.html**
 
-Lire `KZO_Inspect.html`. Localiser la ligne avec `<script src="config.js">` :
-```html
-<script src="config.js"></script>
-<script src="data.js?v=6"></script>
-```
-Ajouter `legal_docs.js` APRÈS `config.js` et AVANT `data.js` :
-```html
-<script src="config.js"></script>
-<script src="legal_docs.js"></script>
-<script src="data.js?v=6"></script>
-```
+Lire `KZO_Inspect.html`. Incrémenter de +1 :
+- `boilerplate.js?v=N`
+- `app.js?v=N`
+- `data.js?v=N`
 
-- [ ] **Étape 2 — Bumper les versions des fichiers modifiés**
+- [ ] **Étape 2 — Bumper CACHE_NAME dans sw.js**
 
-Dans `KZO_Inspect.html`, incrémenter de +1 :
-- `boilerplate.js?v=N` → `v=N+1`
-- `app.js?v=N` → `v=N+1`
-- `data.js?v=N` → `v=N+1`
-
-- [ ] **Étape 3 — Bumper CACHE_NAME dans sw.js**
-
-Dans `sw.js` ligne 1 :
 ```js
+// Avant :
 const CACHE_NAME = 'kzo-inspect-v16';
-```
-Remplacer par :
-```js
+// Après :
 const CACHE_NAME = 'kzo-inspect-v17';
 ```
 
-Ajouter `legal_docs.js` dans la liste `ASSETS` de `sw.js` :
-```js
-const ASSETS = [
-  '/',
-  'index.html',
-  'KZO_Inspect.html',
-  'style.css',
-  'app.js',
-  'data.js',
-  'ai_agents.js',
-  'boilerplate.js',
-  'legal_docs.js',     // ← AJOUTER
-  'templates.js',
-  'house_bg.png',
-  'icon-192.png',
-  'icon-512.png',
-  'manifest.json'
-];
-```
+- [ ] **Étape 3 — Vérifier**
 
-- [ ] **Étape 4 — Vérifier**
+Confirmer dans `KZO_Inspect.html` que les 3 balises script sont incrémentées.
+Confirmer dans `sw.js` que `CACHE_NAME = 'kzo-inspect-v17'`.
 
-Lire les balises script dans `KZO_Inspect.html` et confirmer :
-- `legal_docs.js` chargé entre `config.js` et `data.js`
-- Versions de `boilerplate.js`, `app.js`, `data.js` incrémentées
-- `sw.js` : `CACHE_NAME = 'kzo-inspect-v17'` et `legal_docs.js` dans `ASSETS`
-
-- [ ] **Étape 5 — Commit final**
+- [ ] **Étape 4 — Commit et push**
 
 ```bash
 cd "C:/Users/jeane/Desktop/Amboul/JEC"
 git add KZO_Inspect.html sw.js
-git commit -m "chore: ajout legal_docs.js dans HTML + bump cache PWA v16→v17"
-```
-
-- [ ] **Étape 6 — Push GitHub**
-
-```bash
-cd "C:/Users/jeane/Desktop/Amboul/JEC"
+git commit -m "chore: bump cache PWA v16→v17 + versions scripts rapport 40 pages"
 git push
 ```
