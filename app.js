@@ -2579,6 +2579,9 @@ Réponds en français.`;
         `;
 
         // CORPS DU RAPPORT
+        // Map fieldId → numéro global #N pour les badges
+        const _defectNumMap = {};
+        (_numberedDefects || []).forEach(d => { _defectNumMap[d.fieldId] = d.num; });
         let defectCount = 0;
         inspectionData.sections.forEach(section => {
             if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport') return;
@@ -2613,6 +2616,7 @@ Réponds en français.`;
                                 <div style="margin-bottom: 25px; padding: 25px; background: ${bgClass}; border-left: 6px solid ${color}; border-radius: 8px; page-break-inside: avoid;">
                                     <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 15px;">
                                         <span style="background: ${color}; color: white; padding: 4px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; white-space: nowrap;">❌ ${severity}</span>
+                                        ${_defectNumMap[field.id] ? `<span style="background: #0f172a; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.82rem; font-weight: 700; white-space: nowrap;">#${_defectNumMap[field.id]}</span>` : ''}
                                         <strong style="font-size: 1.1rem; color: #0f172a;">${field.label}</strong>
                                     </div>
                                     <p style="color: #334155; font-size: 0.95rem; line-height: 1.7; margin-bottom: 15px;">${narrative}</p>
@@ -2624,6 +2628,7 @@ Réponds en français.`;
                                 <div style="margin-bottom: 16px; padding: 18px; background: #fffbeb; border-left: 5px solid #d97706; border-radius: 8px;">
                                     <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px;">
                                         <span style="background: #d97706; color: white; padding: 3px 10px; border-radius: 4px; font-size: 0.82rem; font-weight: bold; white-space: nowrap;">⚠️ À SURVEILLER</span>
+                                        ${_defectNumMap[field.id] ? `<span style="background: #0f172a; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 700;">#${_defectNumMap[field.id]}</span>` : ''}
                                         <span style="color: #0f172a; font-size: 0.95rem;">${field.label}</span>
                                     </div>
                                     <div style="font-size: 0.88rem; color: #78350f; margin-top: 6px;"><strong>Suggestion :</strong> ${reco}</div>
@@ -2701,6 +2706,23 @@ Réponds en français.`;
                         ${secC.severity ? `<span style="background:${sevColors[secC.severity]||'#64748b'}; color:white; padding:3px 10px; border-radius:10px; font-size:0.82rem; font-weight:700;">${sevLabels[secC.severity]||secC.severity}</span>` : ''}
                     </div>
                     ${secC.text ? `<p style="color:#1e293b; font-size:0.95rem; line-height:1.7; margin:0; white-space:pre-wrap;">${sanitizeHTML(secC.text)}</p>` : ''}
+                </div>`;
+            }
+
+            // Ligne durée de vie si la section contient des champs d'âge mappés
+            const _sectionLifespan = _lifespanItems.filter(item =>
+                section.subSections.some(sub =>
+                    (sub.fields || []).some(f =>
+                        (f.id === 'ce_age' && item.label.includes('Chauffe')) ||
+                        (f.id === 'c_age' && item.label.includes('Fournaise')) ||
+                        (f.id === 'to_age' && item.label.includes('Couverture'))
+                    )
+                )
+            );
+            if (_sectionLifespan.length > 0) {
+                html += `<div style="margin-top: 20px; padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+                    <div style="font-weight: 700; color: #065f46; margin-bottom: 10px; font-size: 0.95rem;">🔧 Durée de vie estimée</div>
+                    ${_sectionLifespan.map(item => `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 0.88rem;"><span style="color: #1e293b; font-weight: 600;">${sanitizeHTML(item.label)}${item.age ? ' · ' + item.age + ' ans' : ''}</span><span style="background: ${item.badgeColor}; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.78rem; font-weight: 700;">${sanitizeHTML(item.badge)}</span><span style="color: #64748b; font-size: 0.82rem;">→ Consulter un ${sanitizeHTML(item.specialist)}</span></div>`).join('')}
                 </div>`;
             }
 
