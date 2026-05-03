@@ -2591,17 +2591,29 @@ Réponds en français.`;
 
     // --- Persistence Globale (Offline Support) ---
     function saveAppState() {
+        // Sauvegarde localStorage (fallback)
         try {
             const toSave = {
                 clientInfo: inspectionData.clientInfo,
                 id: inspectionData.id,
-                // Données multi-unités (fieldStates, comments, sectionComments, sectionPhotos
-                // sont stockés dans units — pas besoin de les dupliquer)
                 units: inspectionData.units,
                 currentUnitId: inspectionData.currentUnitId
             };
             localStorage.setItem('kzo_inspection_data', JSON.stringify(toSave));
-        } catch(e) { console.error("Erreur sauvegarde", e); }
+        } catch(e) { console.error('[saveAppState] localStorage:', e); }
+
+        // Sauvegarde IndexedDB (primaire)
+        if (window.currentProjectId && window.KZOStorage) {
+            const snapshot = {
+                clientInfo: inspectionData.clientInfo,
+                id: inspectionData.id,
+                units: inspectionData.units,
+                currentUnitId: inspectionData.currentUnitId,
+                rapportNarratifIA: inspectionData.rapportNarratifIA || ''
+            };
+            KZOStorage.saveProject(window.currentProjectId, snapshot)
+                .catch(e => console.warn('[saveAppState] IndexedDB:', e));
+        }
     }
 
     function loadAppState() {
