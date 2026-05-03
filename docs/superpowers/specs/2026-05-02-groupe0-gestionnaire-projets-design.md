@@ -67,7 +67,7 @@ L'objet `inspectionData` actuel en localStorage est migré automatiquement au pr
 | `KZO_Inspect.html` | **Modifié** | Bouton "💾 Sauvegarder et quitter" dans top-bar |
 | `sw.js` | **Modifié** | Bump cache v18, ajoute `storage.js` |
 
-Dépendance externe : **JSZip** (CDN `https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js`) pour export/import `.kzo`.
+Dépendance externe : **JSZip** — télécharger `jszip.min.js` localement dans le dossier du projet (ne pas utiliser CDN — l'app doit fonctionner hors-ligne). Ajouter `jszip.min.js` dans le cache `sw.js`.
 
 ---
 
@@ -78,7 +78,7 @@ API publique exposée sur `window.KZOStorage` :
 ```js
 KZOStorage.openDB()                          // → Promise<IDBDatabase>
 KZOStorage.listProjects()                    // → Promise<Project[]> triés par updatedAt desc
-KZOStorage.saveProject(id, data, progress)  // → Promise<void>
+KZOStorage.saveProject(id, data, progress, status?)  // → Promise<void> — status défaut: 'en_cours'
 KZOStorage.loadProject(id)                  // → Promise<Project>
 KZOStorage.deleteProject(id)               // → Promise<void> (projets + photos)
 KZOStorage.savePhotos(projectId, subId, photos[])  // → Promise<void>
