@@ -265,6 +265,7 @@ window.KZOStorage = (function () {
             const existing = await loadProject(id);
             if (!existing) {
                 await saveProject(id, parsed, undefined, 'en_cours');
+                localStorage.removeItem('kzo_inspection_data');
                 console.log('[KZOStorage] Migration localStorage → IndexedDB :', id);
             }
             return id;
