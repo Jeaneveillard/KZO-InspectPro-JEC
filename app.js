@@ -156,11 +156,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const _savedProject = await KZOStorage.loadProject(window.currentProjectId);
             if (_savedProject && _savedProject.data) {
-                Object.assign(inspectionData, _savedProject.data);
+                const d = _savedProject.data;
+                if (d.clientInfo && typeof d.clientInfo === 'object') inspectionData.clientInfo = d.clientInfo;
+                if (Array.isArray(d.units) && d.units.length > 0) inspectionData.units = d.units;
+                if (d.currentUnitId) inspectionData.currentUnitId = d.currentUnitId;
+                if (d.rapportNarratifIA) inspectionData.rapportNarratifIA = d.rapportNarratifIA;
                 inspectionData.id = window.currentProjectId;
             }
         } catch (e) {
             console.warn('[app.js] Chargement projet IndexedDB échoué:', e);
+            showToast('Projet non chargé — données temporaires', 'warning');
         }
     } else if (_isNewProject) {
         inspectionData.id = window.currentProjectId;
