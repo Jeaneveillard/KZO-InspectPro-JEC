@@ -1071,7 +1071,7 @@ Règles :
         if (/toiture|bardeau|gouttière|solin|membrane élasto|tôle|couverture|charpente.*toit/.test(l)) return 'Couvreur certifié';
         if (/électricité|électrique|filage|panneau|disjoncteur|gfci|afci|ddft|aluminium|câblage|circuit|exposition.*fil/.test(l)) return 'Électricien licencié RBQ';
         if (/plomberie|chauffe.eau|tuyau|fuite|drain|soupape|puits|fosse|renvoi|pompe|puisard/.test(l)) return 'Plombier maître';
-        if (/chauffage|fournaise|thermopompe|vrc|échangeur|combustion| co |chaudière|cvac|filtre.*air/.test(l)) return 'Technicien CVAC certifié';
+        if (/chauffage|fournaise|thermopompe|vrc|échangeur|combustion|\bco\b|chaudière|cvac|filtre.*air/.test(l)) return 'Technicien CVAC certifié';
         if (/amiante|vermiculite|radon|plomb|contamination|mazout|formaldéhyde|cov/.test(l)) return 'Spécialiste en matières dangereuses';
         if (/cheminée|foyer|fumée|tirage|liner|chemisage|chapeau.*cheminée|solin.*cheminée/.test(l)) return 'Ramoneur certifié WETT';
         if (/fenêtre|porte.*ext|calfeutrage|thermos|vitrage|chambranle|egress/.test(l)) return 'Menuisier ou vitrier';
