@@ -32,3 +32,4 @@ yarn-error.log*
 .claude/worktrees/
 .claude/settings.local.json
 .claude/todo.json
+.superpowers/
