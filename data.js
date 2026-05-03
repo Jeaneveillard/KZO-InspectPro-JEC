@@ -5,6 +5,7 @@ const inspectionData = {
     sectionPhotos: {},
     comments: {},
     sectionComments: {},
+    rapportNarratifIA: '',
     sections: [
         { id: "s_cover", title: "Photo Principale", key: "cover", icon: "📸", isCoverPage: true,
           subSections: [{ id: "ss_cover_1", title: "Photo de la Façade", fields: [{ id: "cover_photo", type: "file", label: "Photo principale (Façade)" }] }]
