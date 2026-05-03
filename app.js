@@ -226,6 +226,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!inspectionData.fieldStates) inspectionData.fieldStates = {};
     if (!inspectionData.sectionPhotos) inspectionData.sectionPhotos = {};
 
+    // Auto-génération du code d'inspection sur nouvelle inspection
+    if (_isNewProject && !inspectionData.fieldStates['inspection_code']) {
+        inspectionData.fieldStates['inspection_code'] = window.currentProjectId || ('KZO-' + Date.now().toString().slice(-5));
+        saveAppState();
+    }
+
     // ============================================================
     //  PROXY MULTI-UNITÉS
     //  Redirige inspectionData.fieldStates vers l'unité active
