@@ -119,6 +119,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Sauvegarde explicite et retour à l'accueil
     async function saveAndQuit() {
+        const _btn1 = document.getElementById('saveQuitBtn');
+        const _btn2 = document.getElementById('saveQuitSidebarBtn');
+        [_btn1, _btn2].forEach(b => { if (b) b.disabled = true; });
         if (window.currentProjectId && window.KZOStorage) {
             try {
                 const snapshot = {
@@ -133,6 +136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 setTimeout(() => { window.location.href = 'index.html'; }, 1200);
             } catch (e) {
                 showToast('Erreur sauvegarde : ' + e.message, 'error');
+                [_btn1, _btn2].forEach(b => { if (b) b.disabled = false; });
             }
         } else {
             window.location.href = 'index.html';
