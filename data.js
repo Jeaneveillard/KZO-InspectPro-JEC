@@ -27,7 +27,9 @@ const inspectionData = {
                 { id: "prop_garage", type: "select", label: "Type de garage", options: ["Aucun garage","Garage simple attaché","Garage double attaché","Garage simple détaché","Garage double détaché","Stationnement intérieur (Condo)"] },
                 { id: "norme_pratique", type: "select", label: "Norme de pratique légale", options: ["REIBH 2024 (Règlement sur les inspecteurs en bâtiment — Québec)","AIBQ (Association des inspecteurs en bâtiment du Québec)","Réseau IBC (Inspecteurs en Bâtiment Certifiés)","InterNACHI","Norme Nationale (CSA A770-23)","RBQ (Régie du bâtiment du Québec)"] },
                 { id: "prop_weather", type: "select", label: "Météo lors de l'inspection", options: ["Ensoleillé","Partiellement nuageux","Nuageux","Pluie légère","Pluie forte","Neige","Très froid (< -10°C)"] },
-                { id: "prop_temp", type: "number", label: "Température extérieure (°C)", placeholder: "Ex: 5" }
+                { id: "prop_temp", type: "number", label: "Température extérieure (°C)", placeholder: "Ex: 5" },
+                { id: "condo_syndicat", type: "checkbox", label: "Déclaration de copropriété reçue", showIf: { field: 'prop_type', values: ['Condo / Appartement'] } },
+                { id: "condo_fonds", type: "checkbox", label: "Fonds de prévoyance — Carnet d'entretien demandé au syndicat", showIf: { field: 'prop_type', values: ['Condo / Appartement'] } }
             ]},
             { id: "ss_admin_2", title: "Pièces jointes & Synchronisation", fields: [
                 { id: "client_docs", type: "file", label: "Déclaration du vendeur / Documents remis" },
@@ -216,7 +218,14 @@ const inspectionData = {
                 { id: "p_systeme_type", type: "select", label: "Type d'évacuation des eaux usées", options: ["Réseau municipal","Fosse septique avec champ d'épuration","Fosse de rétention scellée","Inconnu (À vérifier)"] },
                 { id: "p_fosse", type: "checkbox", label: "Fosse / Champ d'épuration : Signes de débordement, odeurs d'égout ou surface détrempée" },
                 { id: "p_puits", type: "select", label: "Source d'alimentation en eau potable", options: ["Aqueduc municipal","Puits artésien (Foreuse)","Puits de surface","Pointe filtrante"] },
-                { id: "p_puits_risq", type: "checkbox", label: "Puits autonome à moins de 30m (100pi) d'un système d'épuration — Risque de contamination" }
+                { id: "p_puits_risq", type: "checkbox", label: "Puits autonome à moins de 30m (100pi) d'un système d'épuration — Risque de contamination" },
+                { id: "pl_puits", type: "checkbox", label: "Puits artésien présent", showIf: { field: 'prop_type', values: ['Chalet / Résidence secondaire'] } },
+                { id: "pl_puits_type", type: "select", label: "Type de puits", options: ["Artésien","De surface","Citerne"], showIf: { field: 'prop_type', values: ['Chalet / Résidence secondaire'] } },
+                { id: "pl_puits_qualite", type: "checkbox", label: "Test qualité eau requis (bactériologie) — Non effectué dans ce rapport", showIf: { field: 'prop_type', values: ['Chalet / Résidence secondaire'] } },
+                { id: "pl_fosse", type: "checkbox", label: "Fosse septique présente", showIf: { field: 'prop_type', values: ['Chalet / Résidence secondaire'] } },
+                { id: "pl_fosse_type", type: "select", label: "Type de fosse", options: ["Conventionnelle","Système tertiaire","Biologique / Ecoflo"], showIf: { field: 'prop_type', values: ['Chalet / Résidence secondaire'] } },
+                { id: "pl_fosse_age", type: "number", label: "Âge estimé de la fosse (ans)", placeholder: "Ex: 15", showIf: { field: 'prop_type', values: ['Chalet / Résidence secondaire'] } },
+                { id: "pl_fosse_vidange", type: "text", label: "Date dernier vidange (approx.)", placeholder: "Ex: 2023, inconnu...", showIf: { field: 'prop_type', values: ['Chalet / Résidence secondaire'] } }
             ]}
           ]
         },
@@ -252,7 +261,9 @@ const inspectionData = {
                 { id: "c_age", type: "number", label: "Âge approximatif du système (années)", placeholder: "Ex: 12" },
                 { id: "c_vetuste", type: "checkbox", label: "Système de chauffage en fin de vie (> 15-20 ans) ou entretien manifestement négligé" },
                 { id: "c_filtre", type: "checkbox", label: "Filtre à air encrassé ou absent — Impact sur la qualité de l'air et l'efficacité du système" },
-                { id: "c_combustion", type: "checkbox", label: "DANGER CO : Signes de combustion incomplète, brûleurs sales, flamme jaune ou odeur de gaz" }
+                { id: "c_combustion", type: "checkbox", label: "DANGER CO : Signes de combustion incomplète, brûleurs sales, flamme jaune ou odeur de gaz" },
+                { id: "ch_poele_bois", type: "checkbox", label: "Poêle à bois ou foyer principal présent", showIf: { field: 'prop_type', values: ['Chalet / Résidence secondaire'] } },
+                { id: "ch_poele_wett", type: "checkbox", label: "Inspection WETT requise — Non effectuée dans ce rapport d'inspection", showIf: { field: 'prop_type', values: ['Chalet / Résidence secondaire'] } }
             ]},
             { id: "ss_cv_2", title: "Ventilation et Qualité de l'air", fields: [
                 { id: "v_vrc", type: "checkbox", label: "Échangeur d'air (VRC/VRE) absent, défectueux ou filtres encrassés — Entretien urgent requis" },
