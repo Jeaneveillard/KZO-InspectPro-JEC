@@ -3153,6 +3153,7 @@ Réponds en français.`;
         canvas.addEventListener('touchmove', e => { e.preventDefault(); moveDraw(e); }, { passive: false });
         canvas.addEventListener('mouseup', endDraw);
         canvas.addEventListener('touchend', e => { e.preventDefault(); endDraw(); }, { passive: false });
+        canvas.addEventListener('touchcancel', () => { drawing = false; previewShape = null; redrawCanvas(); });
 
         const toolBtns = {};
         [{ id: 'arrow', label: '↗ Flèche' }, { id: 'circle', label: '⬤ Cercle' }, { id: 'text', label: 'T Texte' }].forEach(t => {
@@ -3174,6 +3175,7 @@ Réponds en français.`;
             const swatch = document.createElement('button');
             swatch.type = 'button';
             swatch.style.cssText = `width:22px;height:22px;border-radius:50%;background:${c};border:2px solid ${c === activeColor ? 'white' : 'transparent'};cursor:pointer;padding:0;flex-shrink:0;`;
+            swatch.setAttribute('aria-label', `Couleur ${c}`);
             swatch.onclick = () => {
                 activeColor = c;
                 colorBtns.forEach(b => b.style.borderColor = 'transparent');
