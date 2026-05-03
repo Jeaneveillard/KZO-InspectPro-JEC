@@ -286,10 +286,13 @@ const inspectionData = {
                 { id: "da_amiante_calorifuge", type: "checkbox", label: "DANGER AMIANTE : Calorifugeage gris/blanc sur les tuyaux ou la fournaise — Matériau potentiellement dangereux" },
                 { id: "da_amiante_tuile", type: "checkbox", label: "DANGER AMIANTE : Tuiles de plancher 9x9 pouces ou carreaux de plafond acoustiques anciens (Avant 1980)" }
             ]},
-            { id: "ss_da_2", title: "Plomb et Pyrite", fields: [
+            { id: "ss_da_2", title: "Plomb, Pyrite et Pyrrhotite", fields: [
                 { id: "da_plomb_peinture", type: "checkbox", label: "DANGER PLOMB : Peinture au plomb suspecte (Maisons avant 1978) — Risque si écaillée ou travaux prévus" },
                 { id: "da_plomb_tuyaux", type: "checkbox", label: "DANGER PLOMB : Tuyauterie de plomb confirmée ou suspectée — Analyse de l'eau recommandée" },
-                { id: "da_pyrite", type: "checkbox", label: "DANGER PYRITE : Soulèvement ou fissuration du plancher de béton au sous-sol — Test de laboratoire recommandé" }
+                { id: "da_pyrite", type: "checkbox", label: "DANGER PYRITE : Soulèvement ou fissuration du plancher de béton au sous-sol — Test de laboratoire recommandé" },
+                { id: "da_pyrrhotite", type: "checkbox", label: "DANGER PYRRHOTITE : Soulèvement ou fissuration du plancher de béton — Maisons 1960-1990 en Estrie, Beauce ou Chaudière-Appalaches — Test de laboratoire obligatoire" },
+                { id: "da_pyrrhotite_region", type: "select", label: "Région à risque pyrrhotite", options: ["Non applicable", "Estrie", "Beauce", "Chaudière-Appalaches", "Autre région — Vérifier"] },
+                { id: "da_pyrrhotite_note", type: "text", label: "Notes pyrrhotite", placeholder: "Observations visuelles, date de construction suspectée..." }
             ]},
             { id: "ss_da_3", title: "Radon et Autres contaminants", fields: [
                 { id: "da_radon", type: "checkbox", label: "Recommandation de test au radon (Région à risque selon la carte de Santé Canada)" },
