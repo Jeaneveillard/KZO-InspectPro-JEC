@@ -132,5 +132,120 @@ window.KZOStorage = (function () {
         });
     }
 
-    return { openDB, listProjects, saveProject, loadProject, deleteProject };
+    // Extrait toutes les photos de data.units[n].sectionPhotos
+    function _extractPhotos(data) {
+        const photos = [];
+        if (!data || !data.units) return photos;
+        data.units.forEach(unit => {
+            const store = unit.sectionPhotos || {};
+            Object.entries(store).forEach(([subId, arr]) => {
+                (arr || []).forEach((photo, i) => {
+                    if (photo && photo.url) {
+                        photos.push({ subId, unitId: unit.id, url: photo.url, index: i, caption: photo.caption || '' });
+                    }
+                });
+            });
+        });
+        return photos;
+    }
+
+    async function exportKZO(projectId) {
+        const project = await loadProject(projectId);
+        if (!project) throw new Error('Projet introuvable : ' + projectId);
+        if (typeof JSZip === 'undefined') throw new Error('JSZip non chargé');
+
+        const zip = new JSZip();
+        const photos = _extractPhotos(project.data);
+
+        // Copie profonde des données sans les photos (pour alléger inspection.json)
+        const dataForJson = JSON.parse(JSON.stringify(project.data));
+        (dataForJson.units || []).forEach(unit => { unit.sectionPhotos = {}; });
+
+        const photoIndex = photos.map(p => ({
+            subId: p.subId,
+            unitId: p.unitId,
+            index: p.index,
+            file: 'photos/' + p.unitId + '_' + p.subId + '_' + p.index + '.jpg',
+            caption: p.caption
+        }));
+
+        photos.forEach(p => {
+            const filename = 'photos/' + p.unitId + '_' + p.subId + '_' + p.index + '.jpg';
+            const base64 = p.url.includes(',') ? p.url.split(',')[1] : p.url;
+            zip.file(filename, base64, { base64: true });
+        });
+
+        const inspectionJson = {
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            project: {
+                id: project.id,
+                code: project.code,
+                clientName: project.clientName,
+                address: project.address,
+                status: project.status,
+                createdAt: project.createdAt,
+                updatedAt: project.updatedAt
+            },
+            data: dataForJson,
+            photoIndex
+        };
+
+        zip.file('inspection.json', JSON.stringify(inspectionJson, null, 2));
+        return zip.generateAsync({ type: 'blob' });
+    }
+
+    async function importKZO(file) {
+        if (typeof JSZip === 'undefined') throw new Error('JSZip non chargé');
+
+        const zip = await JSZip.loadAsync(file);
+
+        const jsonFile = zip.file('inspection.json');
+        if (!jsonFile) throw new Error('Fichier .kzo invalide — inspection.json manquant');
+
+        const jsonStr = await jsonFile.async('string');
+        let inspection;
+        try {
+            inspection = JSON.parse(jsonStr);
+        } catch (e) {
+            throw new Error('Fichier .kzo invalide — JSON malformé');
+        }
+
+        if (!inspection.version || !inspection.data || !inspection.project) {
+            throw new Error('Fichier .kzo invalide — structure incorrecte');
+        }
+
+        // Reconstruire les photos dans data.units[n].sectionPhotos
+        const data = inspection.data;
+        (data.units || []).forEach(unit => { unit.sectionPhotos = {}; });
+
+        for (const entry of (inspection.photoIndex || [])) {
+            const zipEntry = zip.file(entry.file);
+            if (!zipEntry) continue;
+            const base64 = await zipEntry.async('base64');
+            const unit = (data.units || []).find(u => u.id === entry.unitId) || (data.units || [])[0];
+            if (!unit) continue;
+            if (!unit.sectionPhotos[entry.subId]) unit.sectionPhotos[entry.subId] = [];
+            unit.sectionPhotos[entry.subId][entry.index] = {
+                url: 'data:image/jpeg;base64,' + base64,
+                caption: entry.caption || ''
+            };
+        }
+
+        const projectId = inspection.project.id;
+
+        // Vérifier si un projet existant a le même ID
+        const existing = await loadProject(projectId);
+        if (existing) {
+            const overwrite = confirm(
+                'Un projet "' + existing.clientName + '" (' + projectId + ') existe déjà.\nÉcraser avec le fichier importé ?'
+            );
+            if (!overwrite) return null;
+        }
+
+        await saveProject(projectId, data, undefined, inspection.project.status || 'en_cours');
+        return projectId;
+    }
+
+    return { openDB, listProjects, saveProject, loadProject, deleteProject, exportKZO, importKZO };
 })();
