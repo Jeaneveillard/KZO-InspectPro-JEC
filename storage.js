@@ -150,16 +150,18 @@ window.KZOStorage = (function () {
     }
 
     async function exportKZO(projectId) {
+        if (typeof JSZip === 'undefined') throw new Error('JSZip non chargé');
         const project = await loadProject(projectId);
         if (!project) throw new Error('Projet introuvable : ' + projectId);
-        if (typeof JSZip === 'undefined') throw new Error('JSZip non chargé');
 
         const zip = new JSZip();
         const photos = _extractPhotos(project.data);
 
-        // Copie profonde des données sans les photos (pour alléger inspection.json)
-        const dataForJson = JSON.parse(JSON.stringify(project.data));
-        (dataForJson.units || []).forEach(unit => { unit.sectionPhotos = {}; });
+        // Strip photos avant deep copy pour éviter de sérialiser les blobs base64
+        const dataStripped = Object.assign({}, project.data, {
+            units: (project.data.units || []).map(u => Object.assign({}, u, { sectionPhotos: {} }))
+        });
+        const dataForJson = JSON.parse(JSON.stringify(dataStripped));
 
         const photoIndex = photos.map(p => ({
             subId: p.subId,
@@ -198,7 +200,12 @@ window.KZOStorage = (function () {
     async function importKZO(file) {
         if (typeof JSZip === 'undefined') throw new Error('JSZip non chargé');
 
-        const zip = await JSZip.loadAsync(file);
+        let zip;
+        try {
+            zip = await JSZip.loadAsync(file);
+        } catch (e) {
+            throw new Error('Fichier .kzo invalide — archive ZIP corrompue');
+        }
 
         const jsonFile = zip.file('inspection.json');
         if (!jsonFile) throw new Error('Fichier .kzo invalide — inspection.json manquant');
@@ -223,7 +230,7 @@ window.KZOStorage = (function () {
             const zipEntry = zip.file(entry.file);
             if (!zipEntry) continue;
             const base64 = await zipEntry.async('base64');
-            const unit = (data.units || []).find(u => u.id === entry.unitId) || (data.units || [])[0];
+            const unit = (data.units || []).find(u => u.id === entry.unitId);
             if (!unit) continue;
             if (!unit.sectionPhotos[entry.subId]) unit.sectionPhotos[entry.subId] = [];
             unit.sectionPhotos[entry.subId][entry.index] = {
