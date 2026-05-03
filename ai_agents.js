@@ -329,12 +329,61 @@ const AIAgents = {
     analyzePhoto: function() {
         return new Promise((resolve) => {
             setTimeout(() => {
-                resolve({
-                    description: "Analyse Vision: On observe une fissure verticale d'environ 3mm de largeur sur la fondation extérieure de type béton coulé. La fissure semble inactive pour le moment, mais des traces d'efflorescence suggèrent une infiltration passée.",
-                    recommendation: "Faire sceller la fissure par injection d'époxy ou de polyuréthane par un spécialiste en fondations pour prévenir toute infiltration d'eau future."
-                });
-            }, 1500); // 1.5s simulation delay
+                resolve({ description: "Analyse simulée (sans photo).", recommendation: "" });
+            }, 500);
         });
+    },
+
+    // Analyse vision automatique d'une photo d'inspection
+    analyzePhotoField: async function(imageBase64, fieldLabel) {
+        // Providers supportant la vision (extensible)
+        const VISION_PROVIDERS = ['anthropic', 'gemini', 'openai'];
+
+        const activeProvider = localStorage.getItem('inspectpro_api_provider') || 'gemini';
+        const apiKey = localStorage.getItem('inspectpro_api_key');
+        if (!apiKey) return null;
+
+        // Si le provider actif ne supporte pas la vision, utiliser le premier de la liste
+        const visionProvider = VISION_PROVIDERS.includes(activeProvider)
+            ? activeProvider
+            : VISION_PROVIDERS[0];
+
+        // Override temporaire du provider pour cet agent
+        const overrideKey = 'inspectpro_api_provider_vision_auto';
+        const hadOverride = localStorage.getItem(overrideKey);
+        localStorage.setItem(overrideKey, visionProvider);
+
+        const systemPrompt = `Tu es un inspecteur en bâtiment certifié RBQ au Québec. Tu analyses des photos d'inspection de façon professionnelle et factuelle. Tu réponds UNIQUEMENT en JSON valide, sans aucun texte avant ou après.`;
+
+        const userPrompt = `Analyse cette photo d'inspection pour l'élément : "${fieldLabel}".
+Réponds en JSON strict avec exactement ces deux clés :
+{"etat":"defaut|surveiller|conforme","description":"2 à 3 phrases professionnelles en français décrivant ce que tu observes et justifiant l'état choisi"}
+
+Règles :
+- "defaut" : anomalie visible nécessitant une intervention
+- "surveiller" : état acceptable mais à surveiller
+- "conforme" : aucune anomalie visible`;
+
+        try {
+            const raw = await AIAgents._callAI(
+                systemPrompt,
+                { text: userPrompt, imageBase64: imageBase64, mediaType: 'image/jpeg' },
+                'vision_auto'
+            );
+            const parsed = AIAgents._extractJSON(raw);
+            if (!parsed || !parsed.etat || !parsed.description) return null;
+            if (!['defaut', 'surveiller', 'conforme'].includes(parsed.etat)) return null;
+            return { etat: parsed.etat, description: parsed.description };
+        } catch(e) {
+            return null;
+        } finally {
+            // Nettoyer l'override temporaire
+            if (hadOverride) {
+                localStorage.setItem(overrideKey, hadOverride);
+            } else {
+                localStorage.removeItem(overrideKey);
+            }
+        }
     },
 
     // Agent Durée de Vie — Estimation résiduelle (REIBH 2024)
