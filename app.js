@@ -2665,6 +2665,19 @@ Réponds en français.`;
 
         document.getElementById('closeReportBtn').onclick = () => { reportModal.style.display = 'none'; };
         document.getElementById('printReportBtn').onclick = () => { setTimeout(() => window.print(), 500); };
+
+        // Marquer le projet comme terminé dans IndexedDB
+        if (window.currentProjectId && window.KZOStorage) {
+            const snapshot = {
+                clientInfo: inspectionData.clientInfo,
+                id: inspectionData.id,
+                units: inspectionData.units,
+                currentUnitId: inspectionData.currentUnitId,
+                rapportNarratifIA: inspectionData.rapportNarratifIA || ''
+            };
+            KZOStorage.saveProject(window.currentProjectId, snapshot, undefined, 'termine')
+                .catch(e => console.warn('[generateFinalReport] IndexedDB:', e));
+        }
     }
 
     // --- Persistence Globale (Offline Support) ---
