@@ -1064,6 +1064,21 @@ Règles :
         };
     },
 
+    // Mappe un label de défaut vers le type de spécialiste à consulter (sans coût)
+    getSpecialist: function(label) {
+        const l = (label || '').toLowerCase();
+        if (/fondation|structure|soulèvement|fissure horiz|pilotis|pyrite|pyrrhotite|déflexion/.test(l)) return 'Ingénieur en structures';
+        if (/toiture|bardeau|gouttière|solin|membrane élasto|tôle|couverture|charpente.*toit/.test(l)) return 'Couvreur certifié';
+        if (/électricité|électrique|filage|panneau|disjoncteur|gfci|afci|ddft|aluminium|câblage|circuit|exposition.*fil/.test(l)) return 'Électricien licencié RBQ';
+        if (/plomberie|chauffe.eau|tuyau|fuite|drain|soupape|puits|fosse|renvoi|pompe|puisard/.test(l)) return 'Plombier maître';
+        if (/chauffage|fournaise|thermopompe|vrc|échangeur|combustion| co |chaudière|cvac|filtre.*air/.test(l)) return 'Technicien CVAC certifié';
+        if (/amiante|vermiculite|radon|plomb|contamination|mazout|formaldéhyde|cov/.test(l)) return 'Spécialiste en matières dangereuses';
+        if (/cheminée|foyer|fumée|tirage|liner|chemisage|chapeau.*cheminée|solin.*cheminée/.test(l)) return 'Ramoneur certifié WETT';
+        if (/fenêtre|porte.*ext|calfeutrage|thermos|vitrage|chambranle|egress/.test(l)) return 'Menuisier ou vitrier';
+        if (/moisissure|mycologie/.test(l)) return 'Inspecteur en moisissures certifié';
+        return 'Entrepreneur général';
+    },
+
     // Génère une synthèse narrative pour une section d'inspection
     generateSectionSynthesis: async function(section, sectionIndex) {
         const defauts = [];
