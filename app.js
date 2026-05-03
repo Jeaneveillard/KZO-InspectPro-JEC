@@ -1341,7 +1341,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const dataUrl = await compressImage(file, 1200, 0.75);
                         const store = getActiveSectionPhotos();
                         if (!store[sub.id]) store[sub.id] = [];
-                        store[sub.id].push({ url: dataUrl });
+                        store[sub.id].push({ url: dataUrl, caption: '', originalUrl: null });
                         saveAppState();
 
                         // Analyse IA automatique (une seule photo à la fois pour éviter les conflits de panneau)
@@ -1379,6 +1379,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
                 renderGallery();
+                if (files.length === 1) {
+                    const lastInput = grid.querySelector('.photo-caption-input:last-of-type');
+                    if (lastInput) { lastInput.focus(); lastInput.select(); }
+                }
                 fileInput.value = '';
             };
 
