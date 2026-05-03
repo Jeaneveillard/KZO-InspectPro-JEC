@@ -20,7 +20,7 @@ window.KZOStorage = (function () {
             };
             req.onsuccess = (e) => {
                 _db = e.target.result;
-                _db.onversionchange = () => _db.close();
+                _db.onversionchange = () => { _db.close(); _db = null; _dbPromise = null; };
                 resolve(_db);
             };
             req.onerror = (e) => { _dbPromise = null; reject(e.target.error); };
@@ -46,6 +46,7 @@ window.KZOStorage = (function () {
     function _address(data) {
         if (!data) return '';
         try {
+            if (data.clientInfo && data.clientInfo.address) return data.clientInfo.address;
             const unit = data.units && data.units[0];
             return (unit && unit.fieldStates && unit.fieldStates['prop_address']) || '';
         } catch (e) { return ''; }
@@ -59,8 +60,8 @@ window.KZOStorage = (function () {
         let count = 0;
         data.sections.forEach(section => {
             if (section.isCoverPage || section.id === 's_admin') return;
-            const hasChecked = section.subSections.some(sub =>
-                sub.fields.some(f => f.type === 'checkbox' && states[f.id])
+            const hasChecked = (section.subSections || []).some(sub =>
+                (sub.fields || []).some(f => f.type === 'checkbox' && states[f.id])
             );
             if (hasChecked) count++;
         });
@@ -86,8 +87,11 @@ window.KZOStorage = (function () {
         const db = await openDB();
         return new Promise((resolve, reject) => {
             const tx = db.transaction('projects', 'readwrite');
+            tx.onabort = () => reject(tx.error || new Error('Transaction aborted'));
             const store = tx.objectStore('projects');
-            store.get(id).onsuccess = (e) => {
+            const getReq = store.get(id);
+            getReq.onerror = (e) => reject(e.target.error);
+            getReq.onsuccess = (e) => {
                 const existing = e.target.result;
                 const now = new Date().toISOString();
                 const project = {
