@@ -2255,6 +2255,98 @@ Réponds en français.`;
     sendChatBtn.addEventListener('click', sendChatMessage);
     chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendChatMessage(); });
 
+    // --- Helpers Rapport PDF enrichi ---
+
+    // Table d'âge numérique → EQUIPMENT_LIFESPAN key
+    const AGE_TO_LIFESPAN = {
+        'ce_age': { key: 'chauffe-eau', specialist: 'Plombier maître' },
+        'c_age':  { key: 'fournaise',   specialist: 'Technicien CVAC certifié' }
+    };
+
+    // Table d'âge sélection toiture → durée résiduelle
+    const TO_AGE_MAP = {
+        'Neuf / Récent (0-5 ans)':              { badge: '15-20 ans restants', badgeColor: '#059669' },
+        'Bon état (5-10 ans)':                  { badge: '10-15 ans restants', badgeColor: '#059669' },
+        'Milieu de vie (10-15 ans)':            { badge: '5-10 ans restants',  badgeColor: '#059669' },
+        'Fin de vie approchant (15-20 ans)':    { badge: '1-5 ans restants — À planifier', badgeColor: '#d97706' },
+        'Remplacement urgent (20 ans et +)':    { badge: 'Remplacement recommandé', badgeColor: '#dc2626' }
+    };
+
+    // Construit la liste numérotée de tous les défauts/surveiller, triée URGENT→MAJEUR→SURVEILLER
+    function _buildNumberedDefects(unitFieldStates, sections) {
+        const defects = [];
+        sections.forEach(section => {
+            if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport') return;
+            (section.subSections || []).forEach(sub => {
+                (sub.fields || []).forEach(field => {
+                    if (field.type !== 'checkbox') return;
+                    const state = unitFieldStates[field.id];
+                    if (state !== 'defaut' && state !== 'surveiller') return;
+                    const severity = state === 'defaut'
+                        ? AIAgents.determineSeverity(field.label)
+                        : 'SURVEILLER';
+                    defects.push({
+                        sectionTitle: section.title,
+                        label: field.label,
+                        fieldId: field.id,
+                        state,
+                        severity,
+                        specialist: AIAgents.getSpecialist(field.label)
+                    });
+                });
+            });
+        });
+        const order = { URGENT: 0, MAJEUR: 1, SURVEILLER: 2 };
+        defects.sort((a, b) => (order[a.severity] || 2) - (order[b.severity] || 2));
+        return defects.map((d, i) => Object.assign({}, d, { num: i + 1 }));
+    }
+
+    // Construit la liste des équipements avec durée de vie résiduelle
+    function _buildLifespanItems() {
+        const items = [];
+
+        // Équipements à âge numérique (chauffe-eau, fournaise)
+        Object.entries(AGE_TO_LIFESPAN).forEach(([fieldId, mapping]) => {
+            const el = document.getElementById(fieldId);
+            const age = el ? parseInt(el.value, 10) : NaN;
+            if (isNaN(age) || age <= 0) return;
+            const eq = typeof EQUIPMENT_LIFESPAN !== 'undefined' ? EQUIPMENT_LIFESPAN[mapping.key] : null;
+            if (!eq) return;
+            const residMin = Math.max(0, eq.min - age);
+            const residMax = Math.max(0, eq.max - age);
+            let badge, badgeColor;
+            if (eq.max - age <= 0) {
+                badge = 'Fin de vie — Remplacement recommandé';
+                badgeColor = '#dc2626';
+            } else if (eq.max - age <= 2) {
+                badge = residMin + '-' + residMax + ' ans restants — Remplacement imminent';
+                badgeColor = '#dc2626';
+            } else if (eq.max - age <= 5) {
+                badge = residMin + '-' + residMax + ' ans restants — À planifier';
+                badgeColor = '#d97706';
+            } else {
+                badge = residMin + '-' + residMax + ' ans restants — État satisfaisant';
+                badgeColor = '#059669';
+            }
+            items.push({ label: eq.label, age, badge, badgeColor, specialist: mapping.specialist });
+        });
+
+        // Toiture (âge sélection)
+        const toAgeEl = document.getElementById('to_age');
+        if (toAgeEl && toAgeEl.value && TO_AGE_MAP[toAgeEl.value]) {
+            const m = TO_AGE_MAP[toAgeEl.value];
+            items.push({
+                label: 'Bardeaux d\'asphalte / Couverture',
+                age: null,
+                badge: m.badge,
+                badgeColor: m.badgeColor,
+                specialist: 'Couvreur certifié'
+            });
+        }
+
+        return items;
+    }
+
     // --- 6. Génération du Rapport Final ---
     function generateFinalReport(unitId) {
         if (typeof BOILERPLATE === 'undefined') {
