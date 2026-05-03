@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     
     // --- 0. Sécurité et Utilitaires ---
     
@@ -141,6 +141,30 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('img').forEach(img => {
         img.addEventListener('contextmenu', e => e.preventDefault());
     });
+
+    // --- Gestion multi-projets : chargement depuis URL ---
+    const _urlParams = new URLSearchParams(window.location.search);
+    window.currentProjectId = _urlParams.get('project');
+
+    if (!window.currentProjectId) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    const _isNewProject = _urlParams.get('new') === '1';
+    if (!_isNewProject && window.KZOStorage) {
+        try {
+            const _savedProject = await KZOStorage.loadProject(window.currentProjectId);
+            if (_savedProject && _savedProject.data) {
+                Object.assign(inspectionData, _savedProject.data);
+                inspectionData.id = window.currentProjectId;
+            }
+        } catch (e) {
+            console.warn('[app.js] Chargement projet IndexedDB échoué:', e);
+        }
+    } else if (_isNewProject) {
+        inspectionData.id = window.currentProjectId;
+    }
 
     // Charger les données persistées depuis localStorage
     const savedInspectorName = localStorage.getItem('inspectpro_inspector_name') || '';
