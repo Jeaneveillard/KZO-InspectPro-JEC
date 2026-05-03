@@ -699,6 +699,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const navLinks = document.getElementById('navLinks');
     let currentSectionIndex = 0;
     
+    function getSectionStatus(section, fieldStates, sectionIndex, currentIdx) {
+        if (sectionIndex === currentIdx) return 'active';
+        const allFields = (section.subSections || []).flatMap(ss => ss.fields || []);
+        const checkboxFields = allFields.filter(f => f.type === 'checkbox');
+        const hasDefaut = checkboxFields.some(f =>
+            fieldStates[f.id] === 'defaut' || fieldStates[f.id] === 'surveiller'
+        );
+        if (hasDefaut) return 'defaut';
+        const hasAnyFilled = allFields.some(f => {
+            const v = fieldStates[f.id];
+            return v !== undefined && v !== null && v !== '' && v !== 'non_applicable';
+        });
+        if (hasAnyFilled) return 'complete';
+        return 'todo';
+    }
+
     function renderNavigation() {
         navLinks.innerHTML = '';
         inspectionData.sections.forEach((section, index) => {
@@ -711,7 +727,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             li.appendChild(document.createTextNode(' '));
             li.appendChild(titleSpan);
             if (index === currentSectionIndex) li.classList.add('active');
-            
+
+            // Badge de statut
+            if (!section.isCoverPage && section.key !== 'rapport') {
+                const STATUS_BADGE = {
+                    active:   { text: 'En cours',   bg: '#1d4ed8', color: 'white' },
+                    defaut:   { text: '⚠️ Défauts', bg: '#dc2626', color: 'white' },
+                    complete: { text: '✅ Complété', bg: '#166534', color: '#86efac' },
+                    todo:     { text: '○ À faire',  bg: '#1e293b', color: '#64748b' }
+                };
+                const status = getSectionStatus(section, getActiveFieldStates(), index, currentSectionIndex);
+                const b = STATUS_BADGE[status];
+                const badge = document.createElement('span');
+                badge.textContent = b.text;
+                badge.style.cssText = `margin-left:auto; font-size:0.65rem; padding:2px 7px; border-radius:10px; background:${b.bg}; color:${b.color}; white-space:nowrap; flex-shrink:0;`;
+                li.style.cssText = (li.style.cssText || '') + 'display:flex;align-items:center;gap:6px;';
+                li.appendChild(badge);
+            }
+
             li.addEventListener('click', () => {
                 currentSectionIndex = index;
                 renderNavigation();
