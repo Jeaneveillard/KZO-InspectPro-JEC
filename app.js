@@ -2449,24 +2449,17 @@ Réponds en français.`;
     }
 
     // --- 6. Génération du Rapport Final ---
-    function generateFinalReport(unitId) {
-        if (typeof BOILERPLATE === 'undefined') {
-            showToast("Impossible de charger le contenu légal (boilerplate.js manquant).", 'error');
-            return;
-        }
 
-        // Validation minimale
-        const clientName = sanitizeHTML(inspectionData.clientInfo.name) || '';
-        const address = sanitizeHTML(inspectionData.clientInfo.address) || '';
-        if (!clientName || !address) {
-            showToast('Veuillez remplir le nom du client et l\'adresse du bâtiment avant de générer le rapport (Section 1).', 'warning');
-            return;
-        }
-
+    function _buildReportHTML(unitId) {
         // Déterminer quelle unité utiliser
         const targetUnit = unitId
             ? inspectionData.units.find(u => u.id === unitId)
             : getCurrentUnit();
+        if (!targetUnit) return '<p>Unité introuvable.</p>';
+
+        const clientName = sanitizeHTML(inspectionData.clientInfo.name) || '';
+        const address = sanitizeHTML(inspectionData.clientInfo.address) || '';
+
         const unitFieldStates = targetUnit.fieldStates || {};
         const unitComments = targetUnit.comments || {};
         const unitSectionComments = targetUnit.sectionComments || {};
@@ -2474,8 +2467,6 @@ Réponds en français.`;
         const unitName = targetUnit.name || '';
         const isMultiMode = isMultiUnitBuilding() && inspectionData.units.length > 1;
 
-        const reportModal = document.getElementById('reportModal');
-        const reportContent = document.getElementById('reportContent');
         const prixElement = document.getElementById('prix_inspection');
         const prix = prixElement ? prixElement.value : "500";
         const normeElement = document.getElementById('norme_pratique');
@@ -2853,11 +2844,67 @@ Réponds en français.`;
         // ANNEXE NORMES
         html += BOILERPLATE.normesPratique(safeNorme);
 
+        return html;
+    }
+
+    function generateFinalReport(unitId) {
+        if (typeof BOILERPLATE === 'undefined') {
+            showToast("Impossible de charger le contenu légal (boilerplate.js manquant).", 'error');
+            return;
+        }
+
+        // Validation minimale
+        const clientName = sanitizeHTML(inspectionData.clientInfo.name) || '';
+        const address = sanitizeHTML(inspectionData.clientInfo.address) || '';
+        if (!clientName || !address) {
+            showToast('Veuillez remplir le nom du client et l\'adresse du bâtiment avant de générer le rapport (Section 1).', 'warning');
+            return;
+        }
+
+        const html = _buildReportHTML(unitId);
+        const reportModal = document.getElementById('reportModal');
+        const reportContent = document.getElementById('reportContent');
         reportContent.innerHTML = html;
         reportModal.style.display = 'flex';
 
         // --- SYNCHRONISATION GOOGLE SHEETS ---
         // Envoie les données de l'inspection vers Google Sheets pour archivage
+        const targetUnit = unitId
+            ? inspectionData.units.find(u => u.id === unitId)
+            : getCurrentUnit();
+        const prixElement = document.getElementById('prix_inspection');
+        const prix = prixElement ? prixElement.value : "500";
+        const normeElement = document.getElementById('norme_pratique');
+        const norme = (normeElement && normeElement.value) ? normeElement.value : "BNQ 3009-500 (RBQ)";
+        const inspectorName = inspectionData.clientInfo.inspectorName || (typeof KZO_OWNER_PROFILE !== 'undefined' ? KZO_OWNER_PROFILE.inspectorName : 'Jean Eveillard Cazeau');
+        const dateInspection = inspectionData['inspection_date']
+            ? new Date(inspectionData['inspection_date']).toLocaleDateString('fr-CA', {year:'numeric', month:'long', day:'numeric'})
+            : new Date().toLocaleDateString('fr-CA', {year:'numeric', month:'long', day:'numeric'});
+        const meteo = sanitizeHTML(document.getElementById('prop_weather')?.value || '');
+        const temperature = sanitizeHTML(document.getElementById('prop_temp')?.value || '');
+        const superficie = sanitizeHTML(document.getElementById('prop_area')?.value || '');
+        const annee = sanitizeHTML(document.getElementById('prop_year')?.value || '');
+        const typeBatiment = sanitizeHTML(document.getElementById('prop_type')?.value || '');
+        const typeGarage = sanitizeHTML(document.getElementById('prop_garage')?.value || '');
+
+        const unitFieldStates = (targetUnit && targetUnit.fieldStates) || {};
+        let totalUrgents = 0, totalMajeurs = 0, totalSurveiller = 0, totalConformes = 0;
+        inspectionData.sections.forEach(section => {
+            if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport') return;
+            section.subSections.forEach(sub => {
+                sub.fields.forEach(field => {
+                    if (field.type !== 'checkbox') return;
+                    const state = unitFieldStates[field.id];
+                    if (state === 'defaut') {
+                        const sev = AIAgents.determineSeverity(field.label);
+                        if (sev === 'URGENT') totalUrgents++;
+                        else totalMajeurs++;
+                    } else if (state === 'surveiller') totalSurveiller++;
+                    else if (state === 'conforme') totalConformes++;
+                });
+            });
+        });
+
         const webhookUrl = (typeof KZO_CONFIG !== 'undefined' && KZO_CONFIG.SHEETS_WEBHOOK_URL) ? KZO_CONFIG.SHEETS_WEBHOOK_URL : '';
         if (webhookUrl) {
             try {
