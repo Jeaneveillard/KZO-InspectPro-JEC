@@ -340,7 +340,9 @@ const AIAgents = {
         const VISION_PROVIDERS = ['anthropic', 'gemini', 'openai'];
 
         const activeProvider = localStorage.getItem('inspectpro_api_provider') || 'gemini';
-        const apiKey = localStorage.getItem('inspectpro_api_key');
+        const apiKey = localStorage.getItem('inspectpro_api_key_vision_auto')
+                    || localStorage.getItem('inspectpro_api_key')
+                    || (typeof KZO_CONFIG !== 'undefined' ? KZO_CONFIG.apiKey : null);
         if (!apiKey) return null;
 
         // Si le provider actif ne supporte pas la vision, utiliser le premier de la liste
@@ -375,6 +377,7 @@ Règles :
             if (!['defaut', 'surveiller', 'conforme'].includes(parsed.etat)) return null;
             return { etat: parsed.etat, description: parsed.description };
         } catch(e) {
+            console.warn('[analyzePhotoField]', e?.message || e);
             return null;
         } finally {
             // Nettoyer l'override temporaire
