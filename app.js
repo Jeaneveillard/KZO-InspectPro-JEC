@@ -864,6 +864,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // --- Standard Section Rendering ---
+
+        // Bannière Condo pour sections extérieures
+        if (['structure', 'toiture'].includes(section.key) &&
+            (getActiveFieldStates()['prop_type'] || '') === 'Condo / Appartement') {
+            const condoBanner = document.createElement('div');
+            condoBanner.style.cssText = 'background:#1e3a5f;border:1px solid #3b82f6;border-radius:6px;padding:10px 14px;margin-bottom:16px;color:#93c5fd;font-size:0.85rem;';
+            condoBanner.textContent = 'ℹ️ Condo — Ces éléments sont généralement sous la responsabilité du syndicat de copropriété.';
+            dynamicContent.appendChild(condoBanner);
+        }
+
         section.subSections.forEach(sub => {
             const div = document.createElement('div');
             div.className = 'sub-section';
@@ -873,6 +883,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             div.appendChild(h3);
 
             sub.fields.forEach(field => {
+                // Champs conditionnels — ne pas rendre si condition non satisfaite
+                if (field.showIf) {
+                    const val = getActiveFieldStates()[field.showIf.field] || '';
+                    if (!field.showIf.values.includes(val)) return;
+                }
+
                 const fieldGroup = document.createElement('div');
                 fieldGroup.className = 'field-group';
 
