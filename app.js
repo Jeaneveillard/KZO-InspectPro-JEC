@@ -1329,6 +1329,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
                     });
                     fieldGroup.appendChild(btn);
+
+                    if (field.id === 'rap_generate') {
+                        const clientBtn = document.createElement('button');
+                        clientBtn.type = 'button';
+                        clientBtn.className = 'btn secondary';
+                        clientBtn.style.cssText = 'width:100%;padding:14px;font-size:1rem;margin-top:8px;';
+                        clientBtn.textContent = '📋 Rapport Client';
+                        clientBtn.addEventListener('click', () => generateClientReport());
+                        fieldGroup.appendChild(clientBtn);
+                    }
                 }
 
                 div.appendChild(fieldGroup);
@@ -3127,6 +3137,126 @@ Réponds en français.`;
         navigator.serviceWorker.register('sw.js')
             .then(() => console.log('KZO InspectPro : mode hors ligne actif'))
             .catch(err => console.warn('Service Worker non enregistré :', err));
+    }
+
+    function generateClientReport() {
+        const clientName = sanitizeHTML(inspectionData.clientInfo.name) || '';
+        const address = sanitizeHTML(inspectionData.clientInfo.address) || '';
+        if (!clientName || !address) {
+            showToast('Veuillez remplir le nom du client et l\'adresse (Section 1).', 'warning');
+            return;
+        }
+
+        const targetUnit = getCurrentUnit();
+        const unitFieldStates = targetUnit.fieldStates || {};
+        const unitSectionPhotos = targetUnit.sectionPhotos || {};
+        const inspectorName = sanitizeHTML(inspectionData.clientInfo.inspectorName || '');
+        const dateInspection = inspectionData['inspection_date']
+            ? new Date(inspectionData['inspection_date']).toLocaleDateString('fr-CA', {year:'numeric', month:'long', day:'numeric'})
+            : new Date().toLocaleDateString('fr-CA', {year:'numeric', month:'long', day:'numeric'});
+        const codeInspection = sanitizeHTML(unitFieldStates['inspection_code'] || inspectionData.id || '');
+
+        // Compteurs
+        let urgents = 0, majeurs = 0, surveiller = 0, conformes = 0;
+        inspectionData.sections.forEach(section => {
+            if (['s_cover','s_admin','s_rapport','s_preview'].includes(section.id)) return;
+            (section.subSections || []).forEach(sub => {
+                (sub.fields || []).forEach(field => {
+                    if (field.type !== 'checkbox') return;
+                    const state = unitFieldStates[field.id];
+                    if (state === 'defaut') {
+                        const sev = AIAgents.determineSeverity(field.label);
+                        if (sev === 'URGENT') urgents++; else majeurs++;
+                    } else if (state === 'surveiller') surveiller++;
+                    else if (state === 'conforme') conformes++;
+                });
+            });
+        });
+
+        // Durée de vie
+        const lifespanItems = _buildLifespanItems();
+
+        // Sections
+        let sectionsHtml = '';
+        inspectionData.sections.forEach(section => {
+            if (['s_cover','s_admin','s_rapport','s_preview'].includes(section.id)) return;
+            const allFields = (section.subSections || []).flatMap(ss => ss.fields || []);
+            const defautFields = allFields.filter(f => f.type === 'checkbox' && (unitFieldStates[f.id] === 'defaut' || unitFieldStates[f.id] === 'surveiller'));
+            const hasDefaut = defautFields.length > 0;
+            const maxSev = defautFields.some(f => AIAgents.determineSeverity(f.label) === 'URGENT') ? 'URGENT'
+                : defautFields.some(f => unitFieldStates[f.id] === 'defaut') ? 'MAJEUR'
+                : defautFields.length > 0 ? 'SURVEILLER' : 'CONFORME';
+            const borderColor = maxSev === 'URGENT' ? '#dc2626' : maxSev === 'MAJEUR' ? '#ea580c' : maxSev === 'SURVEILLER' ? '#ca8a04' : '#22c55e';
+            const icon = maxSev === 'CONFORME' ? '✅' : maxSev === 'URGENT' ? '🚨' : '⚠️';
+
+            // Photos de la section
+            let photosHtml = '';
+            (section.subSections || []).forEach(sub => {
+                const photos = (unitSectionPhotos[sub.id] || []).filter(p => p.url);
+                if (photos.length) {
+                    photosHtml += photos.map(p => `<figure style="display:inline-block;margin:4px;vertical-align:top;"><img src="${p.url}" style="width:150px;height:112px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;display:block;">${p.caption ? `<figcaption style="font-size:0.7rem;color:#64748b;text-align:center;margin-top:3px;max-width:150px;">${sanitizeHTML(p.caption)}</figcaption>` : ''}</figure>`).join('');
+                }
+            });
+
+            const defautsHtml = defautFields.map(f => {
+                const specialist = AIAgents.getSpecialist(f.label);
+                return `<div style="margin-bottom:6px;padding-left:8px;">• ${sanitizeHTML(f.label)} — <em>Consulter un ${sanitizeHTML(specialist)}</em></div>`;
+            }).join('');
+
+            sectionsHtml += `
+            <div style="background:white;border-left:4px solid ${borderColor};border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                <div style="font-weight:700;color:${borderColor};margin-bottom:${hasDefaut ? '8px' : '0'};font-size:0.9rem;">${icon} ${sanitizeHTML(section.title)}</div>
+                ${hasDefaut ? `<div style="font-size:0.85rem;color:#374151;line-height:1.7;">${defautsHtml}</div>` : ''}
+                ${photosHtml ? `<div style="margin-top:10px;">${photosHtml}</div>` : ''}
+            </div>`;
+        });
+
+        // Durée de vie HTML
+        const lifespanHtml = lifespanItems.length ? `
+        <div style="background:white;border-radius:8px;padding:16px;margin-bottom:24px;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+            <div style="font-weight:700;color:#475569;margin-bottom:10px;font-size:0.9rem;">🔧 Durée de vie estimée des équipements</div>
+            ${lifespanItems.map(item => `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:0.85rem;">
+                <span style="color:#374151;">${sanitizeHTML(item.label)}</span>
+                <span style="background:${item.badgeColor || '#475569'};color:white;padding:2px 10px;border-radius:10px;font-size:0.75rem;">${sanitizeHTML(item.badge)}</span>
+            </div>`).join('')}
+        </div>` : '';
+
+        const html = `
+        <div style="font-family:system-ui,sans-serif;max-width:800px;margin:0 auto;padding:20px;background:#f8fafc;">
+            <div class="page-break" style="background:linear-gradient(135deg,#1e293b,#334155);color:white;border-radius:10px;padding:32px;text-align:center;margin-bottom:24px;">
+                <div style="font-size:1.6rem;font-weight:900;letter-spacing:2px;margin-bottom:6px;">RAPPORT D'INSPECTION</div>
+                <div style="font-size:1rem;color:#94a3b8;margin-bottom:4px;">${sanitizeHTML(address)}</div>
+                <div style="font-size:0.85rem;color:#64748b;">${dateInspection} · ${codeInspection} · ${inspectorName}</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
+                <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:16px;text-align:center;">
+                    <div style="font-size:2rem;font-weight:900;color:#dc2626;">${urgents}</div>
+                    <div style="font-size:0.8rem;color:#dc2626;font-weight:600;">URGENT</div>
+                </div>
+                <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:16px;text-align:center;">
+                    <div style="font-size:2rem;font-weight:900;color:#ea580c;">${majeurs}</div>
+                    <div style="font-size:0.8rem;color:#ea580c;font-weight:600;">MAJEUR</div>
+                </div>
+                <div style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:16px;text-align:center;">
+                    <div style="font-size:2rem;font-weight:900;color:#ca8a04;">${surveiller}</div>
+                    <div style="font-size:0.8rem;color:#ca8a04;font-weight:600;">À SURVEILLER</div>
+                </div>
+                <div style="background:#ecfdf5;border:1px solid #86efac;border-radius:8px;padding:16px;text-align:center;">
+                    <div style="font-size:2rem;font-weight:900;color:#16a34a;">${conformes}</div>
+                    <div style="font-size:0.8rem;color:#16a34a;font-weight:600;">CONFORMES</div>
+                </div>
+            </div>
+            ${lifespanHtml}
+            ${sectionsHtml}
+            <div style="text-align:center;padding:20px;color:#94a3b8;font-size:0.8rem;border-top:1px solid #e2e8f0;margin-top:16px;">
+                ${inspectorName} · KZO InspectPro · ${dateInspection}
+            </div>
+        </div>`;
+
+        const reportModal = document.getElementById('reportModal');
+        document.getElementById('reportContent').innerHTML = html;
+        reportModal.style.display = 'flex';
+        document.getElementById('closeReportBtn').onclick = () => { reportModal.style.display = 'none'; };
     }
 
     function _renderPreviewPage(container) {
