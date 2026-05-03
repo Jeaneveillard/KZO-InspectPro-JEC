@@ -189,7 +189,7 @@
         if (!str) return '';
         const d = document.createElement('div');
         d.textContent = str;
-        return d.innerHTML;
+        return d.innerHTML.replace(/'/g, '&#39;');
     }
 
     function renderGrid(projects) {
@@ -273,9 +273,13 @@
         const project = allProjects.find(p => p.id === id);
         const name = project ? project.clientName : id;
         if (!confirm('Supprimer l\'inspection de "' + name + '" ?\nCette action est irréversible.')) return;
-        await KZOStorage.deleteProject(id);
-        showToast('🗑️ Inspection supprimée');
-        await loadAndRender();
+        try {
+            await KZOStorage.deleteProject(id);
+            showToast('🗑️ Inspection supprimée');
+            await loadAndRender();
+        } catch (e) {
+            showToast('❌ Erreur suppression : ' + e.message, '#dc2626');
+        }
     }
 
     function triggerImport() {
