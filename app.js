@@ -68,6 +68,55 @@ document.addEventListener('DOMContentLoaded', () => {
         newClose.addEventListener('click', () => { modal.style.display = 'none'; });
     }
 
+    // Panneau analyse photo automatique IA
+    function showPhotoAnalysis(subId, subTitle, imageBase64, result, onApply) {
+        const panel = document.getElementById('photoAnalysisPanel');
+        const titleEl = document.getElementById('photoAnalysisTitle');
+        const badge = document.getElementById('photoAnalysisBadge');
+        const thumb = document.getElementById('photoAnalysisThumb');
+        const textEl = document.getElementById('photoAnalysisText');
+        const ignoreBtn = document.getElementById('photoAnalysisIgnore');
+        const applyBtn = document.getElementById('photoAnalysisApply');
+
+        if (!panel) return;
+
+        // Remplir le contenu
+        titleEl.textContent = '🔍 Analyse IA — ' + subTitle;
+        textEl.textContent = result.description; // textContent — pas d'injection HTML
+
+        // Badge selon état détecté
+        const badgeConfig = {
+            defaut:    { bg: '#dc2626', text: '❌ DÉFAUT DÉTECTÉ' },
+            surveiller:{ bg: '#d97706', text: '⚠️ À SURVEILLER' },
+            conforme:  { bg: '#059669', text: '✅ CONFORME' }
+        };
+        const cfg = badgeConfig[result.etat] || { bg: '#64748b', text: result.etat.toUpperCase() };
+        badge.style.background = cfg.bg;
+        badge.textContent = cfg.text;
+
+        // Miniature
+        if (imageBase64) {
+            thumb.src = 'data:image/jpeg;base64,' + imageBase64;
+            thumb.style.display = 'block';
+        } else {
+            thumb.style.display = 'none';
+        }
+
+        panel.style.display = 'flex';
+
+        // Cloner les boutons pour nettoyer les anciens listeners
+        const newIgnore = ignoreBtn.cloneNode(true);
+        const newApply = applyBtn.cloneNode(true);
+        ignoreBtn.parentNode.replaceChild(newIgnore, ignoreBtn);
+        applyBtn.parentNode.replaceChild(newApply, applyBtn);
+
+        newIgnore.addEventListener('click', () => { panel.style.display = 'none'; });
+        newApply.addEventListener('click', () => {
+            panel.style.display = 'none';
+            onApply(result.etat);
+        });
+    }
+
     // Compression photo avant stockage localStorage (évite la saturation)
     function compressImage(file, maxWidth = 1200, quality = 0.75) {
         return new Promise((resolve) => {
@@ -1222,12 +1271,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 for (const file of files) {
                     const check = validateFile(file);
                     if (check.valid) {
-                        // Compresser en data URL pour persister dans localStorage
                         const dataUrl = await compressImage(file, 1200, 0.75);
                         const store = getActiveSectionPhotos();
                         if (!store[sub.id]) store[sub.id] = [];
                         store[sub.id].push({ url: dataUrl });
                         saveAppState();
+
+                        // Analyse IA automatique de la photo
+                        const base64Only = dataUrl.split(',')[1];
+                        AIAgents.analyzePhotoField(base64Only, sub.title)
+                            .then(result => {
+                                if (!result) return;
+                                showPhotoAnalysis(
+                                    sub.id,
+                                    sub.title,
+                                    base64Only,
+                                    result,
+                                    (etatSuggere) => {
+                                        // Appliquer l'état IA à tous les champs checkbox de la sous-section
+                                        sub.fields.forEach(f => {
+                                            if (f.type === 'checkbox') {
+                                                inspectionData.fieldStates[f.id] = etatSuggere;
+                                            }
+                                        });
+                                        saveAppState();
+                                        showToast('État mis à jour selon la suggestion IA — vérifiez chaque champ.', 'info');
+                                    }
+                                );
+                            })
+                            .catch(() => {
+                                showToast('Analyse IA indisponible pour cette photo.', 'warning');
+                            });
+
                     } else {
                         showToast(check.error, 'error');
                     }
