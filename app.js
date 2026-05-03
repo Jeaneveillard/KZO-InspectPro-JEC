@@ -1380,7 +1380,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 renderGallery();
                 if (files.length === 1) {
-                    const lastInput = grid.querySelector('.photo-caption-input:last-of-type');
+                    const captionInputs = grid.querySelectorAll('.photo-caption-input');
+                    const lastInput = captionInputs.length ? captionInputs[captionInputs.length - 1] : null;
                     if (lastInput) { lastInput.focus(); lastInput.select(); }
                 }
                 fileInput.value = '';
