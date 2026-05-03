@@ -254,5 +254,25 @@ window.KZOStorage = (function () {
         return projectId;
     }
 
-    return { openDB, listProjects, saveProject, loadProject, deleteProject, exportKZO, importKZO };
+    async function migrateLegacy() {
+        const raw = localStorage.getItem('kzo_inspection_data');
+        if (!raw) return false;
+        try {
+            const parsed = JSON.parse(raw);
+            if (!parsed || !parsed.units) return false;
+            const id = parsed.id || ('KZO-' + Date.now().toString().slice(-5));
+            parsed.id = id;
+            const existing = await loadProject(id);
+            if (!existing) {
+                await saveProject(id, parsed, undefined, 'en_cours');
+                console.log('[KZOStorage] Migration localStorage → IndexedDB :', id);
+            }
+            return id;
+        } catch (e) {
+            console.warn('[KZOStorage] migrateLegacy failed:', e);
+            return false;
+        }
+    }
+
+    return { openDB, listProjects, saveProject, loadProject, deleteProject, exportKZO, importKZO, migrateLegacy };
 })();
