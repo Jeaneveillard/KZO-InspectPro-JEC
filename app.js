@@ -1297,6 +1297,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 }
                                             });
                                             saveAppState();
+                                            renderSection(currentSectionIndex);
                                             showToast('État mis à jour selon la suggestion IA — vérifiez chaque champ.', 'info');
                                         }
                                     );
