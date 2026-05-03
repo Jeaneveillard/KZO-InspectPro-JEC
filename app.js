@@ -2700,7 +2700,12 @@ Réponds en français.`;
                     infoHtml += `<strong style="color: #475569; font-size: 0.95rem;">📸 Photos (${sub.title}) :</strong>`;
                     infoHtml += `<div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px;">`;
                     subPhotos.forEach(photo => {
-                        infoHtml += `<img src="${photo.url}" style="width: 180px; height: 135px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1;">`;
+                        infoHtml += `<figure style="display:inline-block;margin:4px;vertical-align:top;">`;
+                        infoHtml += `<img src="${photo.url}" style="width:180px;height:135px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;display:block;">`;
+                        if (photo.caption) {
+                            infoHtml += `<figcaption style="font-size:0.75rem;color:#64748b;text-align:center;margin-top:4px;max-width:180px;">${photo.caption}</figcaption>`;
+                        }
+                        infoHtml += `</figure>`;
                     });
                     infoHtml += `</div></div><ul style='list-style-type: none; padding: 0;'>`;
                 }
