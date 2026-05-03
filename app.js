@@ -2508,6 +2508,13 @@ Réponds en français.`;
         // CONVENTIONS
         html += BOILERPLATE.conventions;
 
+        // Construire défauts numérotés et items durée de vie
+        const _numberedDefects = _buildNumberedDefects(unitFieldStates, inspectionData.sections);
+        const _lifespanItems = _buildLifespanItems();
+        const _urgentDefects = _numberedDefects.filter(d => d.severity === 'URGENT');
+        const _majeurDefects = _numberedDefects.filter(d => d.severity === 'MAJEUR');
+        const _surveillerDefects = _numberedDefects.filter(d => d.severity === 'SURVEILLER');
+
         // SOMMAIRE EXÉCUTIF avec compteur
         const hasIssues = totalUrgents > 0 || totalMajeurs > 0 || totalSurveiller > 0;
         html += `
@@ -2544,6 +2551,30 @@ Réponds en français.`;
                     <p style="font-size: 1rem; line-height: 1.7;"><strong>Notes de l'inspecteur :</strong><br>${sanitizeHTML(document.getElementById('rap_notes')?.value || 'Aucune observation supplémentaire.').replace(/\n/g, '<br>')}</p>
                     ${document.getElementById('rap_entretien')?.value ? `<p style="font-size: 1rem; line-height: 1.7; margin-top: 16px;"><strong>Recommandations d'entretien préventif :</strong><br>${sanitizeHTML(document.getElementById('rap_entretien').value).replace(/\n/g, '<br>')}</p>` : ''}
                 </div>
+                ${_numberedDefects.length > 0 ? `
+                <div style="margin-top: 30px;">
+                    <h3 style="font-size: 1.3rem; color: #0f172a; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0;">📋 Liste des observations — ${_numberedDefects.length} au total</h3>
+                    ${_urgentDefects.length > 0 ? `
+                    <div style="margin-bottom: 16px;">
+                        <div style="background: #dc2626; color: white; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; display: inline-block;">🚨 URGENT — ${_urgentDefects.length} observation${_urgentDefects.length > 1 ? 's' : ''}</div>
+                        ${_urgentDefects.map(d => `<div style="padding: 8px 14px; border-left: 3px solid #dc2626; margin-bottom: 4px; font-size: 0.9rem; background: #fff5f5;"><span style="font-weight: 700; color: #dc2626; margin-right: 8px;">#${d.num}</span><strong>${sanitizeHTML(d.sectionTitle)}</strong> — ${sanitizeHTML(d.label)}<span style="color: #dc2626; font-size: 0.82rem; margin-left: 8px;">→ ${sanitizeHTML(d.specialist)}</span></div>`).join('')}
+                    </div>` : ''}
+                    ${_majeurDefects.length > 0 ? `
+                    <div style="margin-bottom: 16px;">
+                        <div style="background: #d97706; color: white; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; display: inline-block;">⚠️ MAJEUR — ${_majeurDefects.length} observation${_majeurDefects.length > 1 ? 's' : ''}</div>
+                        ${_majeurDefects.map(d => `<div style="padding: 8px 14px; border-left: 3px solid #d97706; margin-bottom: 4px; font-size: 0.9rem; background: #fffdf0;"><span style="font-weight: 700; color: #d97706; margin-right: 8px;">#${d.num}</span><strong>${sanitizeHTML(d.sectionTitle)}</strong> — ${sanitizeHTML(d.label)}<span style="color: #d97706; font-size: 0.82rem; margin-left: 8px;">→ ${sanitizeHTML(d.specialist)}</span></div>`).join('')}
+                    </div>` : ''}
+                    ${_surveillerDefects.length > 0 ? `
+                    <div style="margin-bottom: 16px;">
+                        <div style="background: #f59e0b; color: #0f172a; padding: 6px 14px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; display: inline-block;">👁️ À SURVEILLER — ${_surveillerDefects.length} élément${_surveillerDefects.length > 1 ? 's' : ''}</div>
+                        ${_surveillerDefects.map(d => `<div style="padding: 8px 14px; border-left: 3px solid #f59e0b; margin-bottom: 4px; font-size: 0.9rem; background: #fffbeb;"><span style="font-weight: 700; color: #92400e; margin-right: 8px;">#${d.num}</span><strong>${sanitizeHTML(d.sectionTitle)}</strong> — ${sanitizeHTML(d.label)}<span style="color: #92400e; font-size: 0.82rem; margin-left: 8px;">→ ${sanitizeHTML(d.specialist)}</span></div>`).join('')}
+                    </div>` : ''}
+                </div>` : ''}
+                ${_lifespanItems.length > 0 ? `
+                <div style="margin-top: 24px; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <h3 style="font-size: 1.1rem; color: #0f172a; margin-bottom: 14px;">🔧 Durée de vie estimée des équipements</h3>
+                    ${_lifespanItems.map(item => `<div style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem;"><span style="font-weight: 600; color: #1e293b; min-width: 200px;">${sanitizeHTML(item.label)}${item.age ? ' · ' + item.age + ' ans' : ''}</span><span style="background: ${item.badgeColor}; color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 700;">${sanitizeHTML(item.badge)}</span><span style="color: #64748b; font-size: 0.82rem;">→ Consulter un ${sanitizeHTML(item.specialist)}</span></div>`).join('')}
+                </div>` : ''}
             </div>
         `;
 
