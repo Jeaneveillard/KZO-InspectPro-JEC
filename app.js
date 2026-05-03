@@ -869,6 +869,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        // --- Preview Page Rendering ---
+        if (section.isPreviewPage) {
+            _renderPreviewPage(dynamicContent);
+            prevBtn.disabled = currentSectionIndex === 0;
+            nextBtn.disabled = false;
+            nextBtn.textContent = 'Rapport Final →';
+            return;
+        }
+
         // --- Standard Section Rendering ---
 
         // Bannière Condo pour sections extérieures
@@ -1785,7 +1794,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             let urg = 0, maj = 0, surv = 0, conf = 0;
             const fs = unit.fieldStates || {};
             inspectionData.sections.forEach(section => {
-                if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport') return;
+                if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport' || section.id === 's_preview') return;
                 section.subSections.forEach(sub => {
                     sub.fields.forEach(f => {
                         if (f.type !== 'checkbox') return;
@@ -2377,7 +2386,7 @@ Réponds en français.`;
     function _buildNumberedDefects(unitFieldStates, sections) {
         const defects = [];
         sections.forEach(section => {
-            if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport') return;
+            if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport' || section.id === 's_preview') return;
             (section.subSections || []).forEach(sub => {
                 (sub.fields || []).forEach(field => {
                     if (field.type !== 'checkbox') return;
@@ -2496,7 +2505,7 @@ Réponds en français.`;
         // Compter défauts et à surveiller DANS L'UNITÉ
         let totalUrgents = 0, totalMajeurs = 0, totalSurveiller = 0, totalConformes = 0;
         inspectionData.sections.forEach(section => {
-            if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport') return;
+            if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport' || section.id === 's_preview') return;
             section.subSections.forEach(sub => {
                 sub.fields.forEach(field => {
                     if (field.type !== 'checkbox') return;
@@ -2676,7 +2685,7 @@ Réponds en français.`;
         (_numberedDefects || []).forEach(d => { _defectNumMap[d.fieldId] = d.num; });
         let defectCount = 0;
         inspectionData.sections.forEach(section => {
-            if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport') return;
+            if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport' || section.id === 's_preview') return;
 
             html += `<div class="page-break" style="padding-top: 50px;">
                      <h2 style="color: #1A56DB; margin-bottom: 20px; border-bottom: 2px solid #1A56DB; padding-bottom: 10px; font-size: 1.8rem;">${section.title}</h2>
@@ -2890,7 +2899,7 @@ Réponds en français.`;
         const unitFieldStates = (targetUnit && targetUnit.fieldStates) || {};
         let totalUrgents = 0, totalMajeurs = 0, totalSurveiller = 0, totalConformes = 0;
         inspectionData.sections.forEach(section => {
-            if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport') return;
+            if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport' || section.id === 's_preview') return;
             section.subSections.forEach(sub => {
                 sub.fields.forEach(field => {
                     if (field.type !== 'checkbox') return;
@@ -3118,6 +3127,53 @@ Réponds en français.`;
         navigator.serviceWorker.register('sw.js')
             .then(() => console.log('KZO InspectPro : mode hors ligne actif'))
             .catch(err => console.warn('Service Worker non enregistré :', err));
+    }
+
+    function _renderPreviewPage(container) {
+        // Filigrane diagonal fixe
+        const watermark = document.createElement('div');
+        watermark.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:5rem;font-weight:900;color:rgba(251,191,36,0.07);pointer-events:none;z-index:0;white-space:nowrap;user-select:none;';
+        watermark.textContent = 'PRÉVISUALISATION';
+        container.appendChild(watermark);
+
+        // Bannière jaune
+        const banner = document.createElement('div');
+        banner.style.cssText = 'background:#fef3c7;border:2px solid #f59e0b;border-radius:8px;padding:12px 16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;flex-wrap:wrap;gap:8px;';
+        banner.innerHTML = '<span style="color:#92400e;font-weight:700;font-size:0.88rem;">👁️ PRÉVISUALISATION — Non finalisé · Relisez avant de générer</span>';
+        const launchBtn = document.createElement('button');
+        launchBtn.type = 'button';
+        launchBtn.textContent = '✅ Lancer le rapport final';
+        launchBtn.style.cssText = 'background:#22c55e;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:0.88rem;cursor:pointer;font-weight:600;';
+        launchBtn.onclick = () => {
+            if (isMultiUnitBuilding() && inspectionData.units.length > 1) showUnitReportSelector();
+            else generateFinalReport();
+        };
+        banner.appendChild(launchBtn);
+        container.appendChild(banner);
+
+        // Guard: check required fields
+        const clientName = sanitizeHTML(inspectionData.clientInfo.name) || '';
+        const address = sanitizeHTML(inspectionData.clientInfo.address) || '';
+        if (!clientName || !address) {
+            const warn = document.createElement('div');
+            warn.style.cssText = 'background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:16px;color:#dc2626;font-size:0.9rem;position:relative;z-index:1;';
+            warn.textContent = '⚠️ Remplissez le nom du client et l\'adresse (Section 1) pour voir la prévisualisation.';
+            container.appendChild(warn);
+            return;
+        }
+        if (typeof BOILERPLATE === 'undefined') {
+            const warn = document.createElement('div');
+            warn.style.cssText = 'background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:16px;color:#dc2626;position:relative;z-index:1;';
+            warn.textContent = '⚠️ boilerplate.js manquant — prévisualisation indisponible.';
+            container.appendChild(warn);
+            return;
+        }
+
+        // Inline report preview
+        const previewDiv = document.createElement('div');
+        previewDiv.style.cssText = 'position:relative;z-index:1;';
+        previewDiv.innerHTML = _buildReportHTML();
+        container.appendChild(previewDiv);
     }
 
     function openAnnotationEditor(photoObj, onSave) {
