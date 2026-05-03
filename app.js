@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     currentUnitId: inspectionData.currentUnitId,
                     rapportNarratifIA: inspectionData.rapportNarratifIA || ''
                 };
-                await KZOStorage.saveProject(window.currentProjectId, snapshot);
+                await KZOStorage.saveProject(window.currentProjectId, snapshot, _computeProgress());
                 showToast('Inspection sauvegardée ✓', 'success');
                 setTimeout(() => { window.location.href = 'index.html'; }, 1200);
             } catch (e) {
@@ -2675,9 +2675,27 @@ Réponds en français.`;
                 currentUnitId: inspectionData.currentUnitId,
                 rapportNarratifIA: inspectionData.rapportNarratifIA || ''
             };
-            KZOStorage.saveProject(window.currentProjectId, snapshot, undefined, 'termine')
+            KZOStorage.saveProject(window.currentProjectId, snapshot, _computeProgress(), 'termine')
                 .catch(e => console.warn('[generateFinalReport] IndexedDB:', e));
         }
+    }
+
+    // Calcule le nombre de sections avec au moins 1 checkbox cochée
+    function _computeProgress() {
+        if (!inspectionData.sections) return 0;
+        const unit = inspectionData.units && (
+            inspectionData.units.find(u => u.id === inspectionData.currentUnitId) || inspectionData.units[0]
+        );
+        const states = (unit && unit.fieldStates) || {};
+        let count = 0;
+        inspectionData.sections.forEach(section => {
+            if (section.isCoverPage || section.id === 's_admin') return;
+            const hasChecked = (section.subSections || []).some(sub =>
+                (sub.fields || []).some(f => f.type === 'checkbox' && states[f.id])
+            );
+            if (hasChecked) count++;
+        });
+        return count;
     }
 
     // --- Persistence Globale (Offline Support) ---
@@ -2702,7 +2720,7 @@ Réponds en français.`;
                 currentUnitId: inspectionData.currentUnitId,
                 rapportNarratifIA: inspectionData.rapportNarratifIA || ''
             };
-            KZOStorage.saveProject(window.currentProjectId, snapshot)
+            KZOStorage.saveProject(window.currentProjectId, snapshot, _computeProgress())
                 .catch(e => console.warn('[saveAppState] IndexedDB:', e));
         }
     }
@@ -2736,29 +2754,9 @@ Réponds en français.`;
 
     // --- Bouton Nouvelle Inspection ---
     function resetInspection() {
-        if (!confirm('⚠️ Êtes-vous sûr de vouloir démarrer une nouvelle inspection ?\nToutes les données actuelles seront effacées.')) return;
-        localStorage.removeItem('kzo_inspection_data');
-        // Réinitialiser clientInfo avec la structure attendue (évite crash sur .names)
-        inspectionData.clientInfo = {
-            inspectorName: localStorage.getItem('inspectpro_inspector_name') || '',
-            names: [''],
-            name: '',
-            address: '',
-            coverPhotoUrl: null,
-            signatureUrl: null,
-            sealUrl: null
-        };
-        inspectionData.id = 'KZO-' + Date.now().toString().slice(-5);
-        // Reset unités (les proxies fieldStates/comments/etc. pointent vers units[0])
-        inspectionData.units = [
-            { id: 'unit_1', name: 'Unité 1', fieldStates: {}, comments: {}, sectionComments: {}, sectionPhotos: {} }
-        ];
-        inspectionData.currentUnitId = 'unit_1';
-        currentSectionIndex = 0;
-        renderUnitTabs();
-        renderNavigation();
-        renderSection(0);
-        showToast('Nouvelle inspection démarrée !', 'success');
+        if (confirm('Retourner à l\'accueil ? L\'inspection en cours a été sauvegardée.')) {
+            window.location.href = 'index.html';
+        }
     }
 
     // Ajouter bouton Nouvelle Inspection dans la topbar

@@ -199,7 +199,7 @@
             return;
         }
         grid.innerHTML = projects.map(p => {
-            const pct = Math.min(Math.round((p.progress / 10) * 100), 100);
+            const pct = Math.min(Math.round((p.progress / 12) * 100), 100);
             const statusLabel = p.status === 'termine' ? 'TERMINÉ' : 'EN COURS';
             return `
             <div class="card ${sanitize(p.status)}" onclick="openProject('${sanitize(p.id)}')">
@@ -213,7 +213,7 @@
                 <div class="progress-bar-bg">
                     <div class="progress-bar-fill" style="width:${pct}%"></div>
                 </div>
-                <div class="progress-label">${p.progress}/10 sections</div>
+                <div class="progress-label">${p.progress}/12 sections</div>
                 <div class="card-actions" onclick="event.stopPropagation()">
                     <button class="action-btn open" onclick="openProject('${sanitize(p.id)}')">Ouvrir</button>
                     <button class="action-btn export" onclick="exportProject('${sanitize(p.id)}')">⬇️ .kzo</button>
