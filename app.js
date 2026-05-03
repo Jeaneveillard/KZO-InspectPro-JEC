@@ -1306,17 +1306,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     // Bouton supprimer (haut droite)
                     const delBtn = document.createElement('button');
+                    delBtn.type = 'button';
                     delBtn.innerHTML = '✕';
                     delBtn.title = 'Supprimer cette photo';
                     delBtn.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(220,38,38,0.9);color:white;border:none;border-radius:50%;width:24px;height:24px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;';
                     delBtn.onclick = () => {
-                        getActiveSectionPhotos()[sub.id].splice(i, 1);
+                        const arr = getActiveSectionPhotos()[sub.id];
+                        const idx = arr.indexOf(photoObj);
+                        if (idx !== -1) arr.splice(idx, 1);
                         saveAppState();
                         renderGallery();
                     };
 
                     // Bouton annoter (bas gauche)
                     const annotBtn = document.createElement('button');
+                    annotBtn.type = 'button';
                     annotBtn.innerHTML = '✏️';
                     annotBtn.title = 'Annoter cette photo';
                     annotBtn.style.cssText = 'position:absolute;bottom:4px;left:4px;background:rgba(30,41,59,0.85);color:white;border:none;border-radius:6px;width:28px;height:28px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;';
