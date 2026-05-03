@@ -191,6 +191,27 @@
     </div>
 
     <!-- Scripts -->
+    <!-- Panneau analyse photo automatique IA -->
+    <div id="photoAnalysisPanel" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.88); z-index:2200; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+        <div style="background:white; width:95%; max-width:560px; border-radius:12px; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+            <div style="padding:18px 24px; background:#0f172a; color:white; display:flex; justify-content:space-between; align-items:center;">
+                <h3 id="photoAnalysisTitle" style="margin:0; font-size:1rem; font-weight:700;">🔍 Analyse IA</h3>
+                <span id="photoAnalysisBadge" style="padding:4px 12px; border-radius:20px; font-size:0.8rem; font-weight:700;"></span>
+            </div>
+            <div style="padding:24px;">
+                <img id="photoAnalysisThumb" style="width:100%; max-height:200px; object-fit:cover; border-radius:8px; margin-bottom:16px; display:none;" alt="Photo analysée">
+                <p id="photoAnalysisText" style="color:#334155; line-height:1.7; font-size:0.95rem; margin-bottom:16px;"></p>
+                <div style="padding:12px 16px; background:#fffbeb; border-left:4px solid #d97706; border-radius:6px; font-size:0.85rem; color:#92400e;">
+                    ⚠️ Cette analyse est indicative. Votre jugement professionnel prévaut toujours.
+                </div>
+            </div>
+            <div style="padding:16px 24px; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:12px;">
+                <button id="photoAnalysisIgnore" style="padding:8px 20px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; cursor:pointer; font-size:0.9rem;">Ignorer</button>
+                <button id="photoAnalysisApply" style="padding:8px 20px; background:#1d4ed8; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.9rem;">✓ Appliquer la suggestion</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modale prévisualisation IA -->
     <div id="aiPreviewModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.88); z-index:2100; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
         <div style="background:white; width:95%; max-width:700px; max-height:85vh; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
