@@ -77,6 +77,12 @@
                 <div class="top-bar-info">
                     <span id="currentSectionTitle">1. Documents & Pré-inspection</span>
                 </div>
+                <button id="saveQuitBtn" style="padding:7px 14px; background:#475569; color:white; border:none; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                    💾 Sauvegarder et quitter
+                </button>
+                <button id="exportKzoBtn" style="padding:7px 14px; background:#334155; color:#cbd5e1; border:none; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; margin-right:4px;">
+                    ⬇️ .kzo
+                </button>
                 <button class="assistant-btn" id="assistantBtn">
                     ✨ Assistant IA
                 </button>
@@ -255,6 +261,8 @@
         }
     </style>
 
+    <script src="jszip.min.js"></script>
+    <script src="storage.js"></script>
     <script src="config.js"></script>
     <script src="data.js?v=6"></script>
     <script src="boilerplate.js?v=3"></script>

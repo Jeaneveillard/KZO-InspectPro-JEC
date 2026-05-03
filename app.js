@@ -117,6 +117,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // Sauvegarde explicite et retour à l'accueil
+    async function saveAndQuit() {
+        if (window.currentProjectId && window.KZOStorage) {
+            try {
+                const snapshot = {
+                    clientInfo: inspectionData.clientInfo,
+                    id: inspectionData.id,
+                    units: inspectionData.units,
+                    currentUnitId: inspectionData.currentUnitId,
+                    rapportNarratifIA: inspectionData.rapportNarratifIA || ''
+                };
+                await KZOStorage.saveProject(window.currentProjectId, snapshot);
+                showToast('Inspection sauvegardée ✓', 'success');
+                setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+            } catch (e) {
+                showToast('Erreur sauvegarde : ' + e.message, 'error');
+            }
+        } else {
+            window.location.href = 'index.html';
+        }
+    }
+
+    // Ajoute le bouton "Sauvegarder et quitter" épinglé en bas du sidebar
+    function renderSaveQuitSidebar() {
+        const sidebar = document.getElementById('sidebar') || document.querySelector('.sidebar') || document.querySelector('nav');
+        if (!sidebar || document.getElementById('saveQuitSidebarBtn')) return;
+        const btn = document.createElement('button');
+        btn.id = 'saveQuitSidebarBtn';
+        btn.textContent = '💾 Sauvegarder et quitter';
+        btn.style.cssText = 'display:block;width:calc(100% - 16px);margin:12px 8px 8px;padding:10px 14px;background:#475569;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;text-align:center;';
+        btn.addEventListener('click', saveAndQuit);
+        sidebar.appendChild(btn);
+    }
+
     // Compression photo avant stockage localStorage (évite la saturation)
     function compressImage(file, maxWidth = 1200, quality = 0.75) {
         return new Promise((resolve) => {
@@ -2062,6 +2096,46 @@ Réponds en français.`;
         }
         modal.classList.remove('open');
     });
+
+    // Bouton "Sauvegarder et quitter" — top-bar
+    const saveQuitTopBtn = document.getElementById('saveQuitBtn');
+    if (saveQuitTopBtn) saveQuitTopBtn.addEventListener('click', saveAndQuit);
+
+    // Bouton "Exporter .kzo" — top-bar
+    const exportKzoBtn = document.getElementById('exportKzoBtn');
+    if (exportKzoBtn) {
+        exportKzoBtn.addEventListener('click', async () => {
+            if (!window.currentProjectId || !window.KZOStorage) return;
+            exportKzoBtn.textContent = '⏳ Export...';
+            exportKzoBtn.disabled = true;
+            try {
+                const snapshot = {
+                    clientInfo: inspectionData.clientInfo,
+                    id: inspectionData.id,
+                    units: inspectionData.units,
+                    currentUnitId: inspectionData.currentUnitId,
+                    rapportNarratifIA: inspectionData.rapportNarratifIA || ''
+                };
+                await KZOStorage.saveProject(window.currentProjectId, snapshot);
+                const blob = await KZOStorage.exportKZO(window.currentProjectId);
+                const clientName = (inspectionData.clientInfo.names || []).filter(Boolean).join('_') || 'inspection';
+                const filename = 'KZO-' + clientName.replace(/[^a-zA-Z0-9]/g, '_') + '-' + new Date().toISOString().slice(0, 10) + '.kzo';
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename; a.click();
+                URL.revokeObjectURL(url);
+                showToast('Fichier .kzo exporté ✓', 'success');
+            } catch (e) {
+                showToast('Erreur export : ' + e.message, 'error');
+            } finally {
+                exportKzoBtn.textContent = '⬇️ .kzo';
+                exportKzoBtn.disabled = false;
+            }
+        });
+    }
+
+    // Rendre le bouton sidebar
+    renderSaveQuitSidebar();
 
     // --- 5. Assistant Chatbot ---
     const assistantBtn = document.getElementById('assistantBtn');
