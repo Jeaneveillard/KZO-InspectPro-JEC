@@ -2,12 +2,309 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>KZO InspectPro — Redirection</title>
-    <meta http-equiv="refresh" content="0; url=KZO_Inspect.html">
-    <link rel="canonical" href="KZO_Inspect.html">
-    <script>window.location.replace('KZO_Inspect.html');</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KZO InspectPro — Projets</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
+
+        .topbar {
+            background: #1e3a5f;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        }
+        .logo { font-weight: 800; font-size: 1.1rem; color: #60a5fa; white-space: nowrap; }
+        .topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn { padding: 8px 18px; border: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.85; }
+        .btn-primary { background: #1d4ed8; color: white; }
+        .btn-import { background: #059669; color: white; }
+
+        .main { padding: 24px; max-width: 1100px; margin: 0 auto; }
+
+        .search-bar {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 10px 16px;
+            color: #f1f5f9;
+            font-size: 0.9rem;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        .search-bar::placeholder { color: #64748b; }
+        .search-bar:focus { outline: none; border-color: #3b82f6; }
+
+        .filters { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+        .filter-btn {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: #1e293b;
+            color: #64748b;
+            transition: all 0.2s;
+        }
+        .filter-btn.active { background: #1d4ed8; color: white; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 12px;
+            border-left: 4px solid #334155;
+            padding: 16px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            position: relative;
+        }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+        .card.en_cours { border-left-color: #f59e0b; }
+        .card.termine { border-left-color: #22c55e; }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+        }
+        .badge.en_cours { background: #f59e0b; color: #0f172a; }
+        .badge.termine { background: #22c55e; color: #0f172a; }
+        .card-date { color: #475569; font-size: 0.75rem; }
+
+        .card-client { font-weight: 700; font-size: 1rem; color: #f1f5f9; margin-bottom: 4px; }
+        .card-code { color: #60a5fa; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
+        .card-address { color: #94a3b8; font-size: 0.8rem; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .progress-bar-bg { background: #0f172a; border-radius: 4px; height: 5px; margin-bottom: 6px; }
+        .progress-bar-fill { height: 5px; border-radius: 4px; transition: width 0.3s; }
+        .en_cours .progress-bar-fill { background: #f59e0b; }
+        .termine .progress-bar-fill { background: #22c55e; }
+        .progress-label { color: #64748b; font-size: 0.72rem; }
+
+        .card-actions {
+            display: none;
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            gap: 6px;
+        }
+        .card:hover .card-actions { display: flex; }
+        .action-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .action-btn.open { background: #1d4ed8; color: white; }
+        .action-btn.export { background: #334155; color: #cbd5e1; }
+        .action-btn.del { background: #dc2626; color: white; }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #475569;
+            grid-column: 1 / -1;
+        }
+        .empty-state h2 { font-size: 1.3rem; margin-bottom: 10px; color: #64748b; }
+
+        #toast-home {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #059669;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: none;
+            z-index: 999;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+    </style>
 </head>
 <body>
-    <p>Redirection vers <a href="KZO_Inspect.html">l'application KZO InspectPro</a>…</p>
+
+<div class="topbar">
+    <div class="logo">🏠 KZO InspectPro</div>
+    <div class="topbar-actions">
+        <button class="btn btn-import" onclick="triggerImport()">📂 Ouvrir .kzo</button>
+        <button class="btn btn-primary" onclick="newInspection()">+ Nouvelle inspection</button>
+    </div>
+</div>
+
+<div class="main">
+    <input class="search-bar" type="text" id="searchInput" placeholder="🔍 Rechercher par client, adresse ou code..." oninput="filterProjects()">
+
+    <div class="filters">
+        <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">Tous</button>
+        <button class="filter-btn" data-filter="en_cours" onclick="setFilter('en_cours', this)">En cours</button>
+        <button class="filter-btn" data-filter="termine" onclick="setFilter('termine', this)">Terminés</button>
+    </div>
+
+    <div class="grid" id="projectGrid"></div>
+</div>
+
+<div id="toast-home"></div>
+<input type="file" id="importInput" accept=".kzo" style="display:none" onchange="handleImport(event)">
+
+<script src="jszip.min.js"></script>
+<script src="storage.js"></script>
+<script>
+    let allProjects = [];
+    let currentFilter = 'all';
+
+    function showToast(msg, color) {
+        const t = document.getElementById('toast-home');
+        t.textContent = msg;
+        t.style.background = color || '#059669';
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 3000);
+    }
+
+    function formatDate(iso) {
+        if (!iso) return '';
+        return new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function sanitize(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    function renderGrid(projects) {
+        const grid = document.getElementById('projectGrid');
+        if (!projects.length) {
+            grid.innerHTML = '<div class="empty-state"><h2>Aucune inspection trouvée</h2><p>Créez votre première inspection ou importez un fichier .kzo</p></div>';
+            return;
+        }
+        grid.innerHTML = projects.map(p => {
+            const pct = Math.min(Math.round((p.progress / 10) * 100), 100);
+            const statusLabel = p.status === 'termine' ? 'TERMINÉ' : 'EN COURS';
+            return `
+            <div class="card ${sanitize(p.status)}" onclick="openProject('${sanitize(p.id)}')">
+                <div class="card-header">
+                    <span class="badge ${sanitize(p.status)}">${statusLabel}</span>
+                    <span class="card-date">${formatDate(p.updatedAt)}</span>
+                </div>
+                <div class="card-client">${sanitize(p.clientName) || 'Client inconnu'}</div>
+                <div class="card-code">${sanitize(p.code || p.id)}</div>
+                <div class="card-address">${sanitize(p.address) || '—'}</div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width:${pct}%"></div>
+                </div>
+                <div class="progress-label">${p.progress}/10 sections</div>
+                <div class="card-actions" onclick="event.stopPropagation()">
+                    <button class="action-btn open" onclick="openProject('${sanitize(p.id)}')">Ouvrir</button>
+                    <button class="action-btn export" onclick="exportProject('${sanitize(p.id)}')">⬇️ .kzo</button>
+                    <button class="action-btn del" onclick="deleteProject('${sanitize(p.id)}')">🗑️</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function filterProjects() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        let filtered = allProjects;
+        if (currentFilter !== 'all') filtered = filtered.filter(p => p.status === currentFilter);
+        if (q) filtered = filtered.filter(p =>
+            (p.clientName || '').toLowerCase().includes(q) ||
+            (p.address || '').toLowerCase().includes(q) ||
+            (p.code || '').toLowerCase().includes(q)
+        );
+        renderGrid(filtered);
+    }
+
+    function setFilter(filter, btn) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterProjects();
+    }
+
+    function openProject(id) {
+        window.location.href = 'KZO_Inspect.html?project=' + encodeURIComponent(id);
+    }
+
+    function newInspection() {
+        const newId = 'KZO-' + Date.now().toString().slice(-5);
+        window.location.href = 'KZO_Inspect.html?project=' + newId + '&new=1';
+    }
+
+    async function exportProject(id) {
+        try {
+            showToast('⏳ Génération du fichier .kzo...');
+            const blob = await KZOStorage.exportKZO(id);
+            const project = allProjects.find(p => p.id === id);
+            const name = project ? project.clientName.replace(/[^a-zA-Z0-9]/g, '_') : id;
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'KZO-' + name + '-' + new Date().toISOString().slice(0, 10) + '.kzo';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('✅ Fichier .kzo exporté');
+        } catch (e) {
+            showToast('❌ Erreur export : ' + e.message, '#dc2626');
+        }
+    }
+
+    async function deleteProject(id) {
+        const project = allProjects.find(p => p.id === id);
+        const name = project ? project.clientName : id;
+        if (!confirm('Supprimer l\'inspection de "' + name + '" ?\nCette action est irréversible.')) return;
+        await KZOStorage.deleteProject(id);
+        showToast('🗑️ Inspection supprimée');
+        await loadAndRender();
+    }
+
+    function triggerImport() {
+        document.getElementById('importInput').value = '';
+        document.getElementById('importInput').click();
+    }
+
+    async function handleImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        try {
+            showToast('⏳ Import en cours...');
+            const projectId = await KZOStorage.importKZO(file);
+            if (projectId) {
+                showToast('✅ Inspection importée — ' + projectId);
+                await loadAndRender();
+            }
+        } catch (e) {
+            showToast('❌ Erreur import : ' + e.message, '#dc2626');
+        }
+    }
+
+    async function loadAndRender() {
+        allProjects = await KZOStorage.listProjects();
+        filterProjects();
+    }
+
+    // Init : migration legacy puis chargement
+    KZOStorage.migrateLegacy().then(() => loadAndRender()).catch(() => loadAndRender());
+</script>
 </body>
 </html>
