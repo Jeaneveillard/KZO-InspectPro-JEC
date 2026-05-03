@@ -312,7 +312,11 @@ const inspectionData = {
             ]}
           ]
         },
-        { id: "s_rapport", title: "12. Rapport Final", key: "rapport", icon: "📄",
+        { id: "s_preview", title: "12. Prévisualisation du Rapport", key: "preview", icon: "👁️",
+          isPreviewPage: true,
+          subSections: []
+        },
+        { id: "s_rapport", title: "13. Rapport Final", key: "rapport", icon: "📄",
           subSections: [
             { id: "ss_rap_1", title: "Résumé général de l'inspection", fields: [
                 { id: "rap_etat_general", type: "select", label: "État général du bâtiment", options: ["Excellent — Aucun défaut majeur observé","Bon — Quelques points mineurs à surveiller","Acceptable — Travaux recommandés à moyen terme","Préoccupant — Travaux urgents requis dans les prochains mois","Critique — Risques pour la sécurité des occupants — Intervention immédiate"] },
