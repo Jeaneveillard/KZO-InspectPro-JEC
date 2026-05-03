@@ -1277,31 +1277,34 @@ document.addEventListener('DOMContentLoaded', () => {
                         store[sub.id].push({ url: dataUrl });
                         saveAppState();
 
-                        // Analyse IA automatique de la photo
-                        const base64Only = dataUrl.split(',')[1];
-                        AIAgents.analyzePhotoField(base64Only, sub.title)
-                            .then(result => {
-                                if (!result) return;
-                                showPhotoAnalysis(
-                                    sub.id,
-                                    sub.title,
-                                    base64Only,
-                                    result,
-                                    (etatSuggere) => {
-                                        // Appliquer l'état IA à tous les champs checkbox de la sous-section
-                                        sub.fields.forEach(f => {
-                                            if (f.type === 'checkbox') {
-                                                inspectionData.fieldStates[f.id] = etatSuggere;
-                                            }
-                                        });
-                                        saveAppState();
-                                        showToast('État mis à jour selon la suggestion IA — vérifiez chaque champ.', 'info');
-                                    }
-                                );
-                            })
-                            .catch(() => {
-                                showToast('Analyse IA indisponible pour cette photo.', 'warning');
-                            });
+                        // Analyse IA automatique (une seule photo à la fois pour éviter les conflits de panneau)
+                        if (files.length === 1) {
+                            const base64Only = dataUrl.split(',')[1];
+                            AIAgents.analyzePhotoField(base64Only, sub.title)
+                                .then(result => {
+                                    if (!result) return;
+                                    const currentPhotos = getActiveSectionPhotos()[sub.id] || [];
+                                    if (!currentPhotos.some(p => p.url === dataUrl)) return;
+                                    showPhotoAnalysis(
+                                        sub.id,
+                                        sub.title,
+                                        base64Only,
+                                        result,
+                                        (etatSuggere) => {
+                                            sub.fields.forEach(f => {
+                                                if (f.type === 'checkbox') {
+                                                    inspectionData.fieldStates[f.id] = etatSuggere;
+                                                }
+                                            });
+                                            saveAppState();
+                                            showToast('État mis à jour selon la suggestion IA — vérifiez chaque champ.', 'info');
+                                        }
+                                    );
+                                })
+                                .catch(() => {
+                                    showToast('Analyse IA indisponible pour cette photo.', 'warning');
+                                });
+                        }
 
                     } else {
                         showToast(check.error, 'error');
