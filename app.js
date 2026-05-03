@@ -227,8 +227,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!inspectionData.sectionPhotos) inspectionData.sectionPhotos = {};
 
     // Auto-génération du code d'inspection sur nouvelle inspection
-    if (_isNewProject && !inspectionData.fieldStates['inspection_code']) {
-        inspectionData.fieldStates['inspection_code'] = window.currentProjectId || ('KZO-' + Date.now().toString().slice(-5));
+    if (_isNewProject && !getActiveFieldStates()['inspection_code']) {
+        getActiveFieldStates()['inspection_code'] = window.currentProjectId || ('KZO-' + Date.now().toString().slice(-5));
         saveAppState();
     }
 
