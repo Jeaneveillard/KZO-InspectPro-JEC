@@ -1292,26 +1292,63 @@ document.addEventListener('DOMContentLoaded', async () => {
                 grid.innerHTML = '';
                 const photos = getActiveSectionPhotos()[sub.id] || [];
                 photos.forEach((photoObj, i) => {
-                    const wrap = document.createElement('div');
-                    wrap.style.cssText = 'position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);';
-                    
+                    // Carte flex column : image (carré) + caption
+                    const card = document.createElement('div');
+                    card.style.cssText = 'display:flex;flex-direction:column;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden;background:#fff;';
+
+                    // Zone image carrée
+                    const imgWrap = document.createElement('div');
+                    imgWrap.style.cssText = 'position:relative;aspect-ratio:1;overflow:hidden;';
+
                     const img = document.createElement('img');
                     img.src = photoObj.url;
-                    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
-                    
+                    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+
+                    // Bouton supprimer (haut droite)
                     const delBtn = document.createElement('button');
                     delBtn.innerHTML = '✕';
                     delBtn.title = 'Supprimer cette photo';
-                    delBtn.style.cssText = 'position: absolute; top: 4px; right: 4px; background: rgba(220, 38, 38, 0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;';
+                    delBtn.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(220,38,38,0.9);color:white;border:none;border-radius:50%;width:24px;height:24px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;';
                     delBtn.onclick = () => {
                         getActiveSectionPhotos()[sub.id].splice(i, 1);
                         saveAppState();
                         renderGallery();
                     };
-                    
-                    wrap.appendChild(img);
-                    wrap.appendChild(delBtn);
-                    grid.appendChild(wrap);
+
+                    // Bouton annoter (bas gauche)
+                    const annotBtn = document.createElement('button');
+                    annotBtn.innerHTML = '✏️';
+                    annotBtn.title = 'Annoter cette photo';
+                    annotBtn.style.cssText = 'position:absolute;bottom:4px;left:4px;background:rgba(30,41,59,0.85);color:white;border:none;border-radius:6px;width:28px;height:28px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+                    annotBtn.onclick = () => {
+                        openAnnotationEditor(photoObj, () => {
+                            saveAppState();
+                            renderGallery();
+                        });
+                    };
+
+                    imgWrap.appendChild(img);
+                    imgWrap.appendChild(delBtn);
+                    imgWrap.appendChild(annotBtn);
+
+                    // Zone légende
+                    const captionInput = document.createElement('input');
+                    captionInput.type = 'text';
+                    captionInput.className = 'photo-caption-input';
+                    captionInput.value = photoObj.caption || '';
+                    captionInput.placeholder = 'Ajouter une légende...';
+                    captionInput.style.cssText = 'width:100%;border:none;border-top:1px solid #e2e8f0;padding:4px 6px;font-size:0.72rem;color:#475569;background:#f8fafc;box-sizing:border-box;';
+                    captionInput.onblur = () => {
+                        photoObj.caption = captionInput.value.trim();
+                        saveAppState();
+                    };
+                    captionInput.onkeydown = (e) => {
+                        if (e.key === 'Enter') captionInput.blur();
+                    };
+
+                    card.appendChild(imgWrap);
+                    card.appendChild(captionInput);
+                    grid.appendChild(card);
                 });
             };
 
