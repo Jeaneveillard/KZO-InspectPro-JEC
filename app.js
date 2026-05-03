@@ -3017,6 +3017,188 @@ Réponds en français.`;
             .then(() => console.log('KZO InspectPro : mode hors ligne actif'))
             .catch(err => console.warn('Service Worker non enregistré :', err));
     }
+
+    function openAnnotationEditor(photoObj, onSave) {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#0f172a;z-index:9999;display:flex;flex-direction:column;';
+
+        // Header
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#1e293b;flex-shrink:0;';
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.textContent = '← Annuler';
+        cancelBtn.style.cssText = 'background:none;border:none;color:#94a3b8;font-size:1rem;cursor:pointer;padding:4px 0;';
+        const saveBtn = document.createElement('button');
+        saveBtn.type = 'button';
+        saveBtn.textContent = '✓ Sauvegarder';
+        saveBtn.style.cssText = 'background:#22c55e;color:white;border:none;border-radius:6px;padding:8px 16px;font-size:1rem;cursor:pointer;';
+        header.appendChild(cancelBtn);
+        header.appendChild(saveBtn);
+
+        // Canvas
+        const canvasWrap = document.createElement('div');
+        canvasWrap.style.cssText = 'flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:8px;';
+        const canvas = document.createElement('canvas');
+        canvas.style.cssText = 'touch-action:none;max-width:100%;max-height:100%;';
+        canvasWrap.appendChild(canvas);
+
+        // Toolbar
+        const toolbar = document.createElement('div');
+        toolbar.style.cssText = 'display:flex;gap:8px;padding:10px 16px;background:#1e293b;justify-content:center;flex-wrap:wrap;flex-shrink:0;align-items:center;';
+
+        overlay.appendChild(header);
+        overlay.appendChild(canvasWrap);
+        overlay.appendChild(toolbar);
+        document.body.appendChild(overlay);
+
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.onload = () => {
+            const maxW = window.innerWidth - 16;
+            const maxH = window.innerHeight - 130;
+            const ratio = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1);
+            canvas.width = Math.round(img.naturalWidth * ratio);
+            canvas.height = Math.round(img.naturalHeight * ratio);
+            redrawCanvas();
+        };
+        img.src = photoObj.url;
+
+        const shapes = [];
+        let activeTool = 'arrow';
+        let activeColor = '#dc2626';
+        let drawing = false;
+        let startX = 0, startY = 0;
+        let previewShape = null;
+        const ANNOTATION_COLORS = ['#dc2626', '#f59e0b', '#3b82f6', '#ffffff'];
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            shapes.forEach(s => drawShape(ctx, s));
+        }
+
+        function drawShape(ctx, s) {
+            ctx.strokeStyle = s.color;
+            ctx.fillStyle = s.color;
+            ctx.lineWidth = 2;
+            if (s.type === 'arrow') {
+                drawArrow(ctx, s.startX, s.startY, s.endX, s.endY);
+            } else if (s.type === 'circle') {
+                const r = Math.hypot(s.endX - s.startX, s.endY - s.startY);
+                ctx.beginPath();
+                ctx.arc(s.startX, s.startY, r, 0, Math.PI * 2);
+                ctx.stroke();
+            } else if (s.type === 'text') {
+                ctx.font = 'bold 16px sans-serif';
+                ctx.fillText(s.text, s.startX, s.startY);
+            }
+        }
+
+        function drawArrow(ctx, x1, y1, x2, y2) {
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            const headLen = 14;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+            ctx.stroke();
+        }
+
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * (canvas.width / rect.width),
+                y: (clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        function startDraw(e) {
+            const pos = getCanvasPos(e);
+            if (activeTool === 'text') {
+                const text = window.prompt('Texte :', '');
+                if (text) shapes.push({ type: 'text', startX: pos.x, startY: pos.y, endX: pos.x, endY: pos.y, color: activeColor, text });
+                redrawCanvas();
+                return;
+            }
+            drawing = true;
+            startX = pos.x;
+            startY = pos.y;
+        }
+
+        function moveDraw(e) {
+            if (!drawing) return;
+            const pos = getCanvasPos(e);
+            previewShape = { type: activeTool, startX, startY, endX: pos.x, endY: pos.y, color: activeColor, text: '' };
+            redrawCanvas();
+            drawShape(ctx, previewShape);
+        }
+
+        function endDraw() {
+            if (!drawing) return;
+            drawing = false;
+            if (previewShape) { shapes.push(previewShape); previewShape = null; }
+        }
+
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); startDraw(e); }, { passive: false });
+        canvas.addEventListener('mousemove', moveDraw);
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); moveDraw(e); }, { passive: false });
+        canvas.addEventListener('mouseup', endDraw);
+        canvas.addEventListener('touchend', e => { e.preventDefault(); endDraw(); }, { passive: false });
+
+        const toolBtns = {};
+        [{ id: 'arrow', label: '↗ Flèche' }, { id: 'circle', label: '⬤ Cercle' }, { id: 'text', label: 'T Texte' }].forEach(t => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = t.label;
+            btn.style.cssText = `background:${activeTool === t.id ? '#3b82f6' : '#334155'};color:white;border:none;border-radius:6px;padding:7px 11px;font-size:0.82rem;cursor:pointer;`;
+            btn.onclick = () => {
+                activeTool = t.id;
+                Object.values(toolBtns).forEach(b => b.style.background = '#334155');
+                btn.style.background = '#3b82f6';
+            };
+            toolBtns[t.id] = btn;
+            toolbar.appendChild(btn);
+        });
+
+        const colorBtns = [];
+        ANNOTATION_COLORS.forEach(c => {
+            const swatch = document.createElement('button');
+            swatch.type = 'button';
+            swatch.style.cssText = `width:22px;height:22px;border-radius:50%;background:${c};border:2px solid ${c === activeColor ? 'white' : 'transparent'};cursor:pointer;padding:0;flex-shrink:0;`;
+            swatch.onclick = () => {
+                activeColor = c;
+                colorBtns.forEach(b => b.style.borderColor = 'transparent');
+                swatch.style.borderColor = 'white';
+            };
+            colorBtns.push(swatch);
+            toolbar.appendChild(swatch);
+        });
+
+        const undoBtn = document.createElement('button');
+        undoBtn.type = 'button';
+        undoBtn.textContent = '↩ Undo';
+        undoBtn.style.cssText = 'background:#475569;color:white;border:none;border-radius:6px;padding:7px 11px;font-size:0.82rem;cursor:pointer;';
+        undoBtn.onclick = () => { shapes.pop(); redrawCanvas(); };
+        toolbar.appendChild(undoBtn);
+
+        saveBtn.onclick = () => {
+            if (!photoObj.originalUrl) photoObj.originalUrl = photoObj.url;
+            photoObj.url = canvas.toDataURL('image/jpeg', 0.85);
+            document.body.removeChild(overlay);
+            onSave();
+        };
+
+        cancelBtn.onclick = () => document.body.removeChild(overlay);
+    }
 });
 
 
