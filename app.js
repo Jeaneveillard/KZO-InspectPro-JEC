@@ -2886,98 +2886,10 @@ Réponds en français.`;
         reportContent.innerHTML = html;
         reportModal.style.display = 'flex';
 
-        // --- SYNCHRONISATION GOOGLE SHEETS ---
-        // Envoie les données de l'inspection vers Google Sheets pour archivage
-        const targetUnit = unitId
-            ? inspectionData.units.find(u => u.id === unitId)
-            : getCurrentUnit();
-        const prixElement = document.getElementById('prix_inspection');
-        const prix = prixElement ? prixElement.value : "500";
-        const normeElement = document.getElementById('norme_pratique');
-        const norme = (normeElement && normeElement.value) ? normeElement.value : "BNQ 3009-500 (RBQ)";
-        const inspectorName = inspectionData.clientInfo.inspectorName || (typeof KZO_OWNER_PROFILE !== 'undefined' ? KZO_OWNER_PROFILE.inspectorName : 'Jean Eveillard Cazeau');
-        const dateInspection = inspectionData['inspection_date']
-            ? new Date(inspectionData['inspection_date']).toLocaleDateString('fr-CA', {year:'numeric', month:'long', day:'numeric'})
-            : new Date().toLocaleDateString('fr-CA', {year:'numeric', month:'long', day:'numeric'});
-        const meteo = sanitizeHTML(document.getElementById('prop_weather')?.value || '');
-        const temperature = sanitizeHTML(document.getElementById('prop_temp')?.value || '');
-        const superficie = sanitizeHTML(document.getElementById('prop_area')?.value || '');
-        const annee = sanitizeHTML(document.getElementById('prop_year')?.value || '');
-        const typeBatiment = sanitizeHTML(document.getElementById('prop_type')?.value || '');
-        const typeGarage = sanitizeHTML(document.getElementById('prop_garage')?.value || '');
-
-        const unitFieldStates = (targetUnit && targetUnit.fieldStates) || {};
-        let totalUrgents = 0, totalMajeurs = 0, totalSurveiller = 0, totalConformes = 0;
-        inspectionData.sections.forEach(section => {
-            if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport' || section.id === 's_preview') return;
-            section.subSections.forEach(sub => {
-                sub.fields.forEach(field => {
-                    if (field.type !== 'checkbox') return;
-                    const state = unitFieldStates[field.id];
-                    if (state === 'defaut') {
-                        const sev = AIAgents.determineSeverity(field.label);
-                        if (sev === 'URGENT') totalUrgents++;
-                        else totalMajeurs++;
-                    } else if (state === 'surveiller') totalSurveiller++;
-                    else if (state === 'conforme') totalConformes++;
-                });
-            });
-        });
-
-        const webhookUrl = (typeof KZO_CONFIG !== 'undefined' && KZO_CONFIG.SHEETS_WEBHOOK_URL) ? KZO_CONFIG.SHEETS_WEBHOOK_URL : '';
-        if (webhookUrl) {
-            try {
-                const syncData = {
-                    // Identification
-                    date_rapport: new Date().toLocaleDateString('fr-CA'),
-                    date_inspection: dateInspection,
-                    facture_id: inspectionData.id,
-                    numero_dossier: inspectionData.id,
-
-                    // Client
-                    client: clientName,
-                    adresse_propriete: address,
-
-                    // Propriété
-                    type_batiment: typeBatiment,
-                    annee_construction: annee,
-                    superficie: superficie,
-                    type_garage: typeGarage,
-                    meteo: meteo,
-                    temperature: temperature,
-
-                    // Inspecteur
-                    inspecteur: inspectorName,
-                    entreprise: window.AppCompanyProfile ? window.AppCompanyProfile.name : 'KZO InspectPro',
-                    norme_applicable: norme,
-
-                    // Résultats
-                    defauts_urgents: totalUrgents,
-                    defauts_majeurs: totalMajeurs,
-                    a_surveiller: totalSurveiller,
-                    conformes: totalConformes,
-                    etat_general: document.getElementById('rap_etat_general')?.value || 'Non évalué',
-
-                    // Financier
-                    montant_facture: prix,
-
-                    // Notes
-                    travaux_prioritaires: document.getElementById('rap_priorite')?.value || '',
-                    notes_inspecteur: document.getElementById('rap_notes')?.value || ''
-                };
-
-                fetch(webhookUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(syncData)
-                });
-                console.log("✅ Synchronisation Google Sheets envoyée", syncData);
-            } catch(e) {
-                console.error("⚠️ Erreur Webhook Google Sheets :", e);
-            }
-        } else {
-            console.log("ℹ️ Aucune URL Google Sheets configurée dans config.js");
+        // Drive sync + Sheets webhook (délégué à google_drive.js)
+        if (typeof GoogleDrive !== 'undefined') {
+            const reportBlob = new Blob([html], { type: 'text/html;charset=utf-8' });
+            GoogleDrive.syncInspection(window.currentProjectId, reportBlob);
         }
 
         document.getElementById('closeReportBtn').onclick = () => { reportModal.style.display = 'none'; };
@@ -3124,6 +3036,12 @@ Réponds en français.`;
     renderNavigation();
     renderSection(0);
     renderUnitTabs(); // Afficher la barre d'unités si applicable
+
+    // Init Google Drive module + afficher statut sync
+    if (typeof GoogleDrive !== 'undefined') {
+        GoogleDrive.init();
+        GoogleDrive.updateSyncIndicator(window.currentProjectId);
+    }
 
     // Patch for the manual sync button in the UI
     document.addEventListener('click', (e) => {
