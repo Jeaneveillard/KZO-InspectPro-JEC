@@ -109,8 +109,9 @@
             if (typeof showToast === 'function') showToast('Générez d\'abord le rapport avant de resynchroniser.', 'warning');
             return;
         }
+        const unitId = (window.inspectionData && window.inspectionData.currentUnitId) || undefined;
         const reportBlob = new Blob([reportEl.innerHTML], { type: 'text/html;charset=utf-8' });
-        syncInspection(projectId, reportBlob);
+        syncInspection(projectId, reportBlob, unitId);
     }
 
     // -------------------------------------------------------------------------
