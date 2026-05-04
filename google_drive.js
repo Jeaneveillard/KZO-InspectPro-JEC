@@ -143,7 +143,7 @@
     }
 
     async function _uploadFile(name, mimeType, blob, parentId) {
-        const meta    = JSON.stringify({ name: name, parents: [parentId] });
+        const meta    = JSON.stringify({ name: name, mimeType: mimeType, parents: [parentId] });
         const body    = new FormData();
         body.append('metadata', new Blob([meta], { type: 'application/json' }));
         body.append('file', blob);
@@ -324,7 +324,6 @@
     async function _drainQueue() {
         const queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
         if (queue.length === 0) return;
-        localStorage.setItem(QUEUE_KEY, '[]');
         for (let i = 0; i < queue.length; i++) {
             const projectId = queue[i];
             if (projectId !== window.currentProjectId) continue;
@@ -332,6 +331,9 @@
             if (!reportEl || !reportEl.innerHTML) continue;
             const reportBlob = new Blob([reportEl.innerHTML], { type: 'text/html;charset=utf-8' });
             await syncInspection(projectId, reportBlob);
+            // Remove from queue only after sync attempt (success or user-visible error)
+            const current = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]');
+            localStorage.setItem(QUEUE_KEY, JSON.stringify(current.filter(function (id) { return id !== projectId; })));
         }
     }
 
