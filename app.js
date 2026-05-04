@@ -2887,9 +2887,10 @@ Réponds en français.`;
         reportModal.style.display = 'flex';
 
         // Drive sync + Sheets webhook (délégué à google_drive.js)
+        // Guard handles environments where google_drive.js n'est pas chargé
         if (typeof GoogleDrive !== 'undefined') {
             const reportBlob = new Blob([html], { type: 'text/html;charset=utf-8' });
-            GoogleDrive.syncInspection(window.currentProjectId, reportBlob);
+            GoogleDrive.syncInspection(window.currentProjectId, reportBlob, unitId);
         }
 
         document.getElementById('closeReportBtn').onclick = () => { reportModal.style.display = 'none'; };

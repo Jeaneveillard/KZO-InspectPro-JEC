@@ -172,15 +172,16 @@
     // Upload orchestration
     // -------------------------------------------------------------------------
 
-    async function _uploadAll(projectId, reportBlob, inspData) {
+    async function _uploadAll(projectId, reportBlob, inspData, unitId) {
         // Create folder hierarchy
         const kzoFolderId    = await _findOrCreateFolder(ROOT_FOLDER, 'root');
         const clientName     = (inspData.clientInfo && inspData.clientInfo.name) || 'Client Inconnu';
         const clientFolderId = await _findOrCreateFolder(clientName, kzoFolderId);
 
-        const activeUnit   = (inspData.units || []).find(function (u) { return u.id === inspData.currentUnitId; })
-                            || (inspData.units || [])[0]
-                            || { fieldStates: {} };
+        const activeUnit   = (unitId ? (inspData.units || []).find(function (u) { return u.id === unitId; }) : null)
+                           || (inspData.units || []).find(function (u) { return u.id === inspData.currentUnitId; })
+                           || (inspData.units || [])[0]
+                           || { fieldStates: {} };
         const fieldStates  = activeUnit.fieldStates || {};
         const inspCode     = fieldStates['inspection_code'] || projectId || ('KZO-' + Date.now().toString().slice(-5));
         const rawDate      = (inspData['inspection_date'] || new Date().toISOString()).split('T')[0];
@@ -222,7 +223,7 @@
     // Sheets webhook
     // -------------------------------------------------------------------------
 
-    function _buildSheetsPayload(projectId, inspData) {
+    function _buildSheetsPayload(projectId, inspData, unitId) {
         function _v(id) {
             const el = document.getElementById(id);
             return el ? (el.value || '') : '';
@@ -244,7 +245,8 @@
         const tvq     = prixNum * 0.09975;
         const total   = prixNum + tps + tvq;
 
-        const activeUnit  = (inspData.units || []).find(function (u) { return u.id === inspData.currentUnitId; })
+        const activeUnit  = (unitId ? (inspData.units || []).find(function (u) { return u.id === unitId; }) : null)
+                          || (inspData.units || []).find(function (u) { return u.id === inspData.currentUnitId; })
                           || (inspData.units || [])[0]
                           || { fieldStates: {} };
         const fieldStates = activeUnit.fieldStates || {};
@@ -341,14 +343,14 @@
     // Main sync
     // -------------------------------------------------------------------------
 
-    async function syncInspection(projectId, reportBlob) {
+    async function syncInspection(projectId, reportBlob, unitId) {
         if (!projectId) return;
         const inspData   = window.inspectionData;
         if (!inspData) return;
 
         const webhookUrl = (typeof KZO_CONFIG !== 'undefined') ? KZO_CONFIG.SHEETS_WEBHOOK_URL : '';
         const clientId   = (typeof KZO_CONFIG !== 'undefined') ? KZO_CONFIG.GOOGLE_DRIVE_CLIENT_ID : '';
-        const payload    = _buildSheetsPayload(projectId, inspData);
+        const payload    = _buildSheetsPayload(projectId, inspData, unitId);
 
         if (!clientId) {
             _sendSheetsWebhook(webhookUrl, payload);
@@ -369,7 +371,7 @@
 
         try {
             await authenticate();
-            const folderUrl = await _uploadAll(projectId, reportBlob, inspData);
+            const folderUrl = await _uploadAll(projectId, reportBlob, inspData, unitId);
             _setStatus(projectId, 'synced');
             updateSyncIndicator(projectId);
             if (typeof showToast === 'function') showToast('✅ Synchronisé vers Google Drive', 'success');
