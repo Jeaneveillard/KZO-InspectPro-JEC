@@ -22,6 +22,8 @@ Protéger l'intégralité de KZO InspectPro par un écran de connexion par mot d
 | Mot de passe | `Amboul500` (stocké hashé — ne pas écrire en clair dans le code) |
 | Pages protégées | `index.html` + `KZO_Inspect.html` |
 | Déconnexion | Bouton dans la top-bar de `KZO_Inspect.html` et sur `index.html` |
+| Récupération mot de passe | Email automatique via EmailJS (code 6 chiffres, valide 15 min) |
+| Email de récupération | `kzoinspectpro@gmail.com` |
 
 ---
 
@@ -29,10 +31,11 @@ Protéger l'intégralité de KZO InspectPro par un écran de connexion par mot d
 
 | Fichier | Action | Description |
 |---------|--------|-------------|
-| `login.html` | **Nouveau** | Page de connexion — carte centrée |
-| `auth.js` | **Nouveau** | Hash SHA-256, vérification session, helpers logout |
+| `login.html` | **Nouveau** | Page de connexion + formulaire récupération mot de passe |
+| `auth.js` | **Nouveau** | Hash SHA-256, vérification session, helpers logout, reset flow |
 | `index.html` | **Modifié** | Guard de session au chargement + bouton déconnexion |
 | `KZO_Inspect.html` | **Modifié** | Guard de session au chargement + bouton déconnexion top-bar |
+| `config.js` | **Modifié** | Ajouter `EMAILJS_SERVICE_ID`, `EMAILJS_TEMPLATE_ID`, `EMAILJS_PUBLIC_KEY` |
 | `sw.js` | **Modifié** | Bump CACHE_NAME v23→v24, ajouter `login.html` aux ASSETS, exclure `auth.js` |
 
 ---
@@ -147,9 +150,50 @@ Bouton visible sur la page d'accueil des projets, même style.
 
 ---
 
+## Récupération de mot de passe (EmailJS)
+
+### Setup manuel unique (5 min)
+
+1. Créer un compte gratuit sur emailjs.com
+2. Créer un **Email Service** lié à `kzoinspectpro@gmail.com`
+3. Créer un **Email Template** avec ces variables :
+   - `{{reset_code}}` — le code à 6 chiffres
+   - `{{expiry}}` — "15 minutes"
+4. Copier **Service ID**, **Template ID**, **Public Key** → `config.js`
+
+### Clés dans `config.js`
+
+```js
+EMAILJS_SERVICE_ID:  'service_xxxxxxx',
+EMAILJS_TEMPLATE_ID: 'template_xxxxxxx',
+EMAILJS_PUBLIC_KEY:  'xxxxxxxxxxxxxxx'
+```
+
+### Flux
+
+1. Clic sur "🔑 Mot de passe oublié ?" sur `login.html`
+2. `auth.js` génère un code aléatoire à 6 chiffres
+3. Code + timestamp d'expiration (15 min) sauvegardés dans `localStorage`
+4. EmailJS envoie l'email à `kzoinspectpro@gmail.com` avec le code
+5. Formulaire de saisie du code apparaît sur `login.html`
+6. Code correct + non expiré → champ nouveau mot de passe affiché
+7. Nouveau mot de passe hashé (SHA-256) sauvegardé dans `localStorage` sous `kzo_custom_hash`
+8. `auth.js` vérifie `kzo_custom_hash` en priorité, puis `AUTH_HASH` par défaut
+
+### Script EmailJS dans `login.html`
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+```
+
+Ajouté dans `<head>` de `login.html` uniquement (pas dans `KZO_Inspect.html`).
+
+CSP : ajouter `https://cdn.jsdelivr.net` à `script-src` et `https://api.emailjs.com` à `connect-src` dans `KZO_Inspect.html` et `login.html`.
+
+---
+
 ## Hors-périmètre Groupe F
 
 - Multi-utilisateurs / rôles
-- Récupération de mot de passe
 - Tentatives de connexion limitées (brute-force protection)
 - Biométrie / Touch ID
