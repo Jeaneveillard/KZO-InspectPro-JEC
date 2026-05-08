@@ -1970,7 +1970,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (textarea) {
                     textarea.value = textarea.value.trim() ? textarea.value.trimEnd() + '\n' + line : line;
                     textarea.dispatchEvent(new Event('input'));
-                    showToast('Recommandation insérée dans le commentaire.', 'success');
+                    showToast('✅ Commentaire enregistré — voir zone jaune ci-dessous.', 'success');
+                    textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    textarea.style.transition = 'background 0.4s';
+                    textarea.style.background = '#fef9c3';
+                    textarea.style.border = '2px solid #f59e0b';
+                    setTimeout(() => { textarea.style.background = ''; textarea.style.border = ''; }, 2000);
                 } else if (navigator.clipboard) {
                     navigator.clipboard.writeText(line);
                     showToast('Copié dans le presse-papier.', 'info');
