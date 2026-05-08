@@ -11,7 +11,8 @@ const KZO_CONFIG = {
     GOOGLE_DRIVE_CLIENT_ID: '18973787304-0vm4pu6383jn2vni2h996i0ri62iu21s.apps.googleusercontent.com',
     EMAILJS_SERVICE_ID:     'service_ws2zy3s',
     EMAILJS_TEMPLATE_ID:    'template_tf86hcy',
-    EMAILJS_PUBLIC_KEY:     'Cm9YQePszO7sEIGJ2'
+    EMAILJS_PUBLIC_KEY:          'Cm9YQePszO7sEIGJ2',
+    EMAILJS_RAPPORT_TEMPLATE_ID: '' // À remplir après création du template emailjs.com
 };
 
 // ============================================================

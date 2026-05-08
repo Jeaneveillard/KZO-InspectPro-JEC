@@ -2917,6 +2917,43 @@ Réponds en français.`;
         return html;
     }
 
+    async function sendReportByEmail(unitId) {
+        const clientEmail = inspectionData.clientInfo.email || inspectionData['client_email'] || '';
+        if (!clientEmail) {
+            showToast('Veuillez saisir l\'email du client dans la Section 1.', 'warning');
+            return;
+        }
+        const cfg = (typeof KZO_CONFIG !== 'undefined') ? KZO_CONFIG : {};
+        if (!cfg.EMAILJS_SERVICE_ID || !cfg.EMAILJS_RAPPORT_TEMPLATE_ID || !cfg.EMAILJS_PUBLIC_KEY) {
+            showToast('EmailJS non configuré — remplissez EMAILJS_RAPPORT_TEMPLATE_ID dans config.js.', 'error');
+            return;
+        }
+        const sendBtn = document.getElementById('sendReportBtn');
+        if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '…'; }
+        try {
+            let driveUrl = (typeof GoogleDrive !== 'undefined') ? GoogleDrive.getLastSyncUrl() : '';
+            if (!driveUrl && typeof GoogleDrive !== 'undefined') {
+                const blob = new Blob([document.getElementById('reportContent').innerHTML], { type: 'text/html;charset=utf-8' });
+                await GoogleDrive.syncInspection(window.currentProjectId, blob, unitId);
+                driveUrl = GoogleDrive.getLastSyncUrl();
+            }
+            emailjs.init(cfg.EMAILJS_PUBLIC_KEY);
+            await emailjs.send(cfg.EMAILJS_SERVICE_ID, cfg.EMAILJS_RAPPORT_TEMPLATE_ID, {
+                to_email:       clientEmail,
+                client_name:    sanitizeHTML(inspectionData.clientInfo.name || 'Client'),
+                inspector_name: sanitizeHTML(inspectionData.clientInfo.inspectorName || 'Inspecteur'),
+                address:        sanitizeHTML(inspectionData.clientInfo.address || ''),
+                report_link:    driveUrl || '(lien non disponible — activez Google Drive)'
+            });
+            showToast('✅ Rapport envoyé à ' + clientEmail, 'success');
+            if (sendBtn) { sendBtn.textContent = '✅ Envoyé'; }
+        } catch (e) {
+            console.error('[sendReportByEmail]', e);
+            showToast('Erreur envoi : ' + (e.text || e.message || JSON.stringify(e)), 'error');
+            if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = '📤 Envoyer au client'; }
+        }
+    }
+
     function generateFinalReport(unitId) {
         if (typeof BOILERPLATE === 'undefined') {
             showToast("Impossible de charger le contenu légal (boilerplate.js manquant).", 'error');
@@ -2945,6 +2982,7 @@ Réponds en français.`;
         }
 
         document.getElementById('closeReportBtn').onclick = () => { reportModal.style.display = 'none'; };
+        document.getElementById('sendReportBtn').onclick = () => sendReportByEmail(unitId);
         document.getElementById('printReportBtn').onclick = () => { setTimeout(() => window.print(), 500); };
 
         // Marquer le projet comme terminé dans IndexedDB
