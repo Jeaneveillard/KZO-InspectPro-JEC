@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kzo-inspect-v23';
+const CACHE_NAME = 'kzo-inspect-v24';
 const ASSETS = [
   '/',
   'index.html',
@@ -15,7 +15,8 @@ const ASSETS = [
   'manifest.json',
   'storage.js',
   'jszip.min.js',
-  'google_drive.js'
+  'google_drive.js',
+  'login.html'
   // config.js exclu intentionnellement : contient des clés API sensibles
 ];
 

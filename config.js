@@ -8,7 +8,10 @@ const KZO_CONFIG = {
     provider: 'gemini',
     apiKey: '',
     SHEETS_WEBHOOK_URL: 'https://script.google.com/macros/s/AKfycby6XAR9XXWCFMqFAiyF7bjK5RQZxkoclv7KLVuDwJrW2YiNzeVlHr11pfnk3U7l_Nrv/exec',
-    GOOGLE_DRIVE_CLIENT_ID: '' // À remplir : Google Cloud Console → OAuth 2.0 Client ID
+    GOOGLE_DRIVE_CLIENT_ID: '18973787304-0vm4pu6383jn2vni2h996i0ri62iu21s.apps.googleusercontent.com',
+    EMAILJS_SERVICE_ID:     '', // À remplir après setup emailjs.com
+    EMAILJS_TEMPLATE_ID:    '', // À remplir après setup emailjs.com
+    EMAILJS_PUBLIC_KEY:     ''  // À remplir après setup emailjs.com
 };
 
 // ============================================================
