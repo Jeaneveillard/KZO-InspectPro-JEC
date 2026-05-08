@@ -23,11 +23,25 @@
         return localStorage.getItem(CUSTOM_HASH) || DEFAULT_HASH;
     }
 
+    let _loginAttempts = 0;
+    let _lockoutUntil  = 0;
+
     async function login(password) {
+        if (Date.now() < _lockoutUntil) {
+            const secs = Math.ceil((_lockoutUntil - Date.now()) / 1000);
+            throw new Error('Trop de tentatives. Réessayez dans ' + secs + ' secondes.');
+        }
         const hash = await _sha256(password);
         if (hash === _getActiveHash()) {
+            _loginAttempts = 0;
             sessionStorage.setItem(SESSION_KEY, '1');
             return true;
+        }
+        _loginAttempts++;
+        if (_loginAttempts >= 5) {
+            _lockoutUntil  = Date.now() + 30 * 1000;
+            _loginAttempts = 0;
+            throw new Error('5 tentatives échouées. Compte bloqué 30 secondes.');
         }
         return false;
     }

@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Handle File System Access API pour Save / Save As .kzo
     let _kzoFileHandle = null;
+    let _isDirty = false;
 
     // --- 0. Sécurité et Utilitaires ---
     
@@ -120,9 +121,51 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    function _markDirty() {
+        if (_isDirty) return;
+        _isDirty = true;
+        const btn = document.getElementById('saveBtn');
+        if (btn) {
+            btn.classList.add('dirty');
+            btn.title = 'Modifications non sauvegardées — cliquer pour sauvegarder';
+        }
+    }
+
+    function _markClean() {
+        _isDirty = false;
+        const btn = document.getElementById('saveBtn');
+        if (btn) {
+            btn.classList.remove('dirty');
+            btn.title = 'Sauvegarder l\'inspection';
+        }
+    }
+
+    // Sauvegarde explicite sans quitter
+    async function saveOnly() {
+        const btn = document.getElementById('saveBtn');
+        if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+        if (window.currentProjectId && window.KZOStorage) {
+            try {
+                const snapshot = {
+                    clientInfo: inspectionData.clientInfo,
+                    id: inspectionData.id,
+                    units: inspectionData.units,
+                    currentUnitId: inspectionData.currentUnitId,
+                    rapportNarratifIA: inspectionData.rapportNarratifIA || ''
+                };
+                await KZOStorage.saveProject(window.currentProjectId, snapshot, _computeProgress());
+                _markClean();
+                showToast('Inspection sauvegardée ✓', 'success');
+            } catch (e) {
+                showToast('Erreur sauvegarde : ' + e.message, 'error');
+            }
+        }
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Sauvegarder'; }
+    }
+
     // Sauvegarde explicite et retour à l'accueil
     async function saveAndQuit() {
-        const _btn1 = document.getElementById('saveQuitBtn');
+        const _btn1 = document.getElementById('saveBtn');
         const _btn2 = document.getElementById('saveQuitSidebarBtn');
         [_btn1, _btn2].forEach(b => { if (b) b.disabled = true; });
         if (window.currentProjectId && window.KZOStorage) {
@@ -135,6 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     rapportNarratifIA: inspectionData.rapportNarratifIA || ''
                 };
                 await KZOStorage.saveProject(window.currentProjectId, snapshot, _computeProgress());
+                _markClean();
                 showToast('Inspection sauvegardée ✓', 'success');
                 setTimeout(() => { window.location.href = 'index.html'; }, 1200);
             } catch (e) {
@@ -151,9 +195,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const sidebar = document.getElementById('sidebar') || document.querySelector('.sidebar') || document.querySelector('nav');
         if (!sidebar || document.getElementById('saveQuitSidebarBtn')) return;
         const btn = document.createElement('button');
+        btn.type = 'button';
         btn.id = 'saveQuitSidebarBtn';
         btn.textContent = '💾 Sauvegarder et quitter';
-        btn.style.cssText = 'display:block;width:calc(100% - 16px);margin:12px 8px 8px;padding:10px 14px;background:#475569;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;text-align:center;';
+        btn.style.cssText = 'display:block;width:calc(100% - 16px);margin:12px 8px 8px;padding:10px 14px;background:#1e3a5f;color:#93c5fd;border:1px solid #2563eb33;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;text-align:center;transition:background 0.15s;';
+        btn.addEventListener('mouseenter', () => { btn.style.background = '#0f2a5c'; });
+        btn.addEventListener('mouseleave', () => { btn.style.background = '#1e3a5f'; });
         btn.addEventListener('click', saveAndQuit);
         sidebar.appendChild(btn);
     }
@@ -833,21 +880,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderNavigation() {
         navLinks.innerHTML = '';
 
-        // Entrée virtuelle : Tableau de bord
-        const dashLi = document.createElement('li');
-        dashLi.style.cssText = 'display:flex;align-items:center;gap:6px;';
-        dashLi.innerHTML = '<span>📊</span> <span>Tableau de bord</span>';
-        if (currentSectionIndex === -1) dashLi.classList.add('active');
-        dashLi.addEventListener('click', () => {
-            currentSectionIndex = -1;
-            renderNavigation();
-            currentSectionTitle.textContent = 'Tableau de bord';
-            dynamicContent.innerHTML = '';
-            _renderDashboard(dynamicContent);
-            if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
-        });
-        navLinks.appendChild(dashLi);
-
         inspectionData.sections.forEach((section, index) => {
             const li = document.createElement('li');
             const iconSpan = document.createElement('span');
@@ -893,12 +925,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const nextBtn = document.getElementById('nextBtn');
 
     function renderSection(index) {
-        if (index === -1) {
-            currentSectionTitle.textContent = 'Tableau de bord';
-            dynamicContent.innerHTML = '';
-            _renderDashboard(dynamicContent);
-            return;
-        }
         const section = inspectionData.sections[index];
         currentSectionTitle.textContent = section.title;
         dynamicContent.innerHTML = '';
@@ -1023,10 +1049,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         section.subSections.forEach(sub => {
             const div = document.createElement('div');
             div.className = 'sub-section';
-            
+
+            // En-tête sous-section : titre + bouton "Tout Conforme"
+            const subHeader = document.createElement('div');
+            subHeader.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;';
             const h3 = document.createElement('h3');
             h3.textContent = sub.title;
-            div.appendChild(h3);
+            h3.style.margin = '0';
+            const hasCheckboxes = (sub.fields || []).some(f => f.type === 'checkbox');
+            if (hasCheckboxes) {
+                const toutConformeBtn = document.createElement('button');
+                toutConformeBtn.type = 'button';
+                toutConformeBtn.textContent = '✅ Tout Conforme';
+                toutConformeBtn.title = 'Marquer tous les éléments de cette sous-section comme Conformes';
+                toutConformeBtn.style.cssText = 'padding:5px 12px;background:#065f46;color:#6ee7b7;border:1px solid #064e3b44;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background 0.15s;';
+                toutConformeBtn.addEventListener('click', () => {
+                    div.querySelectorAll('select[id$="_state"]').forEach(sel => {
+                        if (sel.value !== 'conforme') {
+                            sel.value = 'conforme';
+                            sel.dispatchEvent(new Event('change'));
+                        }
+                    });
+                });
+                subHeader.appendChild(h3);
+                subHeader.appendChild(toutConformeBtn);
+            } else {
+                subHeader.appendChild(h3);
+            }
+            div.appendChild(subHeader);
 
             sub.fields.forEach(field => {
                 // Champs conditionnels — ne pas rendre si condition non satisfaite
@@ -1733,28 +1783,34 @@ document.addEventListener('DOMContentLoaded', async () => {
                         const _photoCount = (getActiveSectionPhotos()[sub.id] || []).length;
                         analyzeAllBtn.textContent = '🤖 Analyser toutes (' + _photoCount + ')';
                         analyzeAllBtn.onclick = async () => {
-                            const photos = getActiveSectionPhotos()[sub.id] || [];
                             analyzeAllBtn.disabled = true;
-                            for (let i = 0; i < photos.length; i++) {
-                                analyzeAllBtn.textContent = '⏳ Analyse ' + (i + 1) + '/' + photos.length + '...';
-                                try {
-                                    const b64 = (photos[i].url || '').split(',')[1];
-                                    if (!b64) continue;
-                                    const result = await AIAgents.analyzePhotoField(b64, sub.title);
-                                    if (result && result.description) {
-                                        const activeCom = getActiveComments();
-                                        if (!activeCom[sub.id]) activeCom[sub.id] = {};
-                                        activeCom[sub.id].text = activeCom[sub.id].text
-                                            ? activeCom[sub.id].text + '\n' + result.description
-                                            : result.description;
-                                        if (!photos[i].caption) photos[i].caption = result.description.substring(0, 200);
-                                    }
-                                } catch(e) { /* continue on error */ }
+                            try {
+                                const photos = getActiveSectionPhotos()[sub.id] || [];
+                                for (let i = 0; i < photos.length; i++) {
+                                    analyzeAllBtn.textContent = '⏳ Analyse ' + (i + 1) + '/' + photos.length + '...';
+                                    try {
+                                        const b64 = (photos[i].url || '').split(',')[1];
+                                        if (!b64) continue;
+                                        const result = await AIAgents.analyzePhotoField(b64, sub.title);
+                                        if (result && result.description) {
+                                            const activeCom = getActiveComments();
+                                            if (!activeCom[sub.id]) activeCom[sub.id] = {};
+                                            activeCom[sub.id].text = activeCom[sub.id].text
+                                                ? activeCom[sub.id].text + '\n' + result.description
+                                                : result.description;
+                                            if (!photos[i].caption) photos[i].caption = result.description.substring(0, 200);
+                                        }
+                                    } catch(e) { /* continuer en cas d'erreur sur une photo */ }
+                                }
+                                saveAppState();
+                                showToast('✅ ' + photos.length + ' photo' + (photos.length > 1 ? 's' : '') + ' analysée' + (photos.length > 1 ? 's' : '') + '.', 'success');
+                                analyzeAllBtn.remove();
+                                renderGallery();
+                            } catch(outerErr) {
+                                showToast('Erreur analyse : ' + outerErr.message, 'error');
+                                analyzeAllBtn.disabled = false;
+                                analyzeAllBtn.textContent = '🤖 Réessayer';
                             }
-                            saveAppState();
-                            showToast('✅ ' + photos.length + ' photo' + (photos.length > 1 ? 's' : '') + ' analysée' + (photos.length > 1 ? 's' : '') + '.', 'success');
-                            analyzeAllBtn.remove();
-                            renderGallery();
                         };
                     } else {
                         analyzeAllBtn.textContent = '🤖 Vision non disponible (' + _ap + ')';
@@ -2193,10 +2249,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const raw = await AIAgents.askAssistant(question);
         // askAssistant échappe déjà le HTML brut puis ré-injecte <strong>/<br>.
         // On enlève ces tags whitelistés et on décode les entités pour obtenir du texte propre.
-        const stripped = raw.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '');
-        const decoder = document.createElement('div');
+        // Convertir le HTML formaté en texte brut : <br> → \n, strip tags, decode entities
+        const stripped = raw.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
+        const decoder = document.createElement('textarea');
         decoder.innerHTML = stripped;
-        textarea.value = decoder.textContent.trim();
+        textarea.value = decoder.value.trim();
         textarea.dispatchEvent(new Event('input'));
         showToast('Texte généré par IA — vérifiez avant de finaliser le rapport.', 'info');
     }
@@ -2524,9 +2581,11 @@ Réponds en français.`;
         modal.classList.remove('open');
     });
 
-    // Bouton "Sauvegarder et quitter" — top-bar
-    const saveQuitTopBtn = document.getElementById('saveQuitBtn');
-    if (saveQuitTopBtn) saveQuitTopBtn.addEventListener('click', saveAndQuit);
+    // Boutons "Sauvegarder" et "Quitter" — top-bar
+    const saveTopBtn = document.getElementById('saveBtn');
+    if (saveTopBtn) saveTopBtn.addEventListener('click', saveOnly);
+    const quitTopBtn = document.getElementById('quitBtn');
+    if (quitTopBtn) quitTopBtn.addEventListener('click', () => window.location.href = 'index.html');
 
     // Bouton "Exporter .kzo" — top-bar (Save / Save As)
     const exportKzoBtn   = document.getElementById('exportKzoBtn');
@@ -2569,7 +2628,7 @@ Réponds en français.`;
                 const savedName = _kzoFileHandle.name || filename;
                 exportKzoBtn.textContent = '💾 .kzo';
                 exportKzoBtn.title = 'Enregistrer — ' + savedName;
-                if (exportKzoAsBtn) exportKzoAsBtn.style.display = 'inline-flex';
+                if (exportKzoAsBtn) exportKzoAsBtn.classList.remove('tb-hidden');
                 showToast('💾 Enregistré : ' + savedName, 'success');
             } else {
                 // Fallback navigateur sans File System Access API
@@ -2596,6 +2655,14 @@ Réponds en français.`;
 
     // Rendre le bouton sidebar
     renderSaveQuitSidebar();
+
+    // Avertir si l'utilisateur ferme l'onglet avec des modifications non sauvegardées
+    window.addEventListener('beforeunload', (e) => {
+        if (_isDirty) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
 
     // --- 5. Assistant Chatbot ---
     const assistantBtn = document.getElementById('assistantBtn');
@@ -3337,7 +3404,9 @@ Réponds en français.`;
         const states = (unit && unit.fieldStates) || {};
         let count = 0;
         inspectionData.sections.forEach(section => {
-            if (section.isCoverPage || section.id === 's_admin') return;
+            // Exclure : couverture photo, admin, prévisualisation, rapport final
+            if (section.isCoverPage || section.isPreviewPage ||
+                section.id === 's_admin' || section.id === 's_rapport') return;
             const hasChecked = (section.subSections || []).some(sub =>
                 (sub.fields || []).some(f => f.type === 'checkbox' && states[f.id])
             );
@@ -3348,6 +3417,7 @@ Réponds en français.`;
 
     // --- Persistence Globale (Offline Support) ---
     function saveAppState() {
+        _markDirty();
         // Sauvegarde localStorage (fallback)
         try {
             const toSave = {

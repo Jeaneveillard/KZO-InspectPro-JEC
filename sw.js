@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kzo-inspect-v28';
+const CACHE_NAME = 'kzo-inspect-v34';
 const ASSETS = [
   '/',
   'index.html',
@@ -9,7 +9,6 @@ const ASSETS = [
   'ai_agents.js',
   'boilerplate.js',
   'templates.js',
-  'house_bg.png',
   'icon-192.png',
   'icon-512.png',
   'manifest.json',

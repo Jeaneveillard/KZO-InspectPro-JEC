@@ -28,7 +28,7 @@ while ($listener.IsListening) {
     $resp = $ctx.Response
 
     $urlPath = $req.Url.AbsolutePath
-    if ($urlPath -eq "/") { $urlPath = "/test_3agents.html" }
+    if ($urlPath -eq "/") { $urlPath = "/index.html" }
 
     $filePath = Join-Path $root ($urlPath.TrimStart("/").Replace("/", "\"))
 

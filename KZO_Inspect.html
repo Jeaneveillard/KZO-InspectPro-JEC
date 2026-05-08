@@ -14,7 +14,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="KZO Inspect">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="icon-192.png">
 </head>
 <body>
     <div class="app-container" id="appContainer" style="display: flex;">
@@ -74,25 +74,39 @@
         <main class="main-content">
             <header class="top-bar">
                 <button type="button" class="menu-toggle" id="menuToggle">☰</button>
-                <div class="top-bar-info">
-                    <span id="currentSectionTitle">1. Documents & Pré-inspection</span>
+
+                <div class="tb-breadcrumb">
+                    <span class="tb-brand">KZO</span>
+                    <span class="tb-chevron">›</span>
+                    <span class="tb-section-title" id="currentSectionTitle">1. Documents &amp; Pré-inspection</span>
                 </div>
-                <button type="button" id="saveQuitBtn" style="padding:7px 14px; background:#475569; color:white; border:none; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-                    💾 Sauvegarder et quitter
-                </button>
-                <button type="button" id="exportKzoBtn" style="padding:7px 14px; background:#334155; color:#cbd5e1; border:none; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer;" title="Enregistrer .kzo">
-                    ⬇️ .kzo
-                </button><button type="button" id="exportKzoAsBtn" title="Enregistrer sous… (choisir un autre emplacement)" style="display:none; padding:7px 10px; background:#1e293b; color:#94a3b8; border:none; border-left:1px solid #475569; border-radius:0 8px 8px 0; font-size:0.85rem; cursor:pointer; margin-right:4px;">📁</button>
-                <button type="button" id="logoutBtn" onclick="KZOAuth.logout()" style="padding:7px 14px;background:#dc2626;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;margin-right:4px;">
-                    🔒 Déconnexion
-                </button>
-                <button type="button" class="assistant-btn" id="assistantBtn">
-                    ✨ Assistant IA
-                </button>
-                <button type="button" class="assistant-btn" id="iaRapportBtn" style="margin-left:8px; background:linear-gradient(135deg,#059669,#0d9488);">
-                    📄 IA Rapport
-                </button>
-                <span id="driveSyncIndicator" title="Non synchronisé avec Google Drive" style="cursor:pointer;font-size:1.1rem;margin-left:8px;color:#64748b;" onclick="window.GoogleDrive && GoogleDrive.retrySync()">☁️</span>
+
+                <div class="tb-spacer"></div>
+
+                <!-- Groupe : Sauvegarde & Export -->
+                <div class="tb-group">
+                    <button type="button" class="tb-btn tb-btn-save" id="saveBtn" title="Sauvegarder l'inspection">💾 Sauvegarder</button>
+                    <button type="button" class="tb-btn tb-btn-kzo tb-btn-icon" id="exportKzoBtn" title="Exporter .kzo">⬇️ .kzo</button>
+                    <button type="button" class="tb-btn tb-btn-kzo tb-btn-icon tb-hidden" id="exportKzoAsBtn" title="Enregistrer sous…">📁</button>
+                </div>
+
+                <div class="tb-divider"></div>
+
+                <!-- Groupe : Outils IA -->
+                <div class="tb-group">
+                    <button type="button" class="tb-btn tb-btn-ia" id="assistantBtn">✨ Assistant IA</button>
+                    <button type="button" class="tb-btn tb-btn-rapport" id="iaRapportBtn">📄 Rapport IA</button>
+                </div>
+
+                <div class="tb-divider"></div>
+
+                <!-- Groupe : Navigation & Sortie -->
+                <div class="tb-group">
+                    <button type="button" class="tb-btn tb-btn-quit" id="quitBtn" title="Retour à l'accueil">🚪 Quitter</button>
+                    <button type="button" class="tb-btn tb-btn-logout tb-btn-icon" id="logoutBtn" onclick="KZOAuth.logout()" title="Déconnexion">🔒</button>
+                </div>
+
+                <span id="driveSyncIndicator" title="Non synchronisé avec Google Drive" onclick="window.GoogleDrive && GoogleDrive.retrySync()">☁️</span>
             </header>
 
             <div class="content-scroll-area">
@@ -283,7 +297,7 @@
     <script src="boilerplate.js?v=3"></script>
     <script src="templates.js?v=3"></script>
     <script src="ai_agents.js?v=15"></script>
-    <script src="app.js?v=27"></script>
+    <script src="app.js?v=30"></script>
     <!-- Modale Profil Entreprise -->
     <div id="companyProfileModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
         <div style="background:white; padding:30px; border-radius:12px; width:90%; max-width:500px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">

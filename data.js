@@ -8,35 +8,41 @@ const inspectionData = {
     rapportNarratifIA: '',
     sections: [
         { id: "s_cover", title: "Photo Principale", key: "cover", icon: "📸", isCoverPage: true,
-          subSections: [{ id: "ss_cover_1", title: "Photo de la Façade", fields: [{ id: "cover_photo", type: "file", label: "Photo principale (Façade)" }] }]
+          subSections: [{ id: "ss_cover_1", title: "Photos de la façade", fields: [
+            { id: "cover_photo",   type: "file", label: "Façade principale (Avant)" },
+            { id: "cover_photo_2", type: "file", label: "Côté gauche" },
+            { id: "cover_photo_3", type: "file", label: "Côté droit" },
+            { id: "cover_photo_4", type: "file", label: "Arrière du bâtiment" }
+          ]}]
         },
         { id: "s_admin", title: "1. Documents & Pré-inspection", key: "admin", icon: "📝",
           subSections: [
-            { id: "ss_admin_1", title: "Détails de la propriété", fields: [
-                { id: "inspection_code", type: "text", label: "Numéro de code de l'inspection", placeholder: "Ex: KZO-12345" },
-                { id: "inspection_date", type: "date", label: "Date de l'inspection" },
-                { id: "inspector_name", type: "text", label: "Nom de l'inspecteur", placeholder: "Votre nom complet..." },
-                { id: "client_names", type: "clients", label: "Nom du/des Client(es)" },
-                { id: "prop_address", type: "text", label: "Adresse du bâtiment", placeholder: "Adresse complète..." },
-                { id: 'client_email', label: 'Email du client', type: 'text', placeholder: 'client@email.com' },
-                { id: 'client_sign',        label: 'Signature du client', type: 'action' },
-                { id: 'client_remote_sign', label: 'Envoyer pour signature à distance', type: 'action' },
-                { id: "prix_inspection", type: "number", label: "Prix de l'inspection ($)", placeholder: "Montant avant taxes (ex: 550)" },
-                { id: "inspector_signature", type: "file", label: "Votre Signature (Photo/Scan)" },
-                { id: "inspector_seal", type: "file", label: "Sceau Officiel (PNG transparent)" },
-                { id: "prop_area", type: "number", label: "Superficie habitable (m²)", placeholder: "Ex: 145" },
-                { id: "prop_year", type: "number", label: "Année de construction", placeholder: "Ex: 1985" },
-                { id: "prop_type", type: "select", label: "Type de bâtiment", options: ["Maison unifamiliale","Bungalow","Cottage / Split-level","Duplex","Triplex","Condo / Appartement","Maison de ville (Townhouse)","Chalet / Résidence secondaire"] },
-                { id: "prop_garage", type: "select", label: "Type de garage", options: ["Aucun garage","Garage simple attaché","Garage double attaché","Garage simple détaché","Garage double détaché","Stationnement intérieur (Condo)"] },
-                { id: "norme_pratique", type: "select", label: "Norme de pratique légale", options: ["REIBH 2024 (Règlement sur les inspecteurs en bâtiment — Québec)","AIBQ (Association des inspecteurs en bâtiment du Québec)","Réseau IBC (Inspecteurs en Bâtiment Certifiés)","InterNACHI","Norme Nationale (CSA A770-23)","RBQ (Régie du bâtiment du Québec)"] },
-                { id: "prop_weather", type: "select", label: "Météo lors de l'inspection", options: ["Ensoleillé","Partiellement nuageux","Nuageux","Pluie légère","Pluie forte","Neige","Très froid (< -10°C)"] },
-                { id: "prop_temp", type: "number", label: "Température extérieure (°C)", placeholder: "Ex: 5" },
+            { id: "ss_admin_prop", title: "Propriété inspectée", fields: [
+                { id: "prop_address",  type: "text",   label: "Adresse du bâtiment",        placeholder: "Adresse complète..." },
+                { id: "prop_type",     type: "select", label: "Type de bâtiment",            options: ["Maison unifamiliale","Bungalow","Cottage / Split-level","Duplex","Triplex","Condo / Appartement","Maison de ville (Townhouse)","Chalet / Résidence secondaire"] },
+                { id: "prop_year",     type: "number", label: "Année de construction",       placeholder: "Ex: 1985" },
+                { id: "prop_area",     type: "number", label: "Superficie habitable (m²)",   placeholder: "Ex: 145" },
+                { id: "prop_garage",   type: "select", label: "Type de garage",              options: ["Aucun garage","Garage simple attaché","Garage double attaché","Garage simple détaché","Garage double détaché","Stationnement intérieur (Condo)"] },
                 { id: "condo_syndicat", type: "checkbox", label: "Déclaration de copropriété reçue", showIf: { field: 'prop_type', values: ['Condo / Appartement'] } },
-                { id: "condo_fonds", type: "checkbox", label: "Fonds de prévoyance — Carnet d'entretien demandé au syndicat", showIf: { field: 'prop_type', values: ['Condo / Appartement'] } }
+                { id: "condo_fonds",   type: "checkbox", label: "Fonds de prévoyance — Carnet d'entretien demandé au syndicat", showIf: { field: 'prop_type', values: ['Condo / Appartement'] } }
             ]},
-            { id: "ss_admin_2", title: "Pièces jointes & Synchronisation", fields: [
-                { id: "client_docs", type: "file", label: "Déclaration du vendeur / Documents remis" },
-                { id: "sync_status", type: "action", label: "🔄 Forcer la sauvegarde locale" }
+            { id: "ss_admin_client", title: "Client & Contrat", fields: [
+                { id: "client_names",      type: "clients", label: "Nom du/des Client(e)s" },
+                { id: "client_email",      type: "text",    label: "Email du client",           placeholder: "client@email.com" },
+                { id: "prix_inspection",   type: "number",  label: "Prix de l'inspection ($)",  placeholder: "Montant avant taxes (ex: 550)" },
+                { id: "client_sign",       type: "action",  label: "Signature du client" },
+                { id: "client_remote_sign",type: "action",  label: "Envoyer pour signature à distance" },
+                { id: "client_docs",       type: "file",    label: "Déclaration du vendeur / Documents remis" }
+            ]},
+            { id: "ss_admin_insp", title: "Inspecteur & Conditions", fields: [
+                { id: "inspection_code",  type: "text",   label: "Numéro de code de l'inspection", placeholder: "Ex: KZO-12345" },
+                { id: "inspection_date",  type: "date",   label: "Date de l'inspection" },
+                { id: "inspector_name",   type: "text",   label: "Nom de l'inspecteur",            placeholder: "Votre nom complet..." },
+                { id: "norme_pratique",   type: "select", label: "Norme de pratique légale",       options: ["REIBH 2024 (Règlement sur les inspecteurs en bâtiment — Québec)","AIBQ (Association des inspecteurs en bâtiment du Québec)","Réseau IBC (Inspecteurs en Bâtiment Certifiés)","InterNACHI","Norme Nationale (CSA A770-23)","RBQ (Régie du bâtiment du Québec)"] },
+                { id: "prop_weather",     type: "select", label: "Météo lors de l'inspection",    options: ["Ensoleillé","Partiellement nuageux","Nuageux","Pluie légère","Pluie forte","Neige","Très froid (< -10°C)"] },
+                { id: "prop_temp",        type: "number", label: "Température extérieure (°C)",   placeholder: "Ex: 5" },
+                { id: "inspector_signature", type: "file", label: "Votre Signature (Photo/Scan)" },
+                { id: "inspector_seal",   type: "file",   label: "Sceau Officiel (PNG transparent)" }
             ]}
           ]
         },
@@ -135,7 +141,7 @@ const inspectionData = {
             ]}
           ]
         },
-        { id: "s_toit", title: "4. Toiture & Grenier", key: "toiture", icon: "🏗️",
+        { id: "s_toit", title: "4. Toiture & Grenier", key: "toiture", icon: "🔆",
           subSections: [
             { id: "ss_to_0", title: "Couverture du Toit", fields: [
                 { id: "to_materiau", type: "select", label: "Type de couverture dominant", options: ["Bardeaux d'asphalte","Membrane élastomère","Membrane EPDM / TPO","Tôle profilée (Acier)","Asphalte et gravier multicouche","Bardeaux de cèdre","Tuiles"] },
@@ -323,9 +329,7 @@ const inspectionData = {
           subSections: [
             { id: "ss_rap_1", title: "Résumé général de l'inspection", fields: [
                 { id: "rap_etat_general", type: "select", label: "État général du bâtiment", options: ["Excellent — Aucun défaut majeur observé","Bon — Quelques points mineurs à surveiller","Acceptable — Travaux recommandés à moyen terme","Préoccupant — Travaux urgents requis dans les prochains mois","Critique — Risques pour la sécurité des occupants — Intervention immédiate"] },
-                { id: "rap_notes", type: "text", label: "Notes générales de l'inspecteur", placeholder: "Observations finales, limitations de l'inspection, conditions particulières..." },
-                { id: "rap_priorite", type: "text", label: "Travaux prioritaires identifiés", placeholder: "Listez les interventions les plus urgentes avec estimation de coût si possible..." },
-                { id: "rap_entretien", type: "text", label: "Recommandations d'entretien préventif", placeholder: "Ex: Inspecter la toiture annuellement, nettoyer les gouttières, vidanger le chauffe-eau..." }
+                { id: "rap_notes", type: "text", label: "Notes finales de l'inspecteur", placeholder: "Observations particulières, limitations de l'inspection, conditions d'accès..." }
             ]},
             { id: "ss_rap_2", title: "Génération du document", fields: [
                 { id: "rap_generate", type: "action", label: "📄 Visualiser le Rapport Final (PDF)" }

@@ -5,155 +5,247 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KZO InspectPro — Projets</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#0c1729">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
+        body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #0c1729; color: #f1f5f9; min-height: 100vh; }
 
+        /* ── Top-bar ─────────────────────────────────── */
         .topbar {
-            background: #1e3a5f;
-            padding: 14px 24px;
+            background: linear-gradient(90deg, #0c1729 0%, #1a2744 100%);
+            padding: 0 24px;
+            height: 56px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            flex-wrap: wrap;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+            border-bottom: 1px solid #1e3a5f;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.4);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .logo { font-weight: 800; font-size: 1.1rem; color: #60a5fa; white-space: nowrap; }
-        .topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-        .btn { padding: 8px 18px; border: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: opacity 0.2s; }
-        .btn:hover { opacity: 0.85; }
-        .btn-primary { background: #1d4ed8; color: white; }
-        .btn-import { background: #059669; color: white; }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo-kzo {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #60a5fa;
+            letter-spacing: 2px;
+        }
+        .logo-sub {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .logo-dot {
+            width: 5px; height: 5px;
+            background: #1d4ed8;
+            border-radius: 50%;
+            margin-right: 2px;
+        }
+        .topbar-actions { display: flex; gap: 8px; align-items: center; }
+        .tb-btn-home {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border: none; border-radius: 8px;
+            font-size: 0.8rem; font-weight: 600; cursor: pointer;
+            font-family: 'Inter', sans-serif; transition: all 0.15s;
+        }
+        .tb-btn-home:hover { transform: translateY(-1px); filter: brightness(1.15); }
+        .tb-btn-import { background: #064e3b; color: #6ee7b7; border: 1px solid #065f3655; }
+        .tb-btn-new    { background: linear-gradient(135deg, #1d4ed8, #3730a3); color: white; box-shadow: 0 2px 10px rgba(29,78,216,0.35); }
+        .tb-btn-deco   { background: transparent; color: #f87171; border: 1px solid #7f1d1d55; padding: 6px 10px; }
+        .tb-btn-deco:hover { background: #991b1b; color: white; filter: none; }
+        .tb-divider-v  { width: 1px; height: 20px; background: #1e3a5f; }
 
-        .main { padding: 24px; max-width: 1100px; margin: 0 auto; }
+        /* ── Contenu principal ───────────────────────── */
+        .main { padding: 24px; max-width: 1160px; margin: 0 auto; }
 
+        /* ── Barre de recherche + filtres ────────────── */
+        .search-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
         .search-bar {
-            background: #1e293b;
-            border: 1px solid #334155;
+            flex: 1;
+            background: #111d2e;
+            border: 1px solid #1e3a5f;
             border-radius: 10px;
             padding: 10px 16px;
             color: #f1f5f9;
-            font-size: 0.9rem;
-            width: 100%;
-            margin-bottom: 16px;
+            font-size: 0.88rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s;
         }
-        .search-bar::placeholder { color: #64748b; }
-        .search-bar:focus { outline: none; border-color: #3b82f6; }
+        .search-bar::placeholder { color: #334155; }
+        .search-bar:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
 
-        .filters { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+        .filters { display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; }
         .filter-btn {
-            padding: 6px 16px;
-            border: none;
+            padding: 5px 16px;
+            border: 1px solid #1e3a5f;
             border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 700;
+            font-size: 0.78rem;
+            font-weight: 600;
             cursor: pointer;
-            background: #1e293b;
-            color: #64748b;
+            background: transparent;
+            color: #475569;
             transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
         }
-        .filter-btn.active { background: #1d4ed8; color: white; }
+        .filter-btn:hover { color: #94a3b8; border-color: #334155; }
+        .filter-btn.active { background: #1d4ed8; color: white; border-color: #1d4ed8; }
 
+        /* ── Grille de cartes ────────────────────────── */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
             gap: 16px;
         }
 
-        .card {
-            background: #1e293b;
-            border-radius: 12px;
-            border-left: 4px solid #334155;
-            padding: 16px;
+        /* Carte "Nouvelle inspection" */
+        .card-new {
+            background: linear-gradient(135deg, #0f2a5c 0%, #1a1a5e 50%, #0c2d4a 100%);
+            border: 1px dashed #2563eb55;
+            border-radius: 14px;
+            padding: 0;
             cursor: pointer;
-            transition: transform 0.15s, box-shadow 0.15s;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 170px;
+            text-align: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-new::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 60% 30%, rgba(37,99,235,0.18) 0%, transparent 70%);
+        }
+        .card-new:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(37,99,235,0.25); border-color: #2563eb99; }
+        .card-new-icon { font-size: 2rem; position: relative; }
+        .card-new-label { font-size: 0.9rem; font-weight: 700; color: #93c5fd; position: relative; }
+        .card-new-sub { font-size: 0.72rem; color: #3b82f6; position: relative; }
+
+        /* Cartes de projet */
+        .card {
+            background: #111d2e;
+            border-radius: 14px;
+            border: 1px solid #1e3a5f;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
             position: relative;
         }
-        .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-        .card.en_cours { border-left-color: #f59e0b; }
-        .card.termine { border-left-color: #22c55e; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,0,0,0.5); border-color: #2563eb44; }
+        .card.en_cours { border-top: 3px solid #f59e0b; }
+        .card.termine  { border-top: 3px solid #22c55e; }
 
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-        .badge {
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            letter-spacing: 0.05em;
+        /* Strip photo en haut de la carte */
+        .card-photo-strip {
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            position: relative;
+            overflow: hidden;
         }
-        .badge.en_cours { background: #f59e0b; color: #0f172a; }
-        .badge.termine { background: #22c55e; color: #0f172a; }
-        .card-date { color: #475569; font-size: 0.75rem; }
+        .card.en_cours .card-photo-strip { background: linear-gradient(135deg, #1c1007 0%, #291a04 100%); }
+        .card.termine  .card-photo-strip { background: linear-gradient(135deg, #052e1a 0%, #063b20 100%); }
 
-        .card-client { font-weight: 700; font-size: 1rem; color: #f1f5f9; margin-bottom: 4px; }
-        .card-code { color: #60a5fa; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
-        .card-address { color: #94a3b8; font-size: 0.8rem; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-body { padding: 14px 16px; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .badge {
+            padding: 3px 9px; border-radius: 12px;
+            font-size: 0.68rem; font-weight: 800; letter-spacing: 0.05em;
+        }
+        .badge.en_cours { background: #f59e0b22; color: #fbbf24; border: 1px solid #f59e0b44; }
+        .badge.termine  { background: #22c55e22; color: #4ade80; border: 1px solid #22c55e44; }
+        .card-date { color: #334155; font-size: 0.72rem; }
 
-        .progress-bar-bg { background: #0f172a; border-radius: 4px; height: 5px; margin-bottom: 6px; }
-        .progress-bar-fill { height: 5px; border-radius: 4px; transition: width 0.3s; }
-        .en_cours .progress-bar-fill { background: #f59e0b; }
-        .termine .progress-bar-fill { background: #22c55e; }
-        .progress-label { color: #64748b; font-size: 0.72rem; }
+        .card-client { font-weight: 700; font-size: 0.95rem; color: #e2e8f0; margin-bottom: 2px; }
+        .card-code   { color: #3b82f6; font-size: 0.75rem; font-weight: 600; margin-bottom: 2px; }
+        .card-address { color: #475569; font-size: 0.78rem; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .progress-bar-bg   { background: #0c1729; border-radius: 4px; height: 4px; margin-bottom: 5px; }
+        .progress-bar-fill { height: 4px; border-radius: 4px; transition: width 0.4s; }
+        .en_cours .progress-bar-fill { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .termine  .progress-bar-fill { background: linear-gradient(90deg, #22c55e, #16a34a); }
+        .progress-label { color: #334155; font-size: 0.7rem; }
 
         .card-actions {
             display: none;
             position: absolute;
-            bottom: 12px;
-            right: 12px;
-            gap: 6px;
+            bottom: 10px;
+            right: 10px;
+            gap: 5px;
         }
         .card:hover .card-actions { display: flex; }
         .action-btn {
-            padding: 5px 10px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
+            padding: 4px 10px; border: none; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 700; cursor: pointer;
+            font-family: 'Inter', sans-serif;
         }
-        .action-btn.open { background: #1d4ed8; color: white; }
-        .action-btn.export { background: #334155; color: #cbd5e1; }
-        .action-btn.del { background: #dc2626; color: white; }
+        .action-btn.open   { background: #1d4ed8; color: white; }
+        .action-btn.export { background: #1e3a5f; color: #94a3b8; }
+        .action-btn.del    { background: #7f1d1d55; color: #f87171; border: 1px solid #7f1d1d44; }
 
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: #475569;
-            grid-column: 1 / -1;
-        }
-        .empty-state h2 { font-size: 1.3rem; margin-bottom: 10px; color: #64748b; }
+        /* Empty state */
+        .empty-state { text-align: center; padding: 80px 20px; color: #334155; grid-column: 1 / -1; }
+        .empty-state h2 { font-size: 1.2rem; margin-bottom: 8px; color: #475569; }
 
+        /* Toast */
         #toast-home {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: #059669;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            display: none;
-            z-index: 999;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            position: fixed; bottom: 24px; right: 24px;
+            background: #065f46; color: white;
+            padding: 12px 20px; border-radius: 10px;
+            font-weight: 600; font-size: 0.88rem; display: none;
+            z-index: 999; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            border-left: 3px solid #10b981;
+        }
+
+        @media (max-width: 600px) {
+            .topbar { padding: 0 14px; }
+            .tb-btn-home span { display: none; }
+            .main { padding: 16px; }
         }
     </style>
 </head>
 <body>
 
 <div class="topbar">
-    <div class="logo">🏠 KZO InspectPro</div>
+    <div class="logo">
+        <div class="logo-dot"></div>
+        <span class="logo-kzo">KZO</span>
+        <span class="logo-sub">InspectPro</span>
+    </div>
     <div class="topbar-actions">
-        <button type="button" class="btn btn-import" onclick="triggerImport()">📂 Ouvrir .kzo</button>
-        <button type="button" class="btn btn-primary" onclick="newInspection()">+ Nouvelle inspection</button>
-        <button type="button" onclick="KZOAuth.logout()" style="padding:7px 14px;background:#dc2626;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;margin-left:8px;">🔒 Déconnexion</button>
+        <button type="button" class="tb-btn-home tb-btn-import" onclick="triggerImport()">
+            📂 <span>Ouvrir .kzo</span>
+        </button>
+        <div class="tb-divider-v"></div>
+        <button type="button" class="tb-btn-home tb-btn-deco" onclick="KZOAuth.logout()" title="Déconnexion">🔒</button>
     </div>
 </div>
 
 <div class="main">
-    <input class="search-bar" type="text" id="searchInput" placeholder="🔍 Rechercher par client, adresse ou code..." oninput="filterProjects()">
+    <div class="search-row">
+        <input class="search-bar" type="text" id="searchInput" placeholder="🔍  Rechercher par client, adresse ou code…" oninput="filterProjects()">
+    </div>
 
     <div class="filters">
         <button type="button" class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">Tous</button>
@@ -178,7 +270,7 @@
     function showToast(msg, color) {
         const t = document.getElementById('toast-home');
         t.textContent = msg;
-        t.style.background = color || '#059669';
+        t.style.background = color || '#065f46';
         t.style.display = 'block';
         setTimeout(() => { t.style.display = 'none'; }, 3000);
     }
@@ -195,32 +287,53 @@
         return d.innerHTML.replace(/'/g, '&#39;');
     }
 
+    // Emoji selon le type de bâtiment (heuristique sur l'adresse/code)
+    function buildingEmoji(p) {
+        const name = (p.clientName || '') + (p.address || '');
+        if (/duplex|triplex/i.test(name)) return '🏘️';
+        if (/condo|appart/i.test(name)) return '🏢';
+        if (/commercial|bureau/i.test(name)) return '🏬';
+        return '🏠';
+    }
+
     function renderGrid(projects) {
         const grid = document.getElementById('projectGrid');
+
+        // Carte "Nouvelle inspection" toujours en tête (sauf filtre actif)
+        const newCard = currentFilter === 'all' ? `
+            <div class="card-new" onclick="newInspection()">
+                <div class="card-new-icon">＋</div>
+                <div class="card-new-label">Nouvelle inspection</div>
+                <div class="card-new-sub">Créer un nouveau dossier</div>
+            </div>` : '';
+
         if (!projects.length) {
-            grid.innerHTML = '<div class="empty-state"><h2>Aucune inspection trouvée</h2><p>Créez votre première inspection ou importez un fichier .kzo</p></div>';
+            grid.innerHTML = newCard + '<div class="empty-state"><h2>Aucune inspection trouvée</h2><p>Créez votre première inspection ou importez un fichier .kzo</p></div>';
             return;
         }
-        grid.innerHTML = projects.map(p => {
-            const pct = Math.min(Math.round((p.progress / 12) * 100), 100);
+        grid.innerHTML = newCard + projects.map(p => {
+            const pct = Math.min(Math.round((p.progress / 10) * 100), 100);
             const statusLabel = p.status === 'termine' ? 'TERMINÉ' : 'EN COURS';
             return `
             <div class="card ${sanitize(p.status)}" onclick="openProject('${sanitize(p.id)}')">
-                <div class="card-header">
-                    <span class="badge ${sanitize(p.status)}">${statusLabel}</span>
-                    <span class="card-date">${formatDate(p.updatedAt)}</span>
-                </div>
-                <div class="card-client">${sanitize(p.clientName) || 'Client inconnu'}</div>
-                <div class="card-code">${sanitize(p.code || p.id)}</div>
-                <div class="card-address">${sanitize(p.address) || '—'}</div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" style="width:${pct}%"></div>
-                </div>
-                <div class="progress-label">${p.progress}/12 sections</div>
-                <div class="card-actions" onclick="event.stopPropagation()">
-                    <button class="action-btn open" onclick="openProject('${sanitize(p.id)}')">Ouvrir</button>
-                    <button class="action-btn export" onclick="exportProject('${sanitize(p.id)}')">⬇️ .kzo</button>
-                    <button class="action-btn del" onclick="deleteProject('${sanitize(p.id)}')">🗑️</button>
+                <div class="card-photo-strip">${buildingEmoji(p)}</div>
+                <div class="card-body">
+                    <div class="card-header">
+                        <span class="badge ${sanitize(p.status)}">${statusLabel}</span>
+                        <span class="card-date">${formatDate(p.updatedAt)}</span>
+                    </div>
+                    <div class="card-client">${sanitize(p.clientName) || 'Client inconnu'}</div>
+                    <div class="card-code">${sanitize(p.code || p.id)}</div>
+                    <div class="card-address">${sanitize(p.address) || '—'}</div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width:${pct}%"></div>
+                    </div>
+                    <div class="progress-label">${p.progress}/10 sections · ${pct}%</div>
+                    <div class="card-actions" onclick="event.stopPropagation()">
+                        <button type="button" class="action-btn open" onclick="openProject('${sanitize(p.id)}')">Ouvrir</button>
+                        <button type="button" class="action-btn export" onclick="exportProject('${sanitize(p.id)}')">⬇️ .kzo</button>
+                        <button type="button" class="action-btn del" onclick="deleteProject('${sanitize(p.id)}')">🗑️</button>
+                    </div>
                 </div>
             </div>`;
         }).join('');
@@ -262,13 +375,12 @@
             const name = project ? project.clientName.replace(/[^a-zA-Z0-9]/g, '_') : id;
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = 'KZO-' + name + '-' + new Date().toISOString().slice(0, 10) + '.kzo';
+            a.href = url; a.download = 'KZO-' + name + '-' + new Date().toISOString().slice(0, 10) + '.kzo';
             a.click();
             URL.revokeObjectURL(url);
             showToast('✅ Fichier .kzo exporté');
         } catch (e) {
-            showToast('❌ Erreur export : ' + e.message, '#dc2626');
+            showToast('❌ Erreur export : ' + e.message, '#7f1d1d');
         }
     }
 
@@ -281,7 +393,7 @@
             showToast('🗑️ Inspection supprimée');
             await loadAndRender();
         } catch (e) {
-            showToast('❌ Erreur suppression : ' + e.message, '#dc2626');
+            showToast('❌ Erreur suppression : ' + e.message, '#7f1d1d');
         }
     }
 
@@ -301,7 +413,7 @@
                 await loadAndRender();
             }
         } catch (e) {
-            showToast('❌ Erreur import : ' + e.message, '#dc2626');
+            showToast('❌ Erreur import : ' + e.message, '#7f1d1d');
         }
     }
 
@@ -310,7 +422,6 @@
         filterProjects();
     }
 
-    // Init : migration legacy puis chargement
     KZOStorage.migrateLegacy().then(() => loadAndRender()).catch(() => loadAndRender());
 </script>
 </body>

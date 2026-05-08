@@ -34,7 +34,7 @@ const EQUIPMENT_LIFESPAN = {
 // Fonction d'estimation de durée de vie résiduelle
 function estimateResidualLife(equipmentKey, ageYears) {
     const eq = EQUIPMENT_LIFESPAN[equipmentKey];
-    if (!eq || isNaN(ageYears) || ageYears < 0) return null;
+    if (!eq || isNaN(ageYears) || ageYears < 0 || ageYears > 150) return null;
     
     const avgLife = (eq.min + eq.max) / 2;
     const residual = Math.max(0, Math.round(avgLife - ageYears));

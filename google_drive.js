@@ -39,8 +39,9 @@
                 if (response.error) {
                     if (_rejectAuth) _rejectAuth(new Error(response.error));
                 } else {
-                    localStorage.setItem(TOKEN_KEY, response.access_token);
-                    localStorage.setItem(TOKEN_EXPIRY_KEY, String(Date.now() + (response.expires_in - 60) * 1000));
+                    // Token en sessionStorage (pas localStorage) : disparaît à la fermeture du navigateur
+                    sessionStorage.setItem(TOKEN_KEY, response.access_token);
+                    sessionStorage.setItem(TOKEN_EXPIRY_KEY, String(Date.now() + (response.expires_in - 60) * 1000));
                     if (_resolveAuth) _resolveAuth();
                 }
                 _resolveAuth = null;
@@ -51,13 +52,13 @@
     }
 
     function isAuthenticated() {
-        const token  = localStorage.getItem(TOKEN_KEY);
-        const expiry = parseInt(localStorage.getItem(TOKEN_EXPIRY_KEY) || '0', 10);
+        const token  = sessionStorage.getItem(TOKEN_KEY);
+        const expiry = parseInt(sessionStorage.getItem(TOKEN_EXPIRY_KEY) || '0', 10);
         return !!token && Date.now() < expiry;
     }
 
     function _getToken() {
-        return localStorage.getItem(TOKEN_KEY) || '';
+        return sessionStorage.getItem(TOKEN_KEY) || '';
     }
 
     function authenticate() {

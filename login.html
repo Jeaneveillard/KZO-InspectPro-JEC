@@ -110,8 +110,8 @@
     <div id="panelLogin" class="panel active">
         <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
         <div class="error-msg" id="loginError"></div>
-        <button class="btn-primary" id="loginBtn" onclick="handleLogin()">Entrer</button>
-        <button class="forgot-link" onclick="showForgot()">🔑 Mot de passe oublié ?</button>
+        <button type="button" class="btn-primary" id="loginBtn" onclick="handleLogin()">Entrer</button>
+        <button type="button" class="forgot-link" onclick="showForgot()">🔑 Mot de passe oublié ?</button>
     </div>
 
     <!-- Panneau 2 : Envoi du code -->
@@ -120,8 +120,8 @@
         <div class="panel-title">Récupération du mot de passe</div>
         <div class="panel-desc">Un code à 6 chiffres sera envoyé à<br><strong>kzoinspectpro@gmail.com</strong></div>
         <div class="error-msg" id="forgotError"></div>
-        <button class="btn-primary" id="sendCodeBtn" onclick="handleSendCode()">📧 Envoyer le code</button>
-        <button class="forgot-link" onclick="showLogin()">← Retour</button>
+        <button type="button" class="btn-primary" id="sendCodeBtn" onclick="handleSendCode()">📧 Envoyer le code</button>
+        <button type="button" class="forgot-link" onclick="showLogin()">← Retour</button>
     </div>
 
     <!-- Panneau 3 : Vérification du code -->
@@ -131,8 +131,8 @@
         <div class="panel-desc">Vérifiez votre email — valide 15 minutes</div>
         <input type="text" id="resetCode" placeholder="123456" maxlength="6" inputmode="numeric" />
         <div class="error-msg" id="codeError"></div>
-        <button class="btn-primary" onclick="handleVerifyCode()">Vérifier</button>
-        <button class="forgot-link" onclick="showLogin()">← Retour</button>
+        <button type="button" class="btn-primary" onclick="handleVerifyCode()">Vérifier</button>
+        <button type="button" class="forgot-link" onclick="showLogin()">← Retour</button>
     </div>
 
     <!-- Panneau 4 : Nouveau mot de passe -->
@@ -143,7 +143,7 @@
         <input type="password" id="confirmPassword" placeholder="Confirmer" />
         <div class="error-msg" id="newPwdError"></div>
         <div class="success-msg" id="newPwdSuccess"></div>
-        <button class="btn-primary" onclick="handleSetPassword()">✅ Enregistrer</button>
+        <button type="button" class="btn-primary" onclick="handleSetPassword()">✅ Enregistrer</button>
     </div>
 </div>
 
@@ -164,13 +164,20 @@ async function handleLogin() {
     if (!pwd) { err.textContent = 'Veuillez entrer le mot de passe.'; return; }
     btn.disabled = true;
     btn.textContent = '…';
-    var ok = await KZOAuth.login(pwd);
-    if (ok) {
-        window.location.replace('index.html');
-    } else {
-        err.textContent = 'Mot de passe incorrect.';
+    try {
+        var ok = await KZOAuth.login(pwd);
+        if (ok) {
+            window.location.replace('index.html');
+        } else {
+            err.textContent = 'Mot de passe incorrect.';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginPassword').focus();
+            btn.disabled = false;
+            btn.textContent = 'Entrer';
+        }
+    } catch (e) {
+        err.textContent = e.message;
         document.getElementById('loginPassword').value = '';
-        document.getElementById('loginPassword').focus();
         btn.disabled = false;
         btn.textContent = 'Entrer';
     }
