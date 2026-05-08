@@ -3295,8 +3295,12 @@ Réponds en français.`;
         card.appendChild(btnRow);
         overlay.appendChild(card);
         document.body.appendChild(overlay);
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvasEl.width  = canvasEl.offsetWidth  * ratio;
+        canvasEl.height = canvasEl.offsetHeight * ratio;
+        canvasEl.getContext('2d').scale(ratio, ratio);
         const sigPad = new SignaturePad(canvasEl);
-        clearBtn.onclick  = () => sigPad.clear();
+        clearBtn.onclick  = () => { sigPad.clear(); };
         cancelBtn.onclick = () => document.body.removeChild(overlay);
         confirmBtn.onclick = () => {
             if (sigPad.isEmpty()) { showToast('Veuillez signer avant de confirmer.', 'warning'); return; }
@@ -3305,6 +3309,8 @@ Réponds en français.`;
             document.body.removeChild(overlay);
             const indicator = document.getElementById('clientSignatureIndicator');
             if (indicator) { indicator.textContent = 'Signé ✅'; indicator.style.color = '#22c55e'; }
+            const signBtnEl = indicator ? indicator.previousElementSibling : null;
+            if (signBtnEl) signBtnEl.textContent = '✍️ Modifier la signature';
             showToast('✅ Signature enregistrée', 'success');
         };
     }
