@@ -2381,11 +2381,26 @@ Réponds en français.`;
                 const blob = await KZOStorage.exportKZO(window.currentProjectId);
                 const clientName = (inspectionData.clientInfo.names || []).filter(Boolean).join('_') || 'inspection';
                 const filename = 'KZO-' + clientName.replace(/[^a-zA-Z0-9]/g, '_') + '-' + new Date().toISOString().slice(0, 10) + '.kzo';
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url; a.download = filename; a.click();
-                URL.revokeObjectURL(url);
-                showToast('Fichier .kzo exporté ✓', 'success');
+                if (window.showSaveFilePicker) {
+                    try {
+                        const fh = await window.showSaveFilePicker({
+                            suggestedName: filename,
+                            types: [{ description: 'KZO Inspection', accept: { 'application/octet-stream': ['.kzo'] } }]
+                        });
+                        const writable = await fh.createWritable();
+                        await writable.write(blob);
+                        await writable.close();
+                        showToast('✅ Fichier .kzo enregistré dans le dossier choisi.', 'success');
+                    } catch (saveErr) {
+                        if (saveErr.name !== 'AbortError') throw saveErr;
+                    }
+                } else {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = filename; a.click();
+                    URL.revokeObjectURL(url);
+                    showToast('✅ Fichier .kzo exporté.', 'success');
+                }
             } catch (e) {
                 showToast('Erreur export : ' + e.message, 'error');
             } finally {
