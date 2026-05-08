@@ -1546,7 +1546,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
 
                         // Analyse IA automatique (une seule photo à la fois pour éviter les conflits de panneau)
-                        if (files.length === 1) {
+                        if (files.length === 1 && localStorage.getItem('kzo_auto_ai_photos') !== '0') {
                             const _activeProvider = localStorage.getItem('inspectpro_api_provider') || 'gemini';
                             const _visionProviders = ['anthropic', 'gemini', 'openai'];
                             if (!_visionProviders.includes(_activeProvider)) {
@@ -1600,6 +1600,51 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
                 renderGallery();
+                // Bouton "Analyser toutes" pour uploads multiples
+                if (files.length > 1 && localStorage.getItem('kzo_auto_ai_photos') !== '0') {
+                    const _ap = localStorage.getItem('inspectpro_api_provider') || 'gemini';
+                    const _vp = ['anthropic', 'gemini', 'openai'];
+                    const _existingAnalyzeBtn = galleryContainer.querySelector('[data-analyze-all]');
+                    if (_existingAnalyzeBtn) _existingAnalyzeBtn.remove();
+                    const analyzeAllBtn = document.createElement('button');
+                    analyzeAllBtn.type = 'button';
+                    analyzeAllBtn.setAttribute('data-analyze-all', '1');
+                    analyzeAllBtn.className = 'btn secondary';
+                    analyzeAllBtn.style.cssText = 'font-size:0.82rem;padding:5px 12px;margin-top:8px;display:block;';
+                    if (_vp.includes(_ap)) {
+                        const _photoCount = (getActiveSectionPhotos()[sub.id] || []).length;
+                        analyzeAllBtn.textContent = '🤖 Analyser toutes (' + _photoCount + ')';
+                        analyzeAllBtn.onclick = async () => {
+                            const photos = getActiveSectionPhotos()[sub.id] || [];
+                            analyzeAllBtn.disabled = true;
+                            for (let i = 0; i < photos.length; i++) {
+                                analyzeAllBtn.textContent = '⏳ Analyse ' + (i + 1) + '/' + photos.length + '...';
+                                try {
+                                    const b64 = (photos[i].url || '').split(',')[1];
+                                    if (!b64) continue;
+                                    const result = await AIAgents.analyzePhotoField(b64, sub.title);
+                                    if (result && result.description) {
+                                        const activeCom = getActiveComments();
+                                        if (!activeCom[sub.id]) activeCom[sub.id] = {};
+                                        activeCom[sub.id].text = activeCom[sub.id].text
+                                            ? activeCom[sub.id].text + '\n' + result.description
+                                            : result.description;
+                                        if (!photos[i].caption) photos[i].caption = result.description.substring(0, 200);
+                                    }
+                                } catch(e) { /* continue on error */ }
+                            }
+                            saveAppState();
+                            showToast('✅ ' + photos.length + ' photo' + (photos.length > 1 ? 's' : '') + ' analysée' + (photos.length > 1 ? 's' : '') + '.', 'success');
+                            analyzeAllBtn.remove();
+                            renderGallery();
+                        };
+                    } else {
+                        analyzeAllBtn.textContent = '🤖 Vision non disponible (' + _ap + ')';
+                        analyzeAllBtn.style.opacity = '0.5';
+                        analyzeAllBtn.disabled = true;
+                    }
+                    galleryContainer.insertBefore(analyzeAllBtn, uploadBtnWrap);
+                }
                 if (files.length === 1) {
                     const captionInputs = grid.querySelectorAll('.photo-caption-input');
                     const lastInput = captionInputs.length ? captionInputs[captionInputs.length - 1] : null;
