@@ -2505,6 +2505,15 @@ Réponds en français.`;
         }
     }
 
+    // Toggle auto-analyse IA à l'upload
+    const autoAiToggle = document.getElementById('autoAiPhotosToggle');
+    if (autoAiToggle) {
+        autoAiToggle.checked = localStorage.getItem('kzo_auto_ai_photos') !== '0';
+        autoAiToggle.addEventListener('change', () => {
+            localStorage.setItem('kzo_auto_ai_photos', autoAiToggle.checked ? '1' : '0');
+        });
+    }
+
     // --- Mobile Menu Toggle (Bug fix: handler was missing) ---
     const menuToggle = document.getElementById('menuToggle');
     const navSidebar = document.getElementById('sidebar');
