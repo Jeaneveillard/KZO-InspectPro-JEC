@@ -2889,6 +2889,16 @@ Réponds en français.`;
         // ATTESTATION
         if (BOILERPLATE.attestation) html += BOILERPLATE.attestation(clientName, safeInspectorName, signatureUrl, sealUrl);
 
+        const clientSigUrl = inspectionData.clientInfo.clientSignatureUrl || null;
+        if (clientSigUrl) {
+            const sigDate = new Date().toLocaleDateString('fr-CA');
+            html += `<div style="margin-top:40px;padding:24px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;page-break-inside:avoid;">
+                <h3 style="color:#0f172a;font-size:1rem;margin:0 0 12px;">✍️ Acceptation du rapport — Signature du client</h3>
+                <p style="color:#64748b;font-size:0.85rem;margin:0 0 16px;">Date : ${sigDate} &nbsp;&nbsp;&nbsp; Client : ${sanitizeHTML(clientName)}</p>
+                <img src="${clientSigUrl}" style="max-width:300px;height:80px;object-fit:contain;border-bottom:2px solid #0f172a;display:block;">
+            </div>`;
+        }
+
         // LETTRE DE REMERCIEMENT
         if (BOILERPLATE.lettreRemerciement) {
             html += BOILERPLATE.lettreRemerciement(
