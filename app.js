@@ -1346,7 +1346,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                         fieldGroup.appendChild(signBtn);
                         fieldGroup.appendChild(sigIndicator);
                     } else if (field.id === 'client_remote_sign') {
-                        // Placeholder for remote signature — future feature
+                        const remoteBtn = document.createElement('button');
+                        remoteBtn.type = 'button';
+                        remoteBtn.textContent = '📧 Envoyer pour signature à distance';
+                        remoteBtn.style.cssText = 'width:100%;padding:11px;background:#334155;color:#cbd5e1;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;margin-top:8px;';
+                        remoteBtn.onclick = async () => {
+                            const clientEmail = inspectionData.clientInfo.email || '';
+                            if (!clientEmail) { showToast('Veuillez saisir l\'email du client d\'abord.', 'warning'); return; }
+                            remoteBtn.disabled = true;
+                            remoteBtn.textContent = '…';
+                            try {
+                                const html = _buildReportHTML(inspectionData.currentUnitId);
+                                const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+                                if (typeof GoogleDrive !== 'undefined') {
+                                    await GoogleDrive.syncInspection(window.currentProjectId, blob, inspectionData.currentUnitId);
+                                }
+                                await sendReportByEmail(inspectionData.currentUnitId);
+                                remoteBtn.textContent = '✅ Envoyé pour signature';
+                            } catch (e) {
+                                showToast('Erreur : ' + (e.text || e.message || 'inconnu'), 'error');
+                                remoteBtn.disabled = false;
+                                remoteBtn.textContent = '📧 Envoyer pour signature à distance';
+                            }
+                        };
+                        fieldGroup.appendChild(remoteBtn);
                     } else {
                     const btn = document.createElement('button');
                     btn.className = 'btn primary';
