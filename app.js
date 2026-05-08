@@ -215,10 +215,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     try { savedClientNames = JSON.parse(localStorage.getItem('inspectpro_client_names')) || []; } catch(e) { savedClientNames = []; }
     if (!Array.isArray(savedClientNames) || savedClientNames.length === 0) savedClientNames = [''];
     const savedClientAddress = localStorage.getItem('inspectpro_client_address') || '';
+    const savedClientEmail   = localStorage.getItem('inspectpro_client_email') || '';
     inspectionData.clientInfo.inspectorName = savedInspectorName;
     inspectionData.clientInfo.names = savedClientNames;
     inspectionData.clientInfo.name = savedClientNames.filter(n => n).join(' & ');
     inspectionData.clientInfo.address = savedClientAddress;
+    inspectionData.clientInfo.email   = savedClientEmail;
 
     // Initialiser les objets de commentaires si absents
     if (!inspectionData.comments) inspectionData.comments = {};
@@ -1178,6 +1180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         input.value = inspectionData.clientInfo.email || '';
                         input.addEventListener('input', () => {
                             inspectionData.clientInfo.email = input.value.trim();
+                            localStorage.setItem('inspectpro_client_email', input.value.trim());
                             saveAppState();
                         });
                     }
