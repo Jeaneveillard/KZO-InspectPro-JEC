@@ -13,6 +13,7 @@
     const DRIVE_API        = 'https://www.googleapis.com/drive/v3';
     const UPLOAD_API       = 'https://www.googleapis.com/upload/drive/v3';
 
+    let _lastSyncUrl  = '';
     let _tokenClient  = null;
     let _resolveAuth  = null;
     let _rejectAuth   = null;
@@ -373,6 +374,7 @@
         try {
             await authenticate();
             const folderUrl = await _uploadAll(projectId, reportBlob, inspData, unitId);
+            _lastSyncUrl = folderUrl;
             _setStatus(projectId, 'synced');
             updateSyncIndicator(projectId);
             if (typeof showToast === 'function') showToast('✅ Synchronisé vers Google Drive', 'success');
@@ -398,7 +400,8 @@
         getSyncStatus:       getSyncStatus,
         updateSyncIndicator: updateSyncIndicator,
         retrySync:           retrySync,
-        syncInspection:      syncInspection
+        syncInspection:      syncInspection,
+        getLastSyncUrl:      function() { return _lastSyncUrl; }
     };
 
 })();
