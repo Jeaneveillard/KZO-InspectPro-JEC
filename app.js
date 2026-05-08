@@ -228,12 +228,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!inspectionData.fieldStates) inspectionData.fieldStates = {};
     if (!inspectionData.sectionPhotos) inspectionData.sectionPhotos = {};
 
-    // Auto-génération du code d'inspection sur nouvelle inspection
-    if (_isNewProject && !getActiveFieldStates()['inspection_code']) {
-        getActiveFieldStates()['inspection_code'] = window.currentProjectId || ('KZO-' + Date.now().toString().slice(-5));
-        saveAppState();
-    }
-
     // ============================================================
     //  PROXY MULTI-UNITÉS
     //  Redirige inspectionData.fieldStates vers l'unité active
@@ -252,21 +246,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Types qui activent le mode multi-unités automatiquement
     const MULTI_UNIT_TYPES = ['Duplex', 'Triplex', 'Condo / Appartement', 'Maison de ville (Townhouse)'];
 
-    // Initialisation des unités
+    // Initialisation des unités — DOIT être avant tout appel à getActiveFieldStates()
     if (!inspectionData.units) {
         inspectionData.units = [
-            { 
-                id: 'unit_1', 
-                name: 'Unité 1', 
-                fieldStates: _initialFieldStates || {}, 
-                comments: _initialComments || {}, 
-                sectionComments: _initialSectionComments || {}, 
-                sectionPhotos: _initialSectionPhotos || {} 
+            {
+                id: 'unit_1',
+                name: 'Unité 1',
+                fieldStates: _initialFieldStates || {},
+                comments: _initialComments || {},
+                sectionComments: _initialSectionComments || {},
+                sectionPhotos: _initialSectionPhotos || {}
             }
         ];
     }
     if (typeof inspectionData.currentUnitId === 'undefined') {
         inspectionData.currentUnitId = 'unit_1';
+    }
+
+    // Auto-génération du code d'inspection sur nouvelle inspection
+    if (_isNewProject && !getActiveFieldStates()['inspection_code']) {
+        getActiveFieldStates()['inspection_code'] = window.currentProjectId || ('KZO-' + Date.now().toString().slice(-5));
+        saveAppState();
     }
 
     // ============================================================
