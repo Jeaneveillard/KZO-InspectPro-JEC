@@ -3375,6 +3375,7 @@ Réponds en français.`;
             if (!drawing) return;
             drawing = false;
             if (activeTool === 'pen') {
+                if (currentPenShape && currentPenShape.points.length < 2) shapes.pop();
                 currentPenShape = null;
                 return;
             }
@@ -3387,7 +3388,7 @@ Réponds en français.`;
         canvas.addEventListener('touchmove', e => { e.preventDefault(); moveDraw(e); }, { passive: false });
         canvas.addEventListener('mouseup', endDraw);
         canvas.addEventListener('touchend', e => { e.preventDefault(); endDraw(); }, { passive: false });
-        canvas.addEventListener('touchcancel', () => { drawing = false; previewShape = null; redrawCanvas(); });
+        canvas.addEventListener('touchcancel', () => { drawing = false; previewShape = null; currentPenShape = null; redrawCanvas(); });
 
         const toolBtns = {};
         [{ id: 'arrow', label: '↗ Flèche' }, { id: 'circle', label: '⬤ Cercle' }, { id: 'pen', label: '✏️ Crayon' }, { id: 'text', label: 'T Texte' }].forEach(t => {
