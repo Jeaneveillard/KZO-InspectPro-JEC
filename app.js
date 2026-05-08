@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Compression photo avant stockage localStorage (évite la saturation)
-    function compressImage(file, maxWidth = 1200, quality = 0.75) {
+    function compressImage(file, maxWidth = 800, quality = 0.65) {
         return new Promise((resolve) => {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -173,6 +173,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             };
             reader.readAsDataURL(file);
         });
+    }
+
+    function _estimatePhotosSize(unit) {
+        let bytes = 0;
+        Object.values(unit.sectionPhotos || {}).forEach(arr =>
+            arr.forEach(p => { bytes += Math.round((p.url || '').length * 0.75); })
+        );
+        return bytes;
     }
 
     // Protection légère : désactiver le clic droit sur les images uniquement
@@ -1412,7 +1420,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             galleryContainer.style.cssText = 'margin-top: 20px; padding: 15px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc;';
             
             const galleryTitle = document.createElement('h4');
-            galleryTitle.textContent = '📸 Photos additionnelles (' + sub.title + ')';
+            const _galleryPhotos = getActiveSectionPhotos()[sub.id] || [];
+            const _gallerySizeKB = Math.round(_galleryPhotos.reduce((acc, p) => acc + Math.round((p.url || '').length * 0.75), 0) / 1024);
+            galleryTitle.textContent = '📸 Photos additionnelles (' + sub.title + ')' + (_galleryPhotos.length > 0 ? ' — ' + _galleryPhotos.length + ' photo' + (_galleryPhotos.length > 1 ? 's' : '') + ' (~' + _gallerySizeKB + ' Ko)' : '');
             galleryTitle.style.cssText = 'margin-top: 0; margin-bottom: 12px; font-size: 0.95rem; color: #475569;';
             galleryContainer.appendChild(galleryTitle);
 
@@ -1522,6 +1532,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                         if (!store[sub.id]) store[sub.id] = [];
                         store[sub.id].push({ url: dataUrl, caption: '', originalUrl: null });
                         saveAppState();
+                        // Avertissement stockage
+                        const _unit = getCurrentUnit();
+                        const _sizeBytes = _estimatePhotosSize(_unit);
+                        const _sizeMB = (_sizeBytes / 1048576).toFixed(1);
+                        if (_sizeBytes > 6 * 1048576) {
+                            showToast('❌ Stockage photos critique (~' + _sizeMB + ' Mo). Exportez le fichier .kzo maintenant.', 'error', 6000);
+                        } else if (_sizeBytes > 3 * 1048576) {
+                            showToast('⚠️ Stockage photos : ~' + _sizeMB + ' Mo. Sauvegardez régulièrement (.kzo).', 'warning', 5000);
+                        }
 
                         // Analyse IA automatique (une seule photo à la fois pour éviter les conflits de panneau)
                         if (files.length === 1) {
