@@ -1527,7 +1527,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 for (const file of files) {
                     const check = validateFile(file);
                     if (check.valid) {
-                        const dataUrl = await compressImage(file, 1200, 0.75);
+                        const dataUrl = await compressImage(file);
                         const store = getActiveSectionPhotos();
                         if (!store[sub.id]) store[sub.id] = [];
                         store[sub.id].push({ url: dataUrl, caption: '', originalUrl: null });
