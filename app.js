@@ -2592,7 +2592,6 @@ Réponds en français.`;
     }
     if (exportKzoAsBtn) {
         exportKzoAsBtn.addEventListener('click', () => _doKzoExport(true));
-        });
     }
 
     // Rendre le bouton sidebar
