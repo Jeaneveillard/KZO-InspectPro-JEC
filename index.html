@@ -148,6 +148,7 @@
     <div class="topbar-actions">
         <button class="btn btn-import" onclick="triggerImport()">📂 Ouvrir .kzo</button>
         <button class="btn btn-primary" onclick="newInspection()">+ Nouvelle inspection</button>
+        <button onclick="KZOAuth.logout()" style="padding:7px 14px;background:#dc2626;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;margin-left:8px;">🔒 Déconnexion</button>
     </div>
 </div>
 
@@ -166,6 +167,8 @@
 <div id="toast-home"></div>
 <input type="file" id="importInput" accept=".kzo" style="display:none" onchange="handleImport(event)">
 
+<script src="auth.js"></script>
+<script>if (!sessionStorage.getItem('kzo_auth')) { window.location.replace('login.html'); }</script>
 <script src="jszip.min.js"></script>
 <script src="storage.js"></script>
 <script>
