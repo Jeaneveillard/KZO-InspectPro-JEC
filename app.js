@@ -2765,6 +2765,17 @@ Réponds en français.`;
 
         // SOMMAIRE EXÉCUTIF avec compteur
         const hasIssues = totalUrgents > 0 || totalMajeurs > 0 || totalSurveiller > 0;
+        const _totalChecked = totalUrgents + totalMajeurs + totalSurveiller + totalConformes || 1;
+        const _bars = [
+            { label: 'Urgents',    count: totalUrgents,    color: '#dc2626', pct: Math.round(totalUrgents    / _totalChecked * 100) },
+            { label: 'Majeurs',    count: totalMajeurs,    color: '#d97706', pct: Math.round(totalMajeurs    / _totalChecked * 100) },
+            { label: 'Surveiller', count: totalSurveiller, color: '#f59e0b', pct: Math.round(totalSurveiller / _totalChecked * 100) },
+            { label: 'Conformes',  count: totalConformes,  color: '#22c55e', pct: Math.round(totalConformes  / _totalChecked * 100) }
+        ];
+        const _barsHtml = `<div style="margin-top:24px;padding:20px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;">
+            <h3 style="font-size:1rem;color:#0f172a;margin:0 0 16px;">📊 Répartition des observations</h3>
+            ${_bars.map(b => `<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:600;margin-bottom:4px;"><span style="color:#334155;">${b.label}</span><span style="color:${b.color};">${b.count} (${b.pct}%)</span></div><div style="background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden;"><div style="background:${b.color};height:100%;width:${b.pct}%;border-radius:4px;"></div></div></div>`).join('')}
+        </div>`;
         html += `
             <div class="page-break" style="padding-top: 50px;">
                 <h2 style="color: #1A56DB; border-bottom: 2px solid #1A56DB; padding-bottom: 10px; margin-bottom: 30px; font-size: 2rem;">Sommaire Exécutif</h2>
@@ -2818,6 +2829,7 @@ Réponds en français.`;
                         ${_surveillerDefects.map(d => `<div style="padding: 8px 14px; border-left: 3px solid #f59e0b; margin-bottom: 4px; font-size: 0.9rem; background: #fffbeb;"><span style="font-weight: 700; color: #92400e; margin-right: 8px;">#${d.num}</span><strong>${sanitizeHTML(d.sectionTitle)}</strong> — ${sanitizeHTML(d.label)}<span style="color: #92400e; font-size: 0.82rem; margin-left: 8px;">→ ${sanitizeHTML(d.specialist)}</span></div>`).join('')}
                     </div>` : ''}
                 </div>` : ''}
+                ${_barsHtml}
                 ${_lifespanItems.length > 0 ? `
                 <div style="margin-top: 24px; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
                     <h3 style="font-size: 1.1rem; color: #0f172a; margin-bottom: 14px;">🔧 Durée de vie estimée des équipements</h3>
@@ -2826,15 +2838,28 @@ Réponds en français.`;
             </div>
         `;
 
+        // TABLE DES MATIÈRES
+        const _tocSections = inspectionData.sections.filter(s => !['s_cover','s_admin','s_rapport','s_preview'].includes(s.id));
+        const _reportDate = new Date().toLocaleString('fr-CA', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+        html += `<div class="page-break" style="padding-top:50px;">
+            <h2 style="color:#1A56DB;border-bottom:2px solid #1A56DB;padding-bottom:10px;margin-bottom:30px;font-size:2rem;">📋 Table des matières</h2>
+            <ol style="list-style:none;padding:0;margin:0;">
+                ${_tocSections.map((s, i) => `<li style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px dotted #cbd5e1;font-size:0.95rem;"><a href="#rapport-section-${i+1}" style="color:#1e3a5f;text-decoration:none;font-weight:500;">${i+1}. ${sanitizeHTML(s.title)}</a><span style="color:#94a3b8;font-size:0.82rem;white-space:nowrap;padding-left:8px;">section ${i+1}</span></li>`).join('')}
+                <li style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;font-size:0.95rem;font-weight:600;margin-top:4px;"><span style="color:#1e3a5f;">Sommaire des défauts</span><span style="color:#94a3b8;font-size:0.82rem;white-space:nowrap;padding-left:8px;">voir p.1</span></li>
+            </ol>
+            <p style="margin-top:24px;color:#94a3b8;font-size:0.8rem;text-align:right;">Rapport généré le ${_reportDate}</p>
+        </div>`;
+
         // CORPS DU RAPPORT
         // Map fieldId → numéro global #N pour les badges
         const _defectNumMap = {};
         (_numberedDefects || []).forEach(d => { _defectNumMap[d.fieldId] = d.num; });
         let defectCount = 0;
+        let _sectionIndex = 0;
         inspectionData.sections.forEach(section => {
             if (section.id === 's_cover' || section.id === 's_admin' || section.id === 's_rapport' || section.id === 's_preview') return;
-
-            html += `<div class="page-break" style="padding-top: 50px;">
+            _sectionIndex++;
+            html += `<div class="page-break" id="rapport-section-${_sectionIndex}" style="padding-top: 50px;">
                      <h2 style="color: #1A56DB; margin-bottom: 20px; border-bottom: 2px solid #1A56DB; padding-bottom: 10px; font-size: 1.8rem;">${section.title}</h2>
                      <p style="margin-bottom: 30px; font-style: italic; color: #64748b; line-height: 1.6; font-size: 0.95rem;">Cette section documente l'état des composants apparents et accessibles au moment de l'inspection visuelle non destructive. Les éléments non mentionnés n'ont pu être inspectés en raison de finitions, d'encombrement ou d'inaccessibilité.</p>`;
 
