@@ -2301,11 +2301,40 @@ Réponds en français.`;
     drawCanvas.addEventListener('touchend', stopDraw);
 
     applyAiBtn.addEventListener('click', () => {
-        // Appliquer le résultat de l'analyse au rapport — marquer comme défaut dans l'unité active
         if (currentVisionField) {
             const activeStates = getActiveFieldStates();
             activeStates[currentVisionField.id] = 'defaut';
+
+            // Sauvegarder le texte d'analyse dans le commentaire de la sous-section
+            const analysisTextEl = document.getElementById('analysisText');
+            const recoTextEl     = document.getElementById('recommendationText');
+            const analysisContent = analysisTextEl ? analysisTextEl.textContent.trim() : '';
+            const recoContent     = recoTextEl ? recoTextEl.textContent.trim() : '';
+            const fullComment = [analysisContent, recoContent ? 'Recommandation : ' + recoContent : '']
+                .filter(Boolean).join('\n\n');
+
+            if (fullComment) {
+                let targetSubId = null;
+                for (const section of inspectionData.sections) {
+                    for (const sub of (section.subSections || [])) {
+                        if ((sub.fields || []).some(f => f.id === currentVisionField.id)) {
+                            targetSubId = sub.id;
+                            break;
+                        }
+                    }
+                    if (targetSubId) break;
+                }
+                if (targetSubId) {
+                    const activeCom = getActiveComments();
+                    if (!activeCom[targetSubId]) activeCom[targetSubId] = {};
+                    activeCom[targetSubId].text     = fullComment;
+                    activeCom[targetSubId].severity = 'urgent';
+                }
+            }
+
             saveAppState();
+            renderSection(currentSectionIndex);
+            showToast('✅ Analyse IA sauvegardée dans les commentaires de la sous-section.', 'success');
         }
         modal.classList.remove('open');
     });
