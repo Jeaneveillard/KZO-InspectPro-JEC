@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    
+
+    // Handle File System Access API pour Save / Save As .kzo
+    let _kzoFileHandle = null;
+
     // --- 0. Sécurité et Utilitaires ---
     
     // Anti-XSS : Échapper tout contenu utilisateur avant insertion HTML
@@ -2362,51 +2365,70 @@ Réponds en français.`;
     const saveQuitTopBtn = document.getElementById('saveQuitBtn');
     if (saveQuitTopBtn) saveQuitTopBtn.addEventListener('click', saveAndQuit);
 
-    // Bouton "Exporter .kzo" — top-bar
-    const exportKzoBtn = document.getElementById('exportKzoBtn');
-    if (exportKzoBtn) {
-        exportKzoBtn.addEventListener('click', async () => {
-            if (!window.currentProjectId || !window.KZOStorage) return;
-            exportKzoBtn.textContent = '⏳ Export...';
-            exportKzoBtn.disabled = true;
-            try {
-                const snapshot = {
-                    clientInfo: inspectionData.clientInfo,
-                    id: inspectionData.id,
-                    units: inspectionData.units,
-                    currentUnitId: inspectionData.currentUnitId,
-                    rapportNarratifIA: inspectionData.rapportNarratifIA || ''
-                };
-                await KZOStorage.saveProject(window.currentProjectId, snapshot);
-                const blob = await KZOStorage.exportKZO(window.currentProjectId);
-                const clientName = (inspectionData.clientInfo.names || []).filter(Boolean).join('_') || 'inspection';
-                const filename = 'KZO-' + clientName.replace(/[^a-zA-Z0-9]/g, '_') + '-' + new Date().toISOString().slice(0, 10) + '.kzo';
-                if (window.showSaveFilePicker) {
-                    try {
-                        const fh = await window.showSaveFilePicker({
-                            suggestedName: filename,
-                            types: [{ description: 'KZO Inspection', accept: { 'application/octet-stream': ['.kzo'] } }]
-                        });
-                        const writable = await fh.createWritable();
-                        await writable.write(blob);
-                        await writable.close();
-                        showToast('✅ Fichier .kzo enregistré dans le dossier choisi.', 'success');
-                    } catch (saveErr) {
-                        if (saveErr.name !== 'AbortError') throw saveErr;
-                    }
-                } else {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url; a.download = filename; a.click();
-                    URL.revokeObjectURL(url);
-                    showToast('✅ Fichier .kzo exporté.', 'success');
+    // Bouton "Exporter .kzo" — top-bar (Save / Save As)
+    const exportKzoBtn   = document.getElementById('exportKzoBtn');
+    const exportKzoAsBtn = document.getElementById('exportKzoAsBtn');
+
+    async function _doKzoExport(forcePickNew) {
+        if (!window.currentProjectId || !window.KZOStorage) return;
+        exportKzoBtn.textContent = '⏳';
+        exportKzoBtn.disabled = true;
+        if (exportKzoAsBtn) exportKzoAsBtn.disabled = true;
+        try {
+            const snapshot = {
+                clientInfo: inspectionData.clientInfo,
+                id: inspectionData.id,
+                units: inspectionData.units,
+                currentUnitId: inspectionData.currentUnitId,
+                rapportNarratifIA: inspectionData.rapportNarratifIA || ''
+            };
+            await KZOStorage.saveProject(window.currentProjectId, snapshot);
+            const blob = await KZOStorage.exportKZO(window.currentProjectId);
+            const clientName = (inspectionData.clientInfo.names || []).filter(Boolean).join('_') || 'inspection';
+            const filename = 'KZO-' + clientName.replace(/[^a-zA-Z0-9]/g, '_') + '-' + new Date().toISOString().slice(0, 10) + '.kzo';
+
+            if (window.showSaveFilePicker && (forcePickNew || !_kzoFileHandle)) {
+                try {
+                    _kzoFileHandle = await window.showSaveFilePicker({
+                        suggestedName: filename,
+                        types: [{ description: 'KZO Inspection', accept: { 'application/octet-stream': ['.kzo'] } }]
+                    });
+                } catch (pickErr) {
+                    if (pickErr.name === 'AbortError') return; // annulé par l'utilisateur
+                    throw pickErr;
                 }
-            } catch (e) {
-                showToast('Erreur export : ' + e.message, 'error');
-            } finally {
-                exportKzoBtn.textContent = '⬇️ .kzo';
-                exportKzoBtn.disabled = false;
             }
+
+            if (_kzoFileHandle) {
+                const writable = await _kzoFileHandle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                const savedName = _kzoFileHandle.name || filename;
+                exportKzoBtn.textContent = '💾 .kzo';
+                exportKzoBtn.title = 'Enregistrer — ' + savedName;
+                if (exportKzoAsBtn) exportKzoAsBtn.style.display = 'inline-flex';
+                showToast('💾 Enregistré : ' + savedName, 'success');
+            } else {
+                // Fallback navigateur sans File System Access API
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename; a.click();
+                URL.revokeObjectURL(url);
+                showToast('✅ Fichier .kzo exporté.', 'success');
+            }
+        } catch (e) {
+            showToast('Erreur export : ' + e.message, 'error');
+        } finally {
+            exportKzoBtn.disabled = false;
+            if (exportKzoAsBtn) exportKzoAsBtn.disabled = false;
+        }
+    }
+
+    if (exportKzoBtn) {
+        exportKzoBtn.addEventListener('click', () => _doKzoExport(false));
+    }
+    if (exportKzoAsBtn) {
+        exportKzoAsBtn.addEventListener('click', () => _doKzoExport(true));
         });
     }
 
