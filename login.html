@@ -192,7 +192,7 @@ async function handleSendCode() {
             btn.textContent = '📧 Envoyer le code';
         }
     } catch(e) {
-        err.textContent = 'Erreur envoi email : ' + e.message;
+        err.textContent = 'Erreur : ' + (e.text || e.message || JSON.stringify(e));
         btn.disabled = false;
         btn.textContent = '📧 Envoyer le code';
     }
