@@ -1525,32 +1525,52 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                         // Analyse IA automatique (une seule photo à la fois pour éviter les conflits de panneau)
                         if (files.length === 1) {
-                            const base64Only = dataUrl.split(',')[1];
-                            AIAgents.analyzePhotoField(base64Only, sub.title)
-                                .then(result => {
-                                    if (!result) return;
-                                    const currentPhotos = getActiveSectionPhotos()[sub.id] || [];
-                                    if (!currentPhotos.some(p => p.url === dataUrl)) return;
-                                    showPhotoAnalysis(
-                                        sub.id,
-                                        sub.title,
-                                        base64Only,
-                                        result,
-                                        (etatSuggere) => {
-                                            sub.fields.forEach(f => {
-                                                if (f.type === 'checkbox') {
-                                                    inspectionData.fieldStates[f.id] = etatSuggere;
+                            const _activeProvider = localStorage.getItem('inspectpro_api_provider') || 'gemini';
+                            const _visionProviders = ['anthropic', 'gemini', 'openai'];
+                            if (!_visionProviders.includes(_activeProvider)) {
+                                showToast('⚠️ ' + _activeProvider.charAt(0).toUpperCase() + _activeProvider.slice(1) + ' ne supporte pas l\'analyse de photos. Configurez une clé Claude, Gemini ou OpenAI dans les paramètres.', 'warning');
+                            } else {
+                                const base64Only = dataUrl.split(',')[1];
+                                AIAgents.analyzePhotoField(base64Only, sub.title)
+                                    .then(result => {
+                                        if (!result) return;
+                                        const currentPhotos = getActiveSectionPhotos()[sub.id] || [];
+                                        if (!currentPhotos.some(p => p.url === dataUrl)) return;
+                                        showPhotoAnalysis(
+                                            sub.id,
+                                            sub.title,
+                                            base64Only,
+                                            result,
+                                            (etatSuggere) => {
+                                                sub.fields.forEach(f => {
+                                                    if (f.type === 'checkbox') {
+                                                        inspectionData.fieldStates[f.id] = etatSuggere;
+                                                    }
+                                                });
+                                                // Sauvegarder la description IA dans le commentaire de la sous-section
+                                                if (result.description) {
+                                                    const activeCom = getActiveComments();
+                                                    if (!activeCom[sub.id]) activeCom[sub.id] = {};
+                                                    activeCom[sub.id].text = result.description;
+                                                    const sevMap = { defaut: 'urgent', surveiller: 'mineur', conforme: 'ok' };
+                                                    activeCom[sub.id].severity = sevMap[etatSuggere] || 'ok';
+                                                    // Sauvegarder aussi comme légende de la photo
+                                                    const photos = getActiveSectionPhotos()[sub.id] || [];
+                                                    const lastPhoto = photos[photos.length - 1];
+                                                    if (lastPhoto && !lastPhoto.caption) {
+                                                        lastPhoto.caption = result.description.substring(0, 200);
+                                                    }
                                                 }
-                                            });
-                                            saveAppState();
-                                            renderSection(currentSectionIndex);
-                                            showToast('État mis à jour selon la suggestion IA — vérifiez chaque champ.', 'info');
-                                        }
-                                    );
-                                })
-                                .catch(() => {
-                                    showToast('Analyse IA indisponible pour cette photo.', 'warning');
-                                });
+                                                saveAppState();
+                                                renderSection(currentSectionIndex);
+                                                showToast('✅ État et description IA sauvegardés dans les commentaires.', 'info');
+                                            }
+                                        );
+                                    })
+                                    .catch((e) => {
+                                        showToast('Analyse IA indisponible : ' + (e?.message || 'erreur inconnue'), 'warning');
+                                    });
+                            }
                         }
 
                     } else {
