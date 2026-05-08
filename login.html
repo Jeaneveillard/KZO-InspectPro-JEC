@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src https://api.emailjs.com;">
+    <title>KZO InspectPro — Connexion</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: white;
+            border-radius: 16px;
+            padding: 36px 32px;
+            width: 320px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+            text-align: center;
+        }
+        .login-logo {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+        .login-subtitle {
+            color: #94a3b8;
+            font-size: 0.78rem;
+            margin-bottom: 24px;
+        }
+        input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus { border-color: #1A56DB; }
+        .btn-primary {
+            width: 100%;
+            padding: 11px;
+            background: linear-gradient(135deg, #1A56DB, #0d9488);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 14px;
+        }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .error-msg {
+            color: #dc2626;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            min-height: 18px;
+        }
+        .success-msg {
+            color: #16a34a;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            min-height: 18px;
+        }
+        .forgot-link {
+            color: #1A56DB;
+            font-size: 0.8rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            text-decoration: underline;
+        }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .divider {
+            border: none;
+            border-top: 1px solid #e2e8f0;
+            margin: 18px 0;
+        }
+        .panel-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 10px;
+        }
+        .panel-desc {
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-bottom: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="login-card">
+    <div class="login-logo">🏠 KZO InspectPro</div>
+    <div class="login-subtitle">Accès sécurisé</div>
+
+    <!-- Panneau 1 : Connexion -->
+    <div id="panelLogin" class="panel active">
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
+        <div class="error-msg" id="loginError"></div>
+        <button class="btn-primary" id="loginBtn" onclick="handleLogin()">Entrer</button>
+        <button class="forgot-link" onclick="showForgot()">🔑 Mot de passe oublié ?</button>
+    </div>
+
+    <!-- Panneau 2 : Envoi du code -->
+    <div id="panelForgot" class="panel">
+        <hr class="divider">
+        <div class="panel-title">Récupération du mot de passe</div>
+        <div class="panel-desc">Un code à 6 chiffres sera envoyé à<br><strong>kzoinspectpro@gmail.com</strong></div>
+        <div class="error-msg" id="forgotError"></div>
+        <button class="btn-primary" id="sendCodeBtn" onclick="handleSendCode()">📧 Envoyer le code</button>
+        <button class="forgot-link" onclick="showLogin()">← Retour</button>
+    </div>
+
+    <!-- Panneau 3 : Vérification du code -->
+    <div id="panelCode" class="panel">
+        <hr class="divider">
+        <div class="panel-title">Entrez le code reçu</div>
+        <div class="panel-desc">Vérifiez votre email — valide 15 minutes</div>
+        <input type="text" id="resetCode" placeholder="123456" maxlength="6" inputmode="numeric" />
+        <div class="error-msg" id="codeError"></div>
+        <button class="btn-primary" onclick="handleVerifyCode()">Vérifier</button>
+        <button class="forgot-link" onclick="showLogin()">← Retour</button>
+    </div>
+
+    <!-- Panneau 4 : Nouveau mot de passe -->
+    <div id="panelNewPwd" class="panel">
+        <hr class="divider">
+        <div class="panel-title">Nouveau mot de passe</div>
+        <input type="password" id="newPassword" placeholder="Nouveau mot de passe" />
+        <input type="password" id="confirmPassword" placeholder="Confirmer" />
+        <div class="error-msg" id="newPwdError"></div>
+        <div class="success-msg" id="newPwdSuccess"></div>
+        <button class="btn-primary" onclick="handleSetPassword()">✅ Enregistrer</button>
+    </div>
+</div>
+
+<script>
+function showPanel(id) {
+    ['panelLogin','panelForgot','panelCode','panelNewPwd'].forEach(function(p) {
+        document.getElementById(p).classList.remove('active');
+    });
+    document.getElementById(id).classList.add('active');
+}
+function showLogin()  { showPanel('panelLogin');  }
+function showForgot() { showPanel('panelForgot'); }
+
+async function handleLogin() {
+    var pwd = document.getElementById('loginPassword').value;
+    var btn = document.getElementById('loginBtn');
+    var err = document.getElementById('loginError');
+    if (!pwd) { err.textContent = 'Veuillez entrer le mot de passe.'; return; }
+    btn.disabled = true;
+    btn.textContent = '…';
+    var ok = await KZOAuth.login(pwd);
+    if (ok) {
+        window.location.replace('index.html');
+    } else {
+        err.textContent = 'Mot de passe incorrect.';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('loginPassword').focus();
+        btn.disabled = false;
+        btn.textContent = 'Entrer';
+    }
+}
+
+async function handleSendCode() {
+    var btn = document.getElementById('sendCodeBtn');
+    var err = document.getElementById('forgotError');
+    btn.disabled = true;
+    btn.textContent = '…';
+    try {
+        var sent = await KZOAuth.sendResetEmail();
+        if (sent) {
+            showPanel('panelCode');
+            document.getElementById('resetCode').focus();
+        } else {
+            err.textContent = 'EmailJS non configuré. Ajoutez les clés dans config.js.';
+            btn.disabled = false;
+            btn.textContent = '📧 Envoyer le code';
+        }
+    } catch(e) {
+        err.textContent = 'Erreur envoi email : ' + e.message;
+        btn.disabled = false;
+        btn.textContent = '📧 Envoyer le code';
+    }
+}
+
+function handleVerifyCode() {
+    var code = document.getElementById('resetCode').value.trim();
+    var err  = document.getElementById('codeError');
+    if (!KZOAuth.verifyResetCode(code)) {
+        err.textContent = 'Code invalide ou expiré.';
+        return;
+    }
+    showPanel('panelNewPwd');
+    document.getElementById('newPassword').focus();
+}
+
+async function handleSetPassword() {
+    var pwd  = document.getElementById('newPassword').value;
+    var conf = document.getElementById('confirmPassword').value;
+    var err  = document.getElementById('newPwdError');
+    var ok   = document.getElementById('newPwdSuccess');
+    if (pwd.length < 6)    { err.textContent = 'Minimum 6 caractères.'; return; }
+    if (pwd !== conf)      { err.textContent = 'Les mots de passe ne correspondent pas.'; return; }
+    await KZOAuth.setNewPassword(pwd);
+    err.textContent = '';
+    ok.textContent  = '✅ Mot de passe mis à jour ! Reconnectez-vous.';
+    setTimeout(showLogin, 2000);
+}
+
+// Soumettre avec Entrée
+document.getElementById('loginPassword').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleLogin();
+});
+document.getElementById('resetCode').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleVerifyCode();
+});
+</script>
+</body>
+</html>

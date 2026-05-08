@@ -1,0 +1,100 @@
+// auth.js — KZO InspectPro
+// Authentification : SHA-256, session, récupération mot de passe
+// API publique : window.KZOAuth
+
+(function () {
+    'use strict';
+
+    // SHA-256 de 'Amboul500' — ne jamais écrire le mot de passe en clair ici
+    const DEFAULT_HASH  = '24bae3a3c7aec386485eef4eb6e4f7bbce279f50a85c165e0dc4e4ba72d7963f';
+    const SESSION_KEY   = 'kzo_auth';
+    const CUSTOM_HASH   = 'kzo_custom_hash';
+    const RESET_CODE    = 'kzo_reset_code';
+    const RESET_EXPIRY  = 'kzo_reset_expiry';
+    const RESET_EMAIL   = 'kzoinspectpro@gmail.com';
+
+    async function _sha256(str) {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+        return Array.from(new Uint8Array(buf))
+            .map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+    }
+
+    function _getActiveHash() {
+        return localStorage.getItem(CUSTOM_HASH) || DEFAULT_HASH;
+    }
+
+    async function login(password) {
+        const hash = await _sha256(password);
+        if (hash === _getActiveHash()) {
+            sessionStorage.setItem(SESSION_KEY, '1');
+            return true;
+        }
+        return false;
+    }
+
+    function isAuthenticated() {
+        return sessionStorage.getItem(SESSION_KEY) === '1';
+    }
+
+    function logout() {
+        sessionStorage.removeItem(SESSION_KEY);
+        window.location.replace('login.html');
+    }
+
+    function requireAuth() {
+        if (!isAuthenticated()) window.location.replace('login.html');
+    }
+
+    function generateResetCode() {
+        const code   = String(Math.floor(100000 + Math.random() * 900000));
+        const expiry = Date.now() + 15 * 60 * 1000;
+        localStorage.setItem(RESET_CODE, code);
+        localStorage.setItem(RESET_EXPIRY, String(expiry));
+        return code;
+    }
+
+    function verifyResetCode(code) {
+        const stored = localStorage.getItem(RESET_CODE);
+        const expiry = parseInt(localStorage.getItem(RESET_EXPIRY) || '0', 10);
+        if (!stored || code !== stored) return false;
+        if (Date.now() > expiry) {
+            localStorage.removeItem(RESET_CODE);
+            localStorage.removeItem(RESET_EXPIRY);
+            return false;
+        }
+        return true;
+    }
+
+    async function setNewPassword(password) {
+        const hash = await _sha256(password);
+        localStorage.setItem(CUSTOM_HASH, hash);
+        localStorage.removeItem(RESET_CODE);
+        localStorage.removeItem(RESET_EXPIRY);
+    }
+
+    async function sendResetEmail() {
+        const code = generateResetCode();
+        const cfg  = (typeof KZO_CONFIG !== 'undefined') ? KZO_CONFIG : {};
+        if (!cfg.EMAILJS_SERVICE_ID || !cfg.EMAILJS_PUBLIC_KEY) {
+            console.warn('[KZOAuth] EmailJS non configuré dans config.js');
+            return false;
+        }
+        emailjs.init(cfg.EMAILJS_PUBLIC_KEY);
+        await emailjs.send(cfg.EMAILJS_SERVICE_ID, cfg.EMAILJS_TEMPLATE_ID, {
+            reset_code: code,
+            expiry:     '15 minutes',
+            to_email:   RESET_EMAIL
+        });
+        return true;
+    }
+
+    window.KZOAuth = {
+        login:           login,
+        isAuthenticated: isAuthenticated,
+        logout:          logout,
+        requireAuth:     requireAuth,
+        sendResetEmail:  sendResetEmail,
+        verifyResetCode: verifyResetCode,
+        setNewPassword:  setNewPassword
+    };
+})();
