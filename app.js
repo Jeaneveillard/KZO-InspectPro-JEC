@@ -1327,6 +1327,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                     infoDiv.innerHTML = field.content;
                     fieldGroup.appendChild(infoDiv);
                 } else if (field.type === 'action') {
+                    if (field.id === 'client_sign') {
+                        const signBtn = document.createElement('button');
+                        signBtn.type = 'button';
+                        signBtn.style.cssText = 'width:100%;padding:12px;background:linear-gradient(135deg,#1A56DB,#0d9488);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:8px;';
+                        const sigIndicator = document.createElement('span');
+                        sigIndicator.id = 'clientSignatureIndicator';
+                        sigIndicator.style.cssText = 'display:block;text-align:center;margin-top:6px;font-size:0.82rem;color:#94a3b8;';
+                        if (inspectionData.clientInfo.clientSignatureUrl) {
+                            signBtn.textContent = '✍️ Modifier la signature';
+                            sigIndicator.textContent = 'Signé ✅';
+                            sigIndicator.style.color = '#22c55e';
+                        } else {
+                            signBtn.textContent = '✍️ Faire signer le client';
+                            sigIndicator.textContent = '';
+                        }
+                        signBtn.onclick = () => openClientSignatureModal();
+                        fieldGroup.appendChild(signBtn);
+                        fieldGroup.appendChild(sigIndicator);
+                    } else if (field.id === 'client_remote_sign') {
+                        // Placeholder for remote signature — future feature
+                    } else {
                     const btn = document.createElement('button');
                     btn.className = 'btn primary';
                     btn.style.width = '100%';
@@ -1351,6 +1372,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         clientBtn.addEventListener('click', () => generateClientReport());
                         fieldGroup.appendChild(clientBtn);
                     }
+                    } // end else (default action button)
                 }
 
                 div.appendChild(fieldGroup);
@@ -3242,6 +3264,49 @@ Réponds en français.`;
         previewDiv.style.cssText = 'position:relative;z-index:1;';
         previewDiv.innerHTML = _buildReportHTML();
         container.appendChild(previewDiv);
+    }
+
+    function openClientSignatureModal() {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;';
+        const card = document.createElement('div');
+        card.style.cssText = 'background:white;border-radius:16px;padding:24px;width:min(500px,90vw);';
+        card.innerHTML = '<h3 style="color:#0f172a;margin:0 0 16px;text-align:center;font-size:1.1rem;">✍️ Signature du client</h3>';
+        const canvasEl = document.createElement('canvas');
+        canvasEl.width = 460;
+        canvasEl.height = 200;
+        canvasEl.style.cssText = 'border:2px dashed #cbd5e1;border-radius:8px;width:100%;touch-action:none;display:block;';
+        const btnRow = document.createElement('div');
+        btnRow.style.cssText = 'display:flex;gap:10px;margin-top:16px;justify-content:center;flex-wrap:wrap;';
+        const clearBtn   = document.createElement('button');
+        const cancelBtn  = document.createElement('button');
+        const confirmBtn = document.createElement('button');
+        clearBtn.type = cancelBtn.type = confirmBtn.type = 'button';
+        clearBtn.textContent   = '🗑️ Effacer';
+        cancelBtn.textContent  = '✕ Annuler';
+        confirmBtn.textContent = '✅ Confirmer';
+        clearBtn.style.cssText   = 'padding:8px 16px;background:#e2e8f0;color:#334155;border:none;border-radius:8px;font-weight:700;cursor:pointer;';
+        cancelBtn.style.cssText  = 'padding:8px 16px;background:#e2e8f0;color:#334155;border:none;border-radius:8px;font-weight:700;cursor:pointer;';
+        confirmBtn.style.cssText = 'padding:8px 16px;background:#22c55e;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;';
+        btnRow.appendChild(clearBtn);
+        btnRow.appendChild(cancelBtn);
+        btnRow.appendChild(confirmBtn);
+        card.appendChild(canvasEl);
+        card.appendChild(btnRow);
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+        const sigPad = new SignaturePad(canvasEl);
+        clearBtn.onclick  = () => sigPad.clear();
+        cancelBtn.onclick = () => document.body.removeChild(overlay);
+        confirmBtn.onclick = () => {
+            if (sigPad.isEmpty()) { showToast('Veuillez signer avant de confirmer.', 'warning'); return; }
+            inspectionData.clientInfo.clientSignatureUrl = sigPad.toDataURL('image/png');
+            saveAppState();
+            document.body.removeChild(overlay);
+            const indicator = document.getElementById('clientSignatureIndicator');
+            if (indicator) { indicator.textContent = 'Signé ✅'; indicator.style.color = '#22c55e'; }
+            showToast('✅ Signature enregistrée', 'success');
+        };
     }
 
     function openAnnotationEditor(photoObj, onSave) {
