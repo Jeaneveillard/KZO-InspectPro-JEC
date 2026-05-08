@@ -4,7 +4,7 @@
 - **Nom** : JEC / KZO InspectPro
 - **Propriétaire** : Jean Eveillard Cazeau — kzoinspectpro@gmail.com
 - **Type** : PWA offline-first d'inspection de bâtiment (Québec)
-- **Version cache PWA** : `kzo-inspect-v15`
+- **Version cache PWA** : `kzo-inspect-v36`
 - **Protocoles supportés** : `file://` (local) · `http://localhost:8000` (serveur PS)
 
 ## Contexte

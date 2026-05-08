@@ -19,6 +19,51 @@ document.addEventListener('DOMContentLoaded', async () => {
         return typeof url === 'string' && (url.startsWith('data:image/') || url.startsWith('blob:'));
     }
 
+    // Remplacement de prompt() — compatible iOS Safari PWA
+    function _promptModal(title, defaultValue) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9000;display:flex;align-items:center;justify-content:center;';
+            overlay.innerHTML = `
+                <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:24px;width:min(360px,90vw);box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+                    <div style="color:#e2e8f0;font-weight:700;margin-bottom:14px;font-size:1rem;">${sanitizeHTML(title)}</div>
+                    <input id="_promptInput" type="text" value="${sanitizeHTML(defaultValue || '')}" style="width:100%;box-sizing:border-box;padding:9px 12px;border-radius:8px;border:1px solid #475569;background:#0f172a;color:#e2e8f0;font-size:0.95rem;outline:none;">
+                    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+                        <button id="_promptCancel" type="button" style="padding:8px 18px;border-radius:8px;border:1px solid #475569;background:#1e293b;color:#94a3b8;cursor:pointer;">Annuler</button>
+                        <button id="_promptOk"     type="button" style="padding:8px 18px;border-radius:8px;border:none;background:#2563eb;color:white;font-weight:700;cursor:pointer;">OK</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+            const input = overlay.querySelector('#_promptInput');
+            input.focus(); input.select();
+            const done = (val) => { overlay.remove(); resolve(val); };
+            overlay.querySelector('#_promptOk').onclick     = () => done(input.value.trim() || null);
+            overlay.querySelector('#_promptCancel').onclick = () => done(null);
+            input.addEventListener('keydown', (e) => { if (e.key === 'Enter') done(input.value.trim() || null); if (e.key === 'Escape') done(null); });
+        });
+    }
+
+    // Remplacement de confirm() — compatible iOS Safari PWA
+    function _confirmModal(message) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9000;display:flex;align-items:center;justify-content:center;';
+            overlay.innerHTML = `
+                <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:24px;width:min(360px,90vw);box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+                    <div style="color:#e2e8f0;font-size:0.95rem;line-height:1.5;margin-bottom:20px;">${sanitizeHTML(message)}</div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <button id="_confirmCancel" type="button" style="padding:8px 18px;border-radius:8px;border:1px solid #475569;background:#1e293b;color:#94a3b8;cursor:pointer;">Annuler</button>
+                        <button id="_confirmOk"     type="button" style="padding:8px 18px;border-radius:8px;border:none;background:#dc2626;color:white;font-weight:700;cursor:pointer;">Supprimer</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(overlay);
+            const done = (val) => { overlay.remove(); resolve(val); };
+            overlay.querySelector('#_confirmOk').onclick     = () => done(true);
+            overlay.querySelector('#_confirmCancel').onclick = () => done(false);
+            overlay.addEventListener('keydown', (e) => { if (e.key === 'Escape') done(false); });
+        });
+    }
+
     // Validation de fichier (taille max 10 Mo, types image uniquement)
     function validateFile(file) {
         const MAX_SIZE = 10 * 1024 * 1024;
@@ -444,9 +489,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Ajouter une nouvelle unité
-    function addUnit() {
+    async function addUnit() {
         const newNum = inspectionData.units.length + 1;
-        const defaultName = prompt('Nom de la nouvelle unité :', `Unité ${newNum}`);
+        const defaultName = await _promptModal('Nom de la nouvelle unité :', `Unité ${newNum}`);
         if (!defaultName) return;
         const newUnit = {
             id: 'unit_' + Date.now(),
@@ -464,10 +509,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Renommer une unité
-    function renameUnit(unitId) {
+    async function renameUnit(unitId) {
         const unit = inspectionData.units.find(u => u.id === unitId);
         if (!unit) return;
-        const newName = prompt('Renommer l\'unité :', unit.name);
+        const newName = await _promptModal('Renommer l\'unité :', unit.name);
         if (newName && newName.trim()) {
             unit.name = newName.trim();
             saveAppState();
@@ -476,14 +521,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Supprimer une unité
-    function deleteUnit(unitId) {
+    async function deleteUnit(unitId) {
         if (inspectionData.units.length <= 1) {
             showToast('Impossible de supprimer la dernière unité.', 'warning');
             return;
         }
         const unit = inspectionData.units.find(u => u.id === unitId);
         if (!unit) return;
-        if (!confirm(`Supprimer "${unit.name}" ? Toutes les données de cette unité seront perdues.`)) return;
+        const confirmed = await _confirmModal(`Supprimer "${unit.name}" ? Toutes les données de cette unité seront perdues.`);
+        if (!confirmed) return;
         inspectionData.units = inspectionData.units.filter(u => u.id !== unitId);
         if (inspectionData.currentUnitId === unitId) {
             inspectionData.currentUnitId = inspectionData.units[0].id;
@@ -3477,7 +3523,7 @@ Réponds en français.`;
     // Enregistrement du Service Worker pour le mode hors ligne (iPad, tablette)
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js')
-            .then(() => console.log('KZO InspectPro : mode hors ligne actif'))
+            .then(() => {})
             .catch(err => console.warn('Service Worker non enregistré :', err));
     }
 
