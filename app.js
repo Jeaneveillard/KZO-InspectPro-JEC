@@ -1408,6 +1408,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     imgWrap.appendChild(img);
                     imgWrap.appendChild(delBtn);
                     imgWrap.appendChild(annotBtn);
+                    if (photoObj.originalUrl) {
+                        const annotBadge = document.createElement('span');
+                        annotBadge.textContent = '✏️';
+                        annotBadge.title = 'Photo annotée';
+                        annotBadge.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(26,86,219,0.9);color:white;border-radius:4px;padding:1px 5px;font-size:10px;pointer-events:none;';
+                        imgWrap.appendChild(annotBadge);
+                    }
 
                     // Zone légende
                     const captionInput = document.createElement('input');
@@ -3277,6 +3284,7 @@ Réponds en français.`;
         let drawing = false;
         let startX = 0, startY = 0;
         let previewShape = null;
+        let currentPenShape = null;
         const ANNOTATION_COLORS = ['#dc2626', '#f59e0b', '#3b82f6', '#ffffff'];
 
         function redrawCanvas() {
@@ -3299,6 +3307,12 @@ Réponds en français.`;
             } else if (s.type === 'text') {
                 ctx.font = 'bold 16px sans-serif';
                 ctx.fillText(s.text, s.startX, s.startY);
+            } else if (s.type === 'pen') {
+                if (!s.points || s.points.length < 2) return;
+                ctx.beginPath();
+                ctx.moveTo(s.points[0].x, s.points[0].y);
+                s.points.forEach(p => ctx.lineTo(p.x, p.y));
+                ctx.stroke();
             }
         }
 
@@ -3338,11 +3352,20 @@ Réponds en français.`;
             drawing = true;
             startX = pos.x;
             startY = pos.y;
+            if (activeTool === 'pen') {
+                currentPenShape = { type: 'pen', points: [{ x: pos.x, y: pos.y }], color: activeColor };
+                shapes.push(currentPenShape);
+            }
         }
 
         function moveDraw(e) {
             if (!drawing) return;
             const pos = getCanvasPos(e);
+            if (activeTool === 'pen') {
+                currentPenShape.points.push({ x: pos.x, y: pos.y });
+                redrawCanvas();
+                return;
+            }
             previewShape = { type: activeTool, startX, startY, endX: pos.x, endY: pos.y, color: activeColor, text: '' };
             redrawCanvas();
             drawShape(ctx, previewShape);
@@ -3351,6 +3374,10 @@ Réponds en français.`;
         function endDraw() {
             if (!drawing) return;
             drawing = false;
+            if (activeTool === 'pen') {
+                currentPenShape = null;
+                return;
+            }
             if (previewShape) { shapes.push(previewShape); previewShape = null; }
         }
 
@@ -3363,7 +3390,7 @@ Réponds en français.`;
         canvas.addEventListener('touchcancel', () => { drawing = false; previewShape = null; redrawCanvas(); });
 
         const toolBtns = {};
-        [{ id: 'arrow', label: '↗ Flèche' }, { id: 'circle', label: '⬤ Cercle' }, { id: 'text', label: 'T Texte' }].forEach(t => {
+        [{ id: 'arrow', label: '↗ Flèche' }, { id: 'circle', label: '⬤ Cercle' }, { id: 'pen', label: '✏️ Crayon' }, { id: 'text', label: 'T Texte' }].forEach(t => {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.textContent = t.label;
