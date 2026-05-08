@@ -3200,6 +3200,36 @@ Réponds en français.`;
         inspectionData.currentUnitId = 'unit_1';
     }
     
+    function initOfflineBanner() {
+        const banner = document.createElement('div');
+        banner.id = 'offlineBanner';
+        banner.style.cssText = 'display:none;background:#dc2626;color:white;text-align:center;padding:8px 16px;font-size:0.85rem;font-weight:700;position:sticky;top:0;z-index:1000;';
+        banner.textContent = '📵 Mode hors ligne — Données sauvegardées localement. Sync Drive dès reconnexion.';
+        const topBar = document.querySelector('.top-bar');
+        if (topBar) topBar.insertAdjacentElement('afterend', banner);
+
+        function showBanner() {
+            banner.style.display = 'block';
+            if (typeof GoogleDrive !== 'undefined') {
+                GoogleDrive.updateSyncIndicator(window.currentProjectId);
+            }
+        }
+
+        function hideBanner() {
+            banner.style.display = 'none';
+            showToast('✅ Connexion rétablie — synchronisation en cours...', 'success');
+            if (typeof GoogleDrive !== 'undefined') {
+                GoogleDrive.updateSyncIndicator(window.currentProjectId);
+            }
+        }
+
+        if (!navigator.onLine) showBanner();
+        window.addEventListener('offline', showBanner);
+        window.addEventListener('online', hideBanner);
+    }
+
+    initOfflineBanner();
+
     renderNavigation();
     renderSection(0);
     renderUnitTabs(); // Afficher la barre d'unités si applicable
