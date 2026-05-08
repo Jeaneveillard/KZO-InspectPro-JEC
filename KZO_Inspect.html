@@ -73,23 +73,23 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-bar">
-                <button class="menu-toggle" id="menuToggle">☰</button>
+                <button type="button" class="menu-toggle" id="menuToggle">☰</button>
                 <div class="top-bar-info">
                     <span id="currentSectionTitle">1. Documents & Pré-inspection</span>
                 </div>
-                <button id="saveQuitBtn" style="padding:7px 14px; background:#475569; color:white; border:none; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
+                <button type="button" id="saveQuitBtn" style="padding:7px 14px; background:#475569; color:white; border:none; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
                     💾 Sauvegarder et quitter
                 </button>
-                <button id="exportKzoBtn" style="padding:7px 14px; background:#334155; color:#cbd5e1; border:none; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer;" title="Enregistrer .kzo">
+                <button type="button" id="exportKzoBtn" style="padding:7px 14px; background:#334155; color:#cbd5e1; border:none; border-radius:8px; font-size:0.85rem; font-weight:700; cursor:pointer;" title="Enregistrer .kzo">
                     ⬇️ .kzo
                 </button><button type="button" id="exportKzoAsBtn" title="Enregistrer sous… (choisir un autre emplacement)" style="display:none; padding:7px 10px; background:#1e293b; color:#94a3b8; border:none; border-left:1px solid #475569; border-radius:0 8px 8px 0; font-size:0.85rem; cursor:pointer; margin-right:4px;">📁</button>
-                <button id="logoutBtn" onclick="KZOAuth.logout()" style="padding:7px 14px;background:#dc2626;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;margin-right:4px;">
+                <button type="button" id="logoutBtn" onclick="KZOAuth.logout()" style="padding:7px 14px;background:#dc2626;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;margin-right:4px;">
                     🔒 Déconnexion
                 </button>
-                <button class="assistant-btn" id="assistantBtn">
+                <button type="button" class="assistant-btn" id="assistantBtn">
                     ✨ Assistant IA
                 </button>
-                <button class="assistant-btn" id="iaRapportBtn" style="margin-left:8px; background:linear-gradient(135deg,#059669,#0d9488);">
+                <button type="button" class="assistant-btn" id="iaRapportBtn" style="margin-left:8px; background:linear-gradient(135deg,#059669,#0d9488);">
                     📄 IA Rapport
                 </button>
                 <span id="driveSyncIndicator" title="Non synchronisé avec Google Drive" style="cursor:pointer;font-size:1.1rem;margin-left:8px;color:#64748b;" onclick="window.GoogleDrive && GoogleDrive.retrySync()">☁️</span>
@@ -103,8 +103,8 @@
 
                 <!-- Navigation Buttons (Prev/Next) -->
                 <div class="form-navigation">
-                    <button class="btn secondary" id="prevBtn" disabled>Précédent</button>
-                    <button class="btn primary" id="nextBtn">Suivant</button>
+                    <button type="button" class="btn secondary" id="prevBtn" disabled>Précédent</button>
+                    <button type="button" class="btn primary" id="nextBtn">Suivant</button>
                 </div>
             </div>
         </main>
@@ -114,8 +114,8 @@
             <div class="assistant-header">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <h3>🤖 ASSISTANT IA</h3>
-                    <button id="aiSettingsBtn" style="background: none; border: none; cursor: pointer; color: white;" title="Configuration API">⚙️</button>
-                    <button id="expandAssistantBtn" style="background: none; border: none; cursor: pointer; color: white;" title="Agrandir / Réduire">
+                    <button type="button" id="aiSettingsBtn" style="background: none; border: none; cursor: pointer; color: white;" title="Configuration API">⚙️</button>
+                    <button type="button" id="expandAssistantBtn" style="background: none; border: none; cursor: pointer; color: white;" title="Agrandir / Réduire">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="15 3 21 3 21 9"></polyline>
                             <polyline points="9 21 3 21 3 15"></polyline>
@@ -124,7 +124,7 @@
                         </svg>
                     </button>
                 </div>
-                <button class="close-assistant" id="closeAssistant">✕</button>
+                <button type="button" class="close-assistant" id="closeAssistant">✕</button>
             </div>
             
             <div id="aiConfigPanel" style="display: none; padding: 15px; background: #0f172a; border-bottom: 2px solid #3b82f6;">
@@ -140,8 +140,8 @@
                 <input type="password" id="geminiApiKey" placeholder="Clé API (ex: AIzaSy... ou sk-...)" style="width: 100%; padding: 8px; margin-bottom: 6px; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: white;">
                 <p style="font-size: 0.72rem; color: #f59e0b; margin-bottom: 10px;">⚠️ Clé stockée localement sur cet appareil uniquement.</p>
                 <div style="display: flex; gap: 8px;">
-                    <button id="saveApiBtn" class="btn primary" style="flex: 1; padding: 8px; font-size: 0.9rem;">Enregistrer</button>
-                    <button id="clearApiBtn" style="padding: 8px 12px; background: #7f1d1d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Effacer</button>
+                    <button type="button" id="saveApiBtn" class="btn primary" style="flex: 1; padding: 8px; font-size: 0.9rem;">Enregistrer</button>
+                    <button type="button" id="clearApiBtn" style="padding: 8px 12px; background: #7f1d1d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">Effacer</button>
                 </div>
                 <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-size:0.82rem;color:#94a3b8;">
                     <input type="checkbox" id="autoAiPhotosToggle" style="width:15px;height:15px;cursor:pointer;">
@@ -156,11 +156,11 @@
             </div>
             <div class="chat-input-area">
                 <input type="text" id="chatInput" placeholder="Posez une question sur les normes...">
-                <button class="btn primary" id="sendChatBtn">Envoyer</button>
+                <button type="button" class="btn primary" id="sendChatBtn">Envoyer</button>
             </div>
             
             <div style="margin-top: 20px; text-align: center;">
-                <button id="companyProfileBtn" class="btn secondary" style="width: 100%; font-size: 0.85rem; background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3);">⚙️ Votre Entreprise</button>
+                <button type="button" id="companyProfileBtn" class="btn secondary" style="width: 100%; font-size: 0.85rem; background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3);">⚙️ Votre Entreprise</button>
             </div>
         </aside>
 
@@ -169,17 +169,17 @@
             <div class="modal">
                 <div class="modal-header">
                     <h3>📷 Analyse Vision - IA</h3>
-                    <button class="close-modal" id="closeModal">✕</button>
+                    <button type="button" class="close-modal" id="closeModal">✕</button>
                 </div>
                 <div class="modal-body">
                     <!-- Barre d'outils de dessin -->
                     <div id="drawToolbar" style="display: none; justify-content: center; gap: 8px; margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; flex-wrap: wrap;">
-                        <button class="draw-btn active" data-tool="circle">⭕ Cercle</button>
-                        <button class="draw-btn" data-tool="arrow">↗️ Flèche</button>
-                        <button class="draw-btn" data-tool="freehand">✏️ Dessin</button>
+                        <button type="button" class="draw-btn active" data-tool="circle">⭕ Cercle</button>
+                        <button type="button" class="draw-btn" data-tool="arrow">↗️ Flèche</button>
+                        <button type="button" class="draw-btn" data-tool="freehand">✏️ Dessin</button>
                         <span style="border-left: 1px solid #cbd5e1; width: 1px; height: 24px; align-self: center;"></span>
                         <input type="color" id="drawColor" value="#ef4444" style="width: 36px; height: 36px; border: none; border-radius: 4px; cursor: pointer; padding: 0;">
-                        <button id="clearDrawBtn" style="padding: 6px 12px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer;">🗑️ Effacer</button>
+                        <button type="button" id="clearDrawBtn" style="padding: 6px 12px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer;">🗑️ Effacer</button>
                     </div>
 
                     <div class="photo-placeholder" id="photoArea" style="position: relative; overflow: hidden;">
@@ -196,8 +196,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn primary" id="takePhotoBtn">📷 Sélectionner / Prendre une photo</button>
-                    <button class="btn secondary" id="applyAiBtn" style="display: none;">Appliquer au rapport</button>
+                    <button type="button" class="btn primary" id="takePhotoBtn">📷 Sélectionner / Prendre une photo</button>
+                    <button type="button" class="btn secondary" id="applyAiBtn" style="display: none;">Appliquer au rapport</button>
                 </div>
             </div>
         </div>
@@ -220,8 +220,8 @@
                 </div>
             </div>
             <div style="padding:16px 24px; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:12px;">
-                <button id="photoAnalysisIgnore" style="padding:8px 20px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; cursor:pointer; font-size:0.9rem;">Ignorer</button>
-                <button id="photoAnalysisApply" style="padding:8px 20px; background:#1d4ed8; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.9rem;">✓ Appliquer la suggestion</button>
+                <button type="button" id="photoAnalysisIgnore" style="padding:8px 20px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; cursor:pointer; font-size:0.9rem;">Ignorer</button>
+                <button type="button" id="photoAnalysisApply" style="padding:8px 20px; background:#1d4ed8; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700; font-size:0.9rem;">✓ Appliquer la suggestion</button>
             </div>
         </div>
     </div>
@@ -231,12 +231,12 @@
         <div style="background:white; width:95%; max-width:700px; max-height:85vh; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
             <div style="padding:20px 28px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
                 <h2 id="aiPreviewTitle" style="color:#0f172a; margin:0; font-size:1.1rem;">✨ Synthèse IA</h2>
-                <button id="closeAiPreviewBtn" style="padding:6px 14px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; cursor:pointer; font-size:0.9rem;">✕ Fermer</button>
+                <button type="button" id="closeAiPreviewBtn" style="padding:6px 14px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; cursor:pointer; font-size:0.9rem;">✕ Fermer</button>
             </div>
             <div id="aiPreviewContent" style="flex:1; overflow-y:auto; padding:28px; font-family:'Inter',sans-serif; line-height:1.8; color:#1e293b; white-space:pre-wrap; font-size:0.95rem;"></div>
             <div style="padding:16px 28px; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:12px;">
-                <button id="cancelAiPreviewBtn" style="padding:8px 20px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; cursor:pointer;">Annuler</button>
-                <button id="insertAiPreviewBtn" style="padding:8px 20px; background:#1d4ed8; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700;">✓ Insérer</button>
+                <button type="button" id="cancelAiPreviewBtn" style="padding:8px 20px; background:white; border:1px solid #cbd5e1; color:#475569; border-radius:6px; cursor:pointer;">Annuler</button>
+                <button type="button" id="insertAiPreviewBtn" style="padding:8px 20px; background:#1d4ed8; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:700;">✓ Insérer</button>
             </div>
         </div>
     </div>
@@ -247,9 +247,9 @@
             <div class="modal-header-print" style="padding: 20px 30px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
                 <h2 style="color: #0f172a; margin: 0; font-size: 1.25rem;">📄 Rapport d'Inspection Professionnel</h2>
                 <div>
-                   <button class="btn" id="closeReportBtn" style="margin-right: 12px; background: white; border: 1px solid #cbd5e1; color: #475569;">Fermer</button>
-                   <button class="btn" id="sendReportBtn" style="background: #0d9488; color:white; margin-right: 8px;">📤 Envoyer au client</button>
-                   <button class="btn primary" id="printReportBtn" style="background: #3b82f6;">📥 Imprimer PDF</button>
+                   <button type="button" class="btn" id="closeReportBtn" style="margin-right: 12px; background: white; border: 1px solid #cbd5e1; color: #475569;">Fermer</button>
+                   <button type="button" class="btn" id="sendReportBtn" style="background: #0d9488; color:white; margin-right: 8px;">📤 Envoyer au client</button>
+                   <button type="button" class="btn primary" id="printReportBtn" style="background: #3b82f6;">📥 Imprimer PDF</button>
                 </div>
             </div>
             <div id="reportContent" style="flex: 1; overflow-y: auto; padding: 40px; background: white; font-family: 'Inter', sans-serif;">
@@ -289,7 +289,7 @@
         <div style="background:white; padding:30px; border-radius:12px; width:90%; max-width:500px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
                 <h3 style="margin:0; color:#1e293b;">🏢 Profil de votre Entreprise</h3>
-                <button id="closeCompanyProfile" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">✕</button>
+                <button type="button" id="closeCompanyProfile" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">✕</button>
             </div>
             <p style="font-size:0.9rem; color:#64748b; margin-bottom:20px;">Ces informations apparaîtront automatiquement sur tous vos futurs rapports et factures.</p>
             
@@ -321,7 +321,7 @@
                     <input type="text" id="cp_company_tvq" placeholder="Optionnel" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:6px;">
                 </label>
             </div>
-            <button id="saveCompanyProfile" class="btn primary" style="width:100%; padding:12px;">💾 Enregistrer et appliquer</button>
+            <button type="button" id="saveCompanyProfile" class="btn primary" style="width:100%; padding:12px;">💾 Enregistrer et appliquer</button>
         </div>
     </div>
     <script>

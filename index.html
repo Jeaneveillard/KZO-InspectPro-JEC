@@ -146,9 +146,9 @@
 <div class="topbar">
     <div class="logo">🏠 KZO InspectPro</div>
     <div class="topbar-actions">
-        <button class="btn btn-import" onclick="triggerImport()">📂 Ouvrir .kzo</button>
-        <button class="btn btn-primary" onclick="newInspection()">+ Nouvelle inspection</button>
-        <button onclick="KZOAuth.logout()" style="padding:7px 14px;background:#dc2626;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;margin-left:8px;">🔒 Déconnexion</button>
+        <button type="button" class="btn btn-import" onclick="triggerImport()">📂 Ouvrir .kzo</button>
+        <button type="button" class="btn btn-primary" onclick="newInspection()">+ Nouvelle inspection</button>
+        <button type="button" onclick="KZOAuth.logout()" style="padding:7px 14px;background:#dc2626;color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;margin-left:8px;">🔒 Déconnexion</button>
     </div>
 </div>
 
@@ -156,9 +156,9 @@
     <input class="search-bar" type="text" id="searchInput" placeholder="🔍 Rechercher par client, adresse ou code..." oninput="filterProjects()">
 
     <div class="filters">
-        <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">Tous</button>
-        <button class="filter-btn" data-filter="en_cours" onclick="setFilter('en_cours', this)">En cours</button>
-        <button class="filter-btn" data-filter="termine" onclick="setFilter('termine', this)">Terminés</button>
+        <button type="button" class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">Tous</button>
+        <button type="button" class="filter-btn" data-filter="en_cours" onclick="setFilter('en_cours', this)">En cours</button>
+        <button type="button" class="filter-btn" data-filter="termine" onclick="setFilter('termine', this)">Terminés</button>
     </div>
 
     <div class="grid" id="projectGrid"></div>
