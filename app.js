@@ -1172,7 +1172,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                             if (coverAddr) coverAddr.textContent = input.value || '';
                         });
                     }
-                    
+
+                    if (field.id === 'client_email') {
+                        input.type = 'email';
+                        input.value = inspectionData.clientInfo.email || '';
+                        input.addEventListener('input', () => {
+                            inspectionData.clientInfo.email = input.value.trim();
+                            saveAppState();
+                        });
+                    }
+
                     // Converter logic for Area
                     if (field.id === 'prop_area') {
                         const hint = document.createElement('span');

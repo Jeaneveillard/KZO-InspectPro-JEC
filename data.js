@@ -18,6 +18,7 @@ const inspectionData = {
                 { id: "inspector_name", type: "text", label: "Nom de l'inspecteur", placeholder: "Votre nom complet..." },
                 { id: "client_names", type: "clients", label: "Nom du/des Client(es)" },
                 { id: "prop_address", type: "text", label: "Adresse du bâtiment", placeholder: "Adresse complète..." },
+                { id: 'client_email', label: 'Email du client', type: 'text', placeholder: 'client@email.com' },
                 { id: "prix_inspection", type: "number", label: "Prix de l'inspection ($)", placeholder: "Montant avant taxes (ex: 550)" },
                 { id: "inspector_signature", type: "file", label: "Votre Signature (Photo/Scan)" },
                 { id: "inspector_seal", type: "file", label: "Sceau Officiel (PNG transparent)" },
