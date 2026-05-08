@@ -205,10 +205,14 @@ async function handleSendCode() {
     }
 }
 
-function handleVerifyCode() {
+async function handleVerifyCode() {
     var code = document.getElementById('resetCode').value.trim();
     var err  = document.getElementById('codeError');
-    if (!KZOAuth.verifyResetCode(code)) {
+    var btn  = document.getElementById('verifyCodeBtn');
+    if (btn) { btn.disabled = true; }
+    const ok = await KZOAuth.verifyResetCode(code);
+    if (btn) { btn.disabled = false; }
+    if (!ok) {
         err.textContent = 'Code invalide ou expiré.';
         return;
     }

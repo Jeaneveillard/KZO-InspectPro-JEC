@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         return div.innerHTML;
     }
 
+    // Valide qu'une URL photo est un data URI image ou un blob URL (jamais javascript: ou data:text/)
+    function _isSafePhotoUrl(url) {
+        return typeof url === 'string' && (url.startsWith('data:image/') || url.startsWith('blob:'));
+    }
+
     // Validation de fichier (taille max 10 Mo, types image uniquement)
     function validateFile(file) {
         const MAX_SIZE = 10 * 1024 * 1024;
@@ -737,6 +742,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Utilitaire : mettre à jour partout quand les noms changent
     function propagateClientNames() {
+        if (!inspectionData.clientInfo) inspectionData.clientInfo = {};
         const displayName = getClientDisplayName();
         inspectionData.clientInfo.name = displayName;
         localStorage.setItem('inspectpro_client_names', JSON.stringify(inspectionData.clientInfo.names));
@@ -1407,7 +1413,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else if (field.type === 'info') {
                     const infoDiv = document.createElement('div');
                     infoDiv.className = 'info-block';
-                    infoDiv.innerHTML = field.content;
+                    // Seuls les champs marqués safeHTML:true (HTML statique de data.js) sont injectés directement
+                    if (field.safeHTML === true) {
+                        infoDiv.innerHTML = field.content;
+                    } else {
+                        infoDiv.textContent = field.content || '';
+                    }
                     fieldGroup.appendChild(infoDiv);
                 } else if (field.type === 'action') {
                     if (field.id === 'client_sign') {
@@ -1517,7 +1528,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     imgWrap.style.cssText = 'position:relative;aspect-ratio:1;overflow:hidden;';
 
                     const img = document.createElement('img');
-                    img.src = photoObj.url;
+                    img.src = _isSafePhotoUrl(photoObj.url) ? photoObj.url : '';
                     img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
 
                     // Bouton supprimer (haut droite)
@@ -2534,6 +2545,7 @@ Réponds en français.`;
                 exportKzoBtn.title = 'Enregistrer — ' + savedName;
                 if (exportKzoAsBtn) exportKzoAsBtn.classList.remove('tb-hidden');
                 showToast('💾 Enregistré : ' + savedName, 'success');
+                _markClean();
             } else {
                 // Fallback navigateur sans File System Access API
                 const url = URL.createObjectURL(blob);
@@ -2541,6 +2553,7 @@ Réponds en français.`;
                 a.href = url; a.download = filename; a.click();
                 URL.revokeObjectURL(url);
                 showToast('✅ Fichier .kzo exporté.', 'success');
+                _markClean();
             }
         } catch (e) {
             showToast('Erreur export : ' + e.message, 'error');
@@ -2689,7 +2702,7 @@ Réponds en français.`;
     }
 
     sendChatBtn.addEventListener('click', sendChatMessage);
-    chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendChatMessage(); });
+    chatInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') sendChatMessage(); });
 
     // --- Helpers Rapport PDF enrichi ---
 
@@ -3107,9 +3120,9 @@ Réponds en français.`;
                     infoHtml += `<div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px;">`;
                     subPhotos.forEach(photo => {
                         infoHtml += `<figure style="display:inline-block;margin:4px;vertical-align:top;">`;
-                        infoHtml += `<img src="${photo.url}" style="width:180px;height:135px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;display:block;">`;
+                        infoHtml += `<img src="${_isSafePhotoUrl(photo.url) ? photo.url : ''}" style="width:180px;height:135px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;display:block;">`;
                         if (photo.caption) {
-                            infoHtml += `<figcaption style="font-size:0.75rem;color:#64748b;text-align:center;margin-top:4px;max-width:180px;">${photo.caption}</figcaption>`;
+                            infoHtml += `<figcaption style="font-size:0.75rem;color:#64748b;text-align:center;margin-top:4px;max-width:180px;">${sanitizeHTML(photo.caption)}</figcaption>`;
                         }
                         infoHtml += `</figure>`;
                     });
@@ -3295,6 +3308,7 @@ Réponds en français.`;
                 rapportNarratifIA: inspectionData.rapportNarratifIA || ''
             };
             KZOStorage.saveProject(window.currentProjectId, snapshot, _computeProgress(), 'termine')
+                .then(() => _markClean())
                 .catch(e => console.warn('[generateFinalReport] IndexedDB:', e));
         }
     }
@@ -3307,10 +3321,10 @@ Réponds en français.`;
         );
         const states = (unit && unit.fieldStates) || {};
         let count = 0;
+        const NON_INSPECTION = ['s_cover', 's_admin', 's_rapport', 's_preview'];
         inspectionData.sections.forEach(section => {
             // Exclure : couverture photo, admin, prévisualisation, rapport final
-            if (section.isCoverPage || section.isPreviewPage ||
-                section.id === 's_admin' || section.id === 's_rapport') return;
+            if (section.isCoverPage || section.isPreviewPage || NON_INSPECTION.includes(section.id)) return;
             const hasChecked = (section.subSections || []).some(sub =>
                 (sub.fields || []).some(f => f.type === 'checkbox' && states[f.id])
             );
@@ -3405,12 +3419,6 @@ Réponds en français.`;
         }
     });
 
-    // Bouton de sauvegarde manuelle
-    const forceSync = () => {
-        saveAppState();
-        showToast('Données sauvegardées localement.', 'success');
-    };
-
 
 
     // Initialize the app
@@ -3465,13 +3473,6 @@ Réponds en français.`;
         GoogleDrive.init();
         GoogleDrive.updateSyncIndicator(window.currentProjectId);
     }
-
-    // Patch for the manual sync button in the UI
-    document.addEventListener('click', (e) => {
-        if (e.target.textContent && e.target.textContent.includes('Forcer la sauvegarde locale')) {
-            forceSync();
-        }
-    });
 
     // Enregistrement du Service Worker pour le mode hors ligne (iPad, tablette)
     if ('serviceWorker' in navigator) {
@@ -3535,7 +3536,7 @@ Réponds en français.`;
             (section.subSections || []).forEach(sub => {
                 const photos = (unitSectionPhotos[sub.id] || []).filter(p => p.url);
                 if (photos.length) {
-                    photosHtml += photos.map(p => `<figure style="display:inline-block;margin:4px;vertical-align:top;"><img src="${p.url}" style="width:150px;height:112px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;display:block;">${p.caption ? `<figcaption style="font-size:0.7rem;color:#64748b;text-align:center;margin-top:3px;max-width:150px;">${sanitizeHTML(p.caption)}</figcaption>` : ''}</figure>`).join('');
+                    photosHtml += photos.map(p => `<figure style="display:inline-block;margin:4px;vertical-align:top;"><img src="${_isSafePhotoUrl(p.url) ? p.url : ''}" style="width:150px;height:112px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;display:block;">${p.caption ? `<figcaption style="font-size:0.7rem;color:#64748b;text-align:center;margin-top:3px;max-width:150px;">${sanitizeHTML(p.caption)}</figcaption>` : ''}</figure>`).join('');
                 }
             });
 
@@ -3676,18 +3677,23 @@ Réponds en français.`;
         card.appendChild(btnRow);
         overlay.appendChild(card);
         document.body.appendChild(overlay);
+        if (typeof SignaturePad === 'undefined') {
+            showToast('Erreur : bibliothèque de signature non chargée.', 'error');
+            overlay.remove();
+            return;
+        }
         const ratio = Math.max(window.devicePixelRatio || 1, 1);
         canvasEl.width  = canvasEl.offsetWidth  * ratio;
         canvasEl.height = canvasEl.offsetHeight * ratio;
         canvasEl.getContext('2d').scale(ratio, ratio);
         const sigPad = new SignaturePad(canvasEl);
         clearBtn.onclick  = () => { sigPad.clear(); };
-        cancelBtn.onclick = () => document.body.removeChild(overlay);
+        cancelBtn.onclick = () => overlay.remove();
         confirmBtn.onclick = () => {
             if (sigPad.isEmpty()) { showToast('Veuillez signer avant de confirmer.', 'warning'); return; }
             inspectionData.clientInfo.clientSignatureUrl = sigPad.toDataURL('image/png');
             saveAppState();
-            document.body.removeChild(overlay);
+            overlay.remove();
             const indicator = document.getElementById('clientSignatureIndicator');
             if (indicator) { indicator.textContent = 'Signé ✅'; indicator.style.color = '#22c55e'; }
             const signBtnEl = indicator ? indicator.previousElementSibling : null;
@@ -3740,7 +3746,7 @@ Réponds en français.`;
             canvas.height = Math.round(img.naturalHeight * ratio);
             redrawCanvas();
         };
-        img.src = photoObj.url;
+        img.src = _isSafePhotoUrl(photoObj.url) ? photoObj.url : '';
 
         const shapes = [];
         let activeTool = 'arrow';
@@ -3894,11 +3900,11 @@ Réponds en français.`;
         saveBtn.onclick = () => {
             if (!photoObj.originalUrl) photoObj.originalUrl = photoObj.url;
             photoObj.url = canvas.toDataURL('image/jpeg', 0.85);
-            document.body.removeChild(overlay);
+            overlay.remove();
             onSave();
         };
 
-        cancelBtn.onclick = () => document.body.removeChild(overlay);
+        cancelBtn.onclick = () => overlay.remove();
     }
 });
 

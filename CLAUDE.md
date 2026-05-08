@@ -104,9 +104,12 @@ Option 4 (file://)     : Ouvrir KZO_Inspect.html directement — Service Worker 
 
 ### Sécurité
 - Toujours utiliser `sanitizeHTML()` avant tout `innerHTML` avec données utilisateur
+- Toujours valider `_isSafePhotoUrl(url)` avant d'assigner une URL photo à `img.src` ou de l'interpoler dans `innerHTML`
 - Ne jamais exposer `config.js` dans git (protégé dans `.gitignore`)
 - La clé API doit rester dans `localStorage` uniquement — jamais dans le HTML ou JS versionné
 - Ne jamais intercepter ni mettre en cache les requêtes vers les API IA dans `sw.js` — les URLs Gemini contiennent la clé en query string
+- Token OAuth Google Drive stocké en `sessionStorage` (disparaît à la fermeture du navigateur)
+- **Limite connue — auth client-side** : `auth.js` utilise un flag `sessionStorage` pour la session. Un utilisateur avec accès aux DevTools peut contourner la vérification via `sessionStorage.setItem('kzo_auth','1')`. Le verrou `_loginAttempts` est aussi réinitialisé à chaque rechargement de page. Cette protection est de l'**obfuscation**, pas de la sécurité réelle — elle convient pour une app monoutilisateur sur appareil privé, mais ne constitue pas une barrière d'accès robuste si l'appareil est compromis.
 
 ### Versionnement PWA
 - Bumper `?v=N` dans `KZO_Inspect.html` après chaque modification de script JS ou CSS

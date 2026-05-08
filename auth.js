@@ -59,24 +59,29 @@
         if (!isAuthenticated()) window.location.replace('login.html');
     }
 
-    function generateResetCode() {
-        const code   = String(Math.floor(100000 + Math.random() * 900000));
+    async function generateResetCode() {
+        const arr = new Uint32Array(1);
+        crypto.getRandomValues(arr);
+        const code   = String(100000 + (arr[0] % 900000));
         const expiry = Date.now() + 15 * 60 * 1000;
-        localStorage.setItem(RESET_CODE, code);
+        // Stocker le hash, pas le code en clair — empêche la lecture directe depuis DevTools
+        const hash = await _sha256(code);
+        localStorage.setItem(RESET_CODE, hash);
         localStorage.setItem(RESET_EXPIRY, String(expiry));
         return code;
     }
 
-    function verifyResetCode(code) {
-        const stored = localStorage.getItem(RESET_CODE);
+    async function verifyResetCode(code) {
+        const storedHash = localStorage.getItem(RESET_CODE);
         const expiry = parseInt(localStorage.getItem(RESET_EXPIRY) || '0', 10);
-        if (!stored || code !== stored) return false;
+        if (!storedHash) return false;
         if (Date.now() > expiry) {
             localStorage.removeItem(RESET_CODE);
             localStorage.removeItem(RESET_EXPIRY);
             return false;
         }
-        return true;
+        const codeHash = await _sha256(code);
+        return codeHash === storedHash;
     }
 
     async function setNewPassword(password) {
