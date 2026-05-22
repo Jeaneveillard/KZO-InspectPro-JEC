@@ -1339,15 +1339,54 @@ document.addEventListener('DOMContentLoaded', async () => {
                         });
                     }
                     
-                    // Persistance de l'adresse
+                    // Persistance de l'adresse + carte Google Maps
                     if (field.id === 'prop_address') {
+                        // Conteneur de la carte
+                        const mapWrap = document.createElement('div');
+                        mapWrap.style.cssText = 'margin-top:10px; display:none;';
+
+                        const mapLink = document.createElement('a');
+                        mapLink.target = '_blank';
+                        mapLink.rel   = 'noopener noreferrer';
+                        mapLink.style.cssText = 'font-size:0.8rem; color:#3b82f6; text-decoration:none; display:inline-block; margin-bottom:6px;';
+                        mapLink.textContent = '📍 Ouvrir dans Google Maps';
+
+                        const mapFrame = document.createElement('iframe');
+                        mapFrame.width  = '100%';
+                        mapFrame.height = '220';
+                        mapFrame.style.cssText = 'border:none; border-radius:8px; display:block;';
+                        mapFrame.loading = 'lazy';
+                        mapFrame.referrerPolicy = 'no-referrer-when-downgrade';
+                        mapFrame.title = 'Localisation de la propriété';
+
+                        mapWrap.appendChild(mapLink);
+                        mapWrap.appendChild(mapFrame);
+                        label.appendChild(mapWrap);
+
+                        let _mapTimer = null;
+                        const _updateMap = (addr) => {
+                            clearTimeout(_mapTimer);
+                            _mapTimer = setTimeout(() => {
+                                const a = addr.trim();
+                                if (!a) { mapWrap.style.display = 'none'; return; }
+                                const enc = encodeURIComponent(a);
+                                mapFrame.src = 'https://maps.google.com/maps?q=' + enc + '&output=embed&hl=fr';
+                                mapLink.href = 'https://maps.google.com/?q=' + enc;
+                                mapWrap.style.display = 'block';
+                            }, 900);
+                        };
+
                         input.addEventListener('input', () => {
                             inspectionData.clientInfo.address = input.value;
                             localStorage.setItem('inspectpro_client_address', input.value);
-                            propagateClientNames(); // Met à jour sidebar + cover
+                            propagateClientNames();
                             const coverAddr = document.getElementById('coverClientAddress');
                             if (coverAddr) coverAddr.textContent = input.value || '';
+                            _updateMap(input.value);
                         });
+
+                        // Afficher la carte si l'adresse est déjà chargée
+                        if (input.value) _updateMap(input.value);
                     }
 
                     if (field.id === 'client_email') {
