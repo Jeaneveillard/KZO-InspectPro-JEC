@@ -259,25 +259,57 @@ const BOILERPLATE = {
         const encodedAddress = encodeURIComponent(address);
         const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodedAddress;
 
-        // Carte stylisée cliquable (fiable sur tous les navigateurs, aucune dépendance externe)
         const mapsUrlCoords = (lat && lon)
             ? `https://www.google.com/maps?q=${parseFloat(lat)},${parseFloat(lon)}`
             : mapsUrl;
-        const mapBlock = `
-            <a href="${mapsUrlCoords}" target="_blank" rel="noopener noreferrer"
+
+        let mapBlock = '';
+        if (lat && lon) {
+            const latF  = parseFloat(lat);
+            const lonF  = parseFloat(lon);
+            const delta = 0.004;
+            const bbox  = `${lonF - delta},${latF - delta},${lonF + delta},${latF + delta}`;
+            const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latF},${lonF}`;
+            mapBlock = `
+            <div style="border:2px solid #3b82f6;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(59,130,246,0.12);margin-bottom:10px;">
+                <!-- En-tête avec icône -->
+                <div style="background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 50%,#bfdbfe 100%);padding:18px 20px;display:flex;align-items:center;gap:14px;">
+                    <div style="font-size:2.6rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));flex-shrink:0;">📍</div>
+                    <div>
+                        <div style="font-size:1.05rem;font-weight:700;color:#1e40af;line-height:1.3;">${address}</div>
+                        <div style="font-size:0.8rem;color:#3b82f6;font-weight:600;margin-top:2px;">Québec, Canada</div>
+                    </div>
+                    <div style="margin-left:auto;font-size:0.65rem;color:#93c5fd;font-weight:700;letter-spacing:0.5px;white-space:nowrap;">CARTE INTERACTIVE</div>
+                </div>
+                <!-- Carte OSM -->
+                <iframe src="${osmUrl}" width="100%" height="300" frameborder="0" scrolling="no"
+                    style="display:block;border:none;"
+                    title="Localisation — ${address}"></iframe>
+                <!-- Lien Google Maps -->
+                <a href="${mapsUrlCoords}" target="_blank" rel="noopener noreferrer"
+                   style="display:flex;align-items:center;gap:10px;padding:12px 18px;background:#1e40af;text-decoration:none;">
+                    <span style="font-size:1.1rem;">🗺️</span>
+                    <span style="font-size:0.9rem;color:white;font-weight:600;">Voir la localisation sur Google Maps</span>
+                    <span style="margin-left:auto;color:#93c5fd;">↗</span>
+                </a>
+            </div>`;
+        } else {
+            // Fallback sans coordonnées
+            mapBlock = `
+            <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
                style="display:block;border:2px solid #3b82f6;border-radius:12px;overflow:hidden;text-decoration:none;box-shadow:0 4px 12px rgba(59,130,246,0.12);margin-bottom:10px;">
-                <div style="background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 50%,#bfdbfe 100%);padding:44px 20px;text-align:center;position:relative;">
+                <div style="background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 50%,#bfdbfe 100%);padding:44px 20px;text-align:center;">
                     <div style="font-size:3.8rem;margin-bottom:14px;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.18));">📍</div>
-                    <div style="font-size:1.15rem;font-weight:700;color:#1e40af;margin-bottom:8px;line-height:1.4;">${address}</div>
+                    <div style="font-size:1.15rem;font-weight:700;color:#1e40af;margin-bottom:8px;">${address}</div>
                     <div style="font-size:0.85rem;color:#3b82f6;font-weight:600;">Québec, Canada</div>
-                    <div style="position:absolute;top:12px;right:16px;font-size:0.7rem;color:#93c5fd;font-weight:700;letter-spacing:0.5px;">CARTE INTERACTIVE</div>
                 </div>
                 <div style="padding:12px 18px;background:#1e40af;display:flex;align-items:center;gap:10px;">
                     <span style="font-size:1.1rem;">🗺️</span>
                     <span style="font-size:0.9rem;color:white;font-weight:600;">Voir la localisation sur Google Maps</span>
-                    <span style="margin-left:auto;color:#93c5fd;font-size:1rem;">↗</span>
+                    <span style="margin-left:auto;color:#93c5fd;">↗</span>
                 </div>
             </a>`;
+        }
 
         return `
         <div class="page-break" style="padding-top: 50px;">
