@@ -1357,12 +1357,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                         let _mapTimer = null;
                         const _updateMap = (addr) => {
                             clearTimeout(_mapTimer);
-                            _mapTimer = setTimeout(() => {
+                            _mapTimer = setTimeout(async () => {
                                 const a = addr.trim();
                                 if (!a) { mapWrap.style.display = 'none'; return; }
                                 mapLink.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(a);
                                 mapWrap.style.display = 'block';
-                            }, 600);
+                                // Géocodage Nominatim → coordonnées pour la carte du rapport
+                                try {
+                                    const r = await _fetchWithTimeout(
+                                        'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(a) + '&format=json&limit=1&countrycodes=ca',
+                                        { headers: { 'Accept': 'application/json', 'Accept-Language': 'fr' } },
+                                        8000
+                                    );
+                                    if (r.ok) {
+                                        const data = await r.json();
+                                        if (data && data[0]) {
+                                            inspectionData.clientInfo.lat = data[0].lat;
+                                            inspectionData.clientInfo.lon = data[0].lon;
+                                        }
+                                    }
+                                } catch(e) { /* silencieux — carte de secours utilisée */ }
+                            }, 800);
                         };
 
                         input.addEventListener('input', () => {
@@ -3058,7 +3073,7 @@ Réponds en français.`;
         if (BOILERPLATE.commentLire) html += BOILERPLATE.commentLire;
 
         // LOCALISATION
-        if (BOILERPLATE.localisation) html += BOILERPLATE.localisation(address);
+        if (BOILERPLATE.localisation) html += BOILERPLATE.localisation(address, inspectionData.clientInfo.lat, inspectionData.clientInfo.lon);
 
         // CONVENTIONS
         html += BOILERPLATE.conventions;

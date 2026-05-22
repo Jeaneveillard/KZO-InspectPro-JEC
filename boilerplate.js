@@ -258,27 +258,52 @@ const BOILERPLATE = {
         if (!address || address.trim() === '') return '';
         const encodedAddress = encodeURIComponent(address);
         const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodedAddress;
-        const streetViewUrl = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=&query=' + encodedAddress;
+
+        // Carte OpenStreetMap si les coordonnées sont disponibles (géocodées via Nominatim)
+        let mapBlock = '';
+        if (lat && lon) {
+            const latF = parseFloat(lat);
+            const lonF = parseFloat(lon);
+            const delta = 0.004;
+            const bbox  = `${lonF - delta},${latF - delta},${lonF + delta},${latF + delta}`;
+            const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latF},${lonF}`;
+            mapBlock = `
+            <div style="border:1px solid #cbd5e1; border-radius:10px; overflow:hidden; box-shadow:0 4px 8px rgba(0,0,0,0.07); margin-bottom:10px;">
+                <iframe src="${osmUrl}" width="100%" height="350" frameborder="0" scrolling="no"
+                    style="display:block; border:none;" loading="lazy"
+                    title="Localisation — ${address}"></iframe>
+                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
+                   style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#f8fafc;border-top:1px solid #e2e8f0;text-decoration:none;">
+                    <span style="font-size:1rem;">📍</span>
+                    <span style="font-size:0.9rem;color:#1d4ed8;font-weight:600;">Ouvrir dans Google Maps — ${address}</span>
+                    <span style="margin-left:auto;color:#94a3b8;">↗</span>
+                </a>
+            </div>`;
+        } else {
+            // Fallback si pas de coordonnées : carte stylisée avec lien
+            mapBlock = `
+            <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
+               style="display:block;border:2px solid #3b82f6;border-radius:12px;overflow:hidden;text-decoration:none;box-shadow:0 4px 12px rgba(59,130,246,0.12);margin-bottom:10px;">
+                <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe,#bfdbfe);padding:36px 20px;text-align:center;position:relative;">
+                    <div style="font-size:3rem;margin-bottom:12px;">📍</div>
+                    <div style="font-size:1.1rem;font-weight:700;color:#1e40af;margin-bottom:6px;">${address}</div>
+                    <div style="font-size:0.85rem;color:#3b82f6;font-weight:600;">Québec, Canada</div>
+                </div>
+                <div style="padding:11px 16px;background:#1e40af;display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:1rem;">🗺️</span>
+                    <span style="font-size:0.9rem;color:white;font-weight:600;">Voir sur Google Maps</span>
+                    <span style="margin-left:auto;color:#93c5fd;">↗</span>
+                </div>
+            </a>`;
+        }
+
         return `
         <div class="page-break" style="padding-top: 50px;">
             <h2 style="color: #3b82f6; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; margin-bottom: 30px; font-size: 1.8rem;">Localisation de la propriété</h2>
             <p style="margin-bottom: 20px; font-size: 1.1rem; color: #334155;">L'inspection visuelle référencée dans ce rapport s'applique au bâtiment situé à :</p>
             <p style="margin-bottom: 24px; font-size: 1.25rem; font-weight: bold; color: #0f172a; padding-left: 20px; border-left: 4px solid #3b82f6;">${address}</p>
-            <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
-               style="display:block; border:2px solid #3b82f6; border-radius:12px; overflow:hidden; text-decoration:none; box-shadow:0 4px 12px rgba(59,130,246,0.15);">
-                <div style="background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 50%,#bfdbfe 100%); padding:40px 20px; text-align:center; position:relative;">
-                    <div style="font-size:3.5rem; margin-bottom:14px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">📍</div>
-                    <div style="font-size:1.15rem; font-weight:700; color:#1e40af; margin-bottom:8px; line-height:1.4;">${address}</div>
-                    <div style="font-size:0.85rem; color:#3b82f6; font-weight:600; letter-spacing:0.3px;">Québec, Canada</div>
-                    <div style="position:absolute;top:12px;right:16px;font-size:0.75rem;color:#93c5fd;font-weight:600;">CARTE INTERACTIVE</div>
-                </div>
-                <div style="padding:12px 18px; background:#1e40af; display:flex; align-items:center; gap:10px;">
-                    <span style="font-size:1.1rem;">🗺️</span>
-                    <span style="font-size:0.95rem; color:white; font-weight:600;">Voir la localisation sur Google Maps</span>
-                    <span style="margin-left:auto; color:#93c5fd; font-size:1rem;">↗</span>
-                </div>
-            </a>
-            <p style="margin-top: 10px; font-style: italic; color: #64748b; font-size: 0.85rem;">* Cliquer sur la carte pour ouvrir la localisation dans Google Maps.</p>
+            ${mapBlock}
+            <p style="font-style:italic;color:#64748b;font-size:0.85rem;">* Carte générée via OpenStreetMap. Cliquer pour ouvrir dans Google Maps.</p>
         </div>
         `;
     },
