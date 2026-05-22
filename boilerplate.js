@@ -254,7 +254,7 @@ const BOILERPLATE = {
     // ================================================================
     // LOCALISATION GOOGLE MAPS
     // ================================================================
-    localisation: (address) => {
+    localisation: (address, lat, lon) => {
         if (!address || address.trim() === '') return '';
         const encodedAddress = encodeURIComponent(address);
         const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodedAddress;
