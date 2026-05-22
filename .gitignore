@@ -32,6 +32,10 @@ yarn-error.log*
 # Doublon HTML (copie avec fins de ligne différentes)
 KZO_insp.html
 
+# Raccourcis Windows (personnels, contiennent le chemin local)
+*.url
+*.lnk
+
 # Claude Code — fichiers de travail internes
 .claude/worktrees/
 .claude/settings.local.json
