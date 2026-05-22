@@ -73,7 +73,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-bar">
-                <button type="button" class="menu-toggle" id="menuToggle">☰</button>
+                <button type="button" class="menu-toggle" id="menuToggle" aria-label="Menu de navigation">☰</button>
 
                 <div class="tb-breadcrumb">
                     <span class="tb-brand">KZO</span>
@@ -140,7 +140,7 @@
                         </svg>
                     </button>
                 </div>
-                <button type="button" class="close-assistant" id="closeAssistant">✕</button>
+                <button type="button" class="close-assistant" id="closeAssistant" aria-label="Fermer l'assistant IA">✕</button>
             </div>
             
             <div id="aiConfigPanel" style="display: none; padding: 15px; background: #0f172a; border-bottom: 2px solid #3b82f6;">
@@ -188,7 +188,7 @@
             <div class="modal">
                 <div class="modal-header">
                     <h3>📷 Analyse Vision - IA</h3>
-                    <button type="button" class="close-modal" id="closeModal">✕</button>
+                    <button type="button" class="close-modal" id="closeModal" aria-label="Fermer l'analyse photo">✕</button>
                 </div>
                 <div class="modal-body">
                     <!-- Barre d'outils de dessin -->
@@ -308,7 +308,7 @@
         <div style="background:white; padding:30px; border-radius:12px; width:90%; max-width:500px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
                 <h3 style="margin:0; color:#1e293b;">🏢 Profil de votre Entreprise</h3>
-                <button type="button" id="closeCompanyProfile" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">✕</button>
+                <button type="button" id="closeCompanyProfile" style="background:none; border:none; cursor:pointer; font-size:1.2rem;" aria-label="Fermer le profil d'entreprise">✕</button>
             </div>
             <p style="font-size:0.9rem; color:#64748b; margin-bottom:20px;">Ces informations apparaîtront automatiquement sur tous vos futurs rapports et factures.</p>
             
@@ -346,7 +346,7 @@
     <!-- Modale de Paiement -->
     <div id="paymentModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); z-index:99999; justify-content:center; align-items:center; backdrop-filter:blur(5px); font-family:'Inter', sans-serif;">
         <div style="background:#111827; width:90%; max-width:400px; border-radius:12px; padding:24px; box-shadow:0 10px 40px rgba(0,0,0,0.5); border:1px solid #1e3a5f; color:#f8fafc; position:relative;">
-            <button type="button" id="closePaymentModalBtn" style="position:absolute; top:15px; right:20px; background:none; border:none; color:#94a3b8; font-size:1.5rem; cursor:pointer;">&times;</button>
+            <button type="button" id="closePaymentModalBtn" style="position:absolute; top:15px; right:20px; background:none; border:none; color:#94a3b8; font-size:1.5rem; cursor:pointer;" aria-label="Fermer la facturation">&times;</button>
             <h2 style="margin-top:0; color:#e0e7ff; margin-bottom:15px; display:flex; align-items:center; gap:8px;">💳 Facturation</h2>
             
             <div style="background:#1e293b; padding:12px; border-radius:6px; margin-bottom:16px; font-size:0.85rem; color:#cbd5e1; border:1px solid #334155;">
@@ -447,7 +447,7 @@
         <div style="background:white; padding:25px; border-radius:12px; width:100%; max-width:650px; max-height:85vh; display:flex; flex-direction:column; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e2e8f0; padding-bottom:15px; margin-bottom:15px;">
                 <h3 style="margin:0; color:#1e293b; display:flex; align-items:center; gap:8px;">🛠️ Sommaire des Réparations</h3>
-                <button type="button" id="closeRepairModalBtn" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#64748b;">&times;</button>
+                <button type="button" id="closeRepairModalBtn" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:#64748b;" aria-label="Fermer le sommaire des réparations">&times;</button>
             </div>
             
             <p style="font-size:0.9rem; color:#475569; margin-top:0;">
@@ -476,10 +476,10 @@
             
             <div style="width:2px; background:#475569; margin:0 5px;"></div>
             
-            <button class="editor-color-btn active" data-color="#ef4444" style="width:30px; height:30px; border-radius:50%; border:2px solid white; background:#ef4444; cursor:pointer;"></button>
-            <button class="editor-color-btn" data-color="#eab308" style="width:30px; height:30px; border-radius:50%; border:2px solid transparent; background:#eab308; cursor:pointer;"></button>
-            <button class="editor-color-btn" data-color="#22c55e" style="width:30px; height:30px; border-radius:50%; border:2px solid transparent; background:#22c55e; cursor:pointer;"></button>
-            <button class="editor-color-btn" data-color="#ffffff" style="width:30px; height:30px; border-radius:50%; border:2px solid transparent; background:#ffffff; cursor:pointer;"></button>
+            <button class="editor-color-btn active" data-color="#ef4444" style="width:30px; height:30px; border-radius:50%; border:2px solid white; background:#ef4444; cursor:pointer;" aria-label="Couleur rouge"></button>
+            <button class="editor-color-btn" data-color="#eab308" style="width:30px; height:30px; border-radius:50%; border:2px solid transparent; background:#eab308; cursor:pointer;" aria-label="Couleur jaune"></button>
+            <button class="editor-color-btn" data-color="#22c55e" style="width:30px; height:30px; border-radius:50%; border:2px solid transparent; background:#22c55e; cursor:pointer;" aria-label="Couleur verte"></button>
+            <button class="editor-color-btn" data-color="#ffffff" style="width:30px; height:30px; border-radius:50%; border:2px solid transparent; background:#ffffff; cursor:pointer;" aria-label="Couleur blanche"></button>
             
             <div style="width:2px; background:#475569; margin:0 5px;"></div>
             

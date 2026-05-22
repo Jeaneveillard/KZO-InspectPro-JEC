@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' blob: data:; connect-src https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://api.groq.com https://oauth2.googleapis.com https://www.googleapis.com https://accounts.google.com https://script.google.com https://api.emailjs.com; frame-src https://accounts.google.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' blob: data:; connect-src https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://api.groq.com https://oauth2.googleapis.com https://www.googleapis.com https://accounts.google.com https://script.google.com https://api.emailjs.com; frame-src https://accounts.google.com;">
     <title>KZO InspectPro — Projets</title>
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -304,49 +304,49 @@
         <span class="logo-sub">InspectPro</span>
     </div>
     <div class="topbar-actions">
-        <button type="button" class="tb-btn-home" style="background:#0f766e;color:#ccfbf1;border:1px solid #0f766e;" onclick="window.openAgendaModal()">
+        <button type="button" id="agendaBtn" class="tb-btn-home" style="background:#0f766e;color:#ccfbf1;border:1px solid #0f766e;" aria-label="Ouvrir l'agenda">
             📅 <span>Agenda</span>
         </button>
         <div class="tb-divider-v"></div>
-        <button type="button" class="tb-btn-home tb-btn-import" onclick="triggerImport()">
+        <button type="button" id="importBtn" class="tb-btn-home tb-btn-import" aria-label="Importer un fichier .kzo">
             📂 <span>Ouvrir .kzo</span>
         </button>
         <div class="tb-divider-v"></div>
-        <button type="button" class="tb-btn-home tb-btn-deco" onclick="KZOAuth.logout()" title="Déconnexion">🔒</button>
+        <button type="button" id="logoutBtn" class="tb-btn-home tb-btn-deco" aria-label="Déconnexion" title="Déconnexion">🔒</button>
     </div>
 </div>
 
 <div class="main">
     <div class="search-row">
-        <input class="search-bar" type="text" id="searchInput" placeholder="🔍  Rechercher par client, adresse ou code…" oninput="filterProjects()">
+        <input class="search-bar" type="text" id="searchInput" placeholder="🔍  Rechercher par client, adresse ou code…" aria-label="Rechercher une inspection">
     </div>
 
     <div class="filters">
-        <button type="button" class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">Tous</button>
-        <button type="button" class="filter-btn" data-filter="en_cours" onclick="setFilter('en_cours', this)">En cours</button>
-        <button type="button" class="filter-btn" data-filter="termine" onclick="setFilter('termine', this)">Terminés</button>
+        <button type="button" class="filter-btn active" data-filter="all">Tous</button>
+        <button type="button" class="filter-btn" data-filter="en_cours">En cours</button>
+        <button type="button" class="filter-btn" data-filter="termine">Terminés</button>
     </div>
 
     <div class="grid" id="projectGrid"></div>
 </div>
 
 <div id="toast-home"></div>
-<input type="file" id="importInput" accept=".kzo" style="display:none" onchange="handleImport(event)">
+<input type="file" id="importInput" accept=".kzo" style="display:none" aria-label="Importer un fichier .kzo">
 
 <!-- Agenda Modal HTML -->
 <div id="agendaModal" class="agenda-modal">
     <div class="agenda-content">
         <div class="agenda-header">
             <h2>📅 Calendrier des Inspections</h2>
-            <button class="agenda-close" onclick="window.closeAgendaModal()">×</button>
+            <button class="agenda-close" aria-label="Fermer l'agenda">×</button>
         </div>
         <div class="agenda-body">
             <!-- Calendrier -->
             <div class="agenda-calendar">
                 <div class="cal-nav">
-                    <button onclick="window.agendaPrevMonth()">◀</button>
+                    <button id="agendaPrevBtn" aria-label="Mois précédent">◀</button>
                     <div class="cal-month-title" id="calMonthTitle">Mai 2026</div>
-                    <button onclick="window.agendaNextMonth()">▶</button>
+                    <button id="agendaNextBtn" aria-label="Mois suivant">▶</button>
                 </div>
                 <div class="cal-grid">
                     <div class="cal-day-header">Lun</div>
@@ -379,7 +379,7 @@
                     <div class="form-row">
                         <input type="text" id="evAddress" placeholder="Adresse complète" required>
                     </div>
-                    <button type="button" class="add-event-btn" onclick="window.agendaSaveEvent()">Enregistrer</button>
+                    <button type="button" id="agendaSaveBtn" class="add-event-btn">Enregistrer</button>
                 </div>
             </div>
         </div>
@@ -387,203 +387,13 @@
 </div>
 
 <script src="auth.js"></script>
-<script>if (!sessionStorage.getItem('kzo_auth')) { window.location.replace('login.html'); }</script>
+<script src="kzo_auth_check.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="jszip.min.js"></script>
 <script src="storage.js"></script>
 <script src="config.js"></script>
 <script src="google_calendar.js"></script>
 <script src="agenda.js"></script>
-<script>
-    let allProjects = [];
-    let currentFilter = 'all';
-
-    function showToast(msg, color) {
-        const t = document.getElementById('toast-home');
-        t.textContent = msg;
-        t.style.background = color || '#065f46';
-        t.style.display = 'block';
-        setTimeout(() => { t.style.display = 'none'; }, 3000);
-    }
-
-    function formatDate(iso) {
-        if (!iso) return '';
-        return new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' });
-    }
-
-    function sanitize(str) {
-        if (!str) return '';
-        const d = document.createElement('div');
-        d.textContent = str;
-        return d.innerHTML.replace(/'/g, '&#39;');
-    }
-
-    // Emoji selon le type de bâtiment (heuristique sur l'adresse/code)
-    function buildingEmoji(p) {
-        const name = (p.clientName || '') + (p.address || '');
-        if (/duplex|triplex/i.test(name)) return '🏘️';
-        if (/condo|appart/i.test(name)) return '🏢';
-        if (/commercial|bureau/i.test(name)) return '🏬';
-        return '🏠';
-    }
-
-    function renderGrid(projects) {
-        const grid = document.getElementById('projectGrid');
-
-        // Carte "Nouvelle inspection" toujours en tête (sauf filtre actif)
-        const newCard = currentFilter === 'all' ? `
-            <div class="card-new" onclick="newInspection()">
-                <div class="card-new-icon">＋</div>
-                <div class="card-new-label">Nouvelle inspection</div>
-                <div class="card-new-sub">Créer un nouveau dossier</div>
-            </div>` : '';
-
-        if (!projects.length) {
-            grid.innerHTML = newCard + '<div class="empty-state"><h2>Aucune inspection trouvée</h2><p>Créez votre première inspection ou importez un fichier .kzo</p></div>';
-            return;
-        }
-        grid.innerHTML = newCard + projects.map(p => {
-            const pct = Math.min(Math.round((p.progress / 10) * 100), 100);
-            const statusLabel = p.status === 'termine' ? 'TERMINÉ' : 'EN COURS';
-            return `
-            <div class="card ${sanitize(p.status)}" onclick="openProject('${sanitize(p.id)}')">
-                <div class="card-photo-strip">${buildingEmoji(p)}</div>
-                <div class="card-body">
-                    <div class="card-header">
-                        <span class="badge ${sanitize(p.status)}">${statusLabel}</span>
-                        <span class="card-date">${formatDate(p.updatedAt)}</span>
-                    </div>
-                    <div class="card-client">${sanitize(p.clientName) || 'Client inconnu'}</div>
-                    <div class="card-code">${sanitize(p.code || p.id)}</div>
-                    <div class="card-address">${sanitize(p.address) || '—'}</div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" style="width:${pct}%"></div>
-                    </div>
-                    <div class="progress-label">${p.progress}/10 sections · ${pct}%</div>
-                    <div class="card-actions" onclick="event.stopPropagation()">
-                        <button type="button" class="action-btn open" onclick="openProject('${sanitize(p.id)}')">Ouvrir</button>
-                        <button type="button" class="action-btn export" onclick="exportProject('${sanitize(p.id)}')">⬇️ .kzo</button>
-                        <button type="button" class="action-btn del" onclick="deleteProject('${sanitize(p.id)}')">🗑️</button>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
-    }
-
-    function filterProjects() {
-        const q = document.getElementById('searchInput').value.toLowerCase();
-        let filtered = allProjects;
-        if (currentFilter !== 'all') filtered = filtered.filter(p => p.status === currentFilter);
-        if (q) filtered = filtered.filter(p =>
-            (p.clientName || '').toLowerCase().includes(q) ||
-            (p.address || '').toLowerCase().includes(q) ||
-            (p.code || '').toLowerCase().includes(q)
-        );
-        renderGrid(filtered);
-    }
-
-    function setFilter(filter, btn) {
-        currentFilter = filter;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        filterProjects();
-    }
-
-    function openProject(id) {
-        window.location.href = 'KZO_Inspect.html?project=' + encodeURIComponent(id);
-    }
-
-    function newInspection() {
-        const newId = 'KZO-' + Date.now().toString().slice(-5);
-        window.location.href = 'KZO_Inspect.html?project=' + newId + '&new=1';
-    }
-
-    async function exportProject(id) {
-        try {
-            showToast('⏳ Génération du fichier .kzo...');
-            const blob = await KZOStorage.exportKZO(id);
-            const project = allProjects.find(p => p.id === id);
-            const name = project ? project.clientName.replace(/[^a-zA-Z0-9]/g, '_') : id;
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'KZO-' + name + '-' + new Date().toISOString().slice(0, 10) + '.kzo';
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('✅ Fichier .kzo exporté');
-        } catch (e) {
-            showToast('❌ Erreur export : ' + e.message, '#7f1d1d');
-        }
-    }
-
-    function showConfirm(msg, onConfirm) {
-        const ov = document.createElement('div');
-        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:9999;';
-        const box = document.createElement('div');
-        box.style.cssText = 'background:#1e293b;border-radius:12px;padding:28px 24px;max-width:340px;width:90%;color:#f1f5f9;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
-        const p = document.createElement('p');
-        p.style.cssText = 'margin-bottom:20px;font-size:0.95rem;line-height:1.5;';
-        p.textContent = msg;
-        const row = document.createElement('div');
-        row.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;';
-        const cancel = document.createElement('button');
-        cancel.textContent = 'Annuler';
-        cancel.style.cssText = 'padding:9px 18px;background:#334155;color:#f1f5f9;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;';
-        const ok = document.createElement('button');
-        ok.textContent = 'Supprimer';
-        ok.style.cssText = 'padding:9px 18px;background:#dc2626;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:700;';
-        cancel.onclick = () => ov.remove();
-        ok.onclick = () => { ov.remove(); onConfirm(); };
-        row.append(cancel, ok);
-        box.append(p, row);
-        ov.appendChild(box);
-        document.body.appendChild(ov);
-    }
-
-    async function deleteProject(id) {
-        const project = allProjects.find(p => p.id === id);
-        const name = project ? project.clientName : id;
-        showConfirm('Supprimer l\'inspection de « ' + name + ' » ?\nCette action est irréversible.', async () => {
-            try {
-                await KZOStorage.deleteProject(id);
-                showToast('🗑️ Inspection supprimée');
-                await loadAndRender();
-            } catch (e) {
-                showToast('❌ Erreur suppression : ' + e.message, '#7f1d1d');
-            }
-        });
-    }
-
-    function triggerImport() {
-        document.getElementById('importInput').value = '';
-        document.getElementById('importInput').click();
-    }
-
-    async function handleImport(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        try {
-            showToast('⏳ Import en cours...');
-            const projectId = await KZOStorage.importKZO(file);
-            if (projectId) {
-                showToast('✅ Inspection importée — ' + projectId);
-                await loadAndRender();
-            }
-        } catch (e) {
-            showToast('❌ Erreur import : ' + e.message, '#7f1d1d');
-        }
-    }
-
-    async function loadAndRender() {
-        allProjects = await KZOStorage.listProjects();
-        filterProjects();
-    }
-
-    KZOStorage.migrateLegacy().then(() => loadAndRender()).catch(() => loadAndRender());
-
-    // Vérifier silencieusement les inspections du jour et notifier si permission déjà accordée
-    if (window.kzoCheckTodayNotifications) {
-        window.kzoCheckTodayNotifications();
-    }
-</script>
+<script src="index.js" defer></script>
 </body>
 </html>
