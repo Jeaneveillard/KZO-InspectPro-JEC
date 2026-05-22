@@ -162,17 +162,23 @@ const COMMENT_TEMPLATES = {
 
         ss_st_0: { // Aménagement et Pente
             positive: [
-                "L'aménagement paysager, les entrées et la pente du terrain autour du bâtiment favorisent un bon écoulement des eaux de ruissellement loin des fondations. Aucune condition propice aux infiltrations d'eau n'a été observée à ce niveau."
+                "L'aménagement paysager, les entrées et la pente du terrain autour du bâtiment favorisent un bon écoulement des eaux de ruissellement loin des fondations. Aucune condition propice aux infiltrations d'eau n'a été observée à ce niveau.",
+                "Le revêtement de l'entrée et les surfaces dures adjacentes sont en bon état et inclinés correctement vers le réseau de drainage. Aucun affaissement ni fissuration importante permettant l'accumulation d'eau n'a été noté.",
+                "La végétation est bien entretenue et maintenue à une distance raisonnable du bâtiment. Les racines d'arbres matures ne semblent pas compromettre les fondations ou les services enterrés au moment de l'inspection."
             ],
             negative: [
                 "Il a été observé une pente de terrain négative vers le bâtiment. Cette condition dirige les eaux de ruissellement directement vers les murs de fondation, augmentant considérablement le risque d'infiltration d'eau au sous-sol et de dégradation prématurée des matériaux. Nous recommandons de revoir l'aménagement paysager afin de créer une pente positive s'éloignant du bâtiment sur une distance d'au moins 1.5 mètre (5 pieds).",
-                "Les descentes de gouttières déversent l'eau trop près des fondations. Cette concentration d'eau saturera le sol près des murs de fondation, ce qui peut surcharger le système de drainage (drain français) et provoquer des infiltrations. Nous recommandons l'installation de rallonges ou de blocs parapluies pour éloigner l'eau d'au moins 1.5 mètre du bâtiment."
+                "Les descentes de gouttières déversent l'eau trop près des fondations. Cette concentration d'eau saturera le sol près des murs de fondation, ce qui peut surcharger le système de drainage (drain français) et provoquer des infiltrations. Nous recommandons l'installation de rallonges ou de blocs parapluies pour éloigner l'eau d'au moins 1.5 mètre du bâtiment.",
+                "Des arbres matures sont implantés à moins de 3 mètres du bâtiment. Les racines peuvent envahir le drain français, fracturer les fondations et soulever les dallages. Une surveillance annuelle de l'état des fondations et du drainage est recommandée ; l'abattage ou l'élagage significatif peut être envisagé.",
+                "Le revêtement de l'allée ou de la cour présente des affaissements importants créant des cuvettes où l'eau stagne à proximité du bâtiment. Ces zones d'accumulation favorisent la saturation du sol adjacent aux fondations. Des travaux de nivellement ou de réfection du revêtement sont recommandés."
             ]
         },
 
         ss_st_1: { // Fondations
             positive: [
-                "L'inspection visuelle de la portion exposée des murs de fondation n'a révélé aucun signe de mouvement structural, d'efflorescence majeure ou de fissuration active au moment de l'inspection."
+                "L'inspection visuelle de la portion exposée des murs de fondation n'a révélé aucun signe de mouvement structural, d'efflorescence majeure ou de fissuration active au moment de l'inspection.",
+                "Les murs de fondation sont d'aplomb et aucune déformation horizontale ou en escalier susceptible d'indiquer une poussée du sol n'a été observée. Le drain français apparent semble fonctionnel.",
+                "Aucune humidité active, odeur de moisi ni trace d'infiltration récente n'a été détectée au sous-sol lors de l'inspection. Les conditions de drainage périphérique visible semblent adéquates."
             ],
             negative: [
                 "Des fissures ont été observées sur les murs de fondation. Bien que certaines fissures puissent être attribuables au retrait normal du béton, toute ouverture dans la fondation représente une voie potentielle pour les infiltrations d'eau et les insectes. Nous recommandons de faire sceller ces fissures par l'extérieur ou par injection d'époxy/polyuréthane par un entrepreneur spécialisé afin de garantir l'étanchéité.",
@@ -182,7 +188,9 @@ const COMMENT_TEMPLATES = {
 
         ss_st_2: { // Revêtement extérieur
             positive: [
-                "Le revêtement extérieur mural, les solins et les éléments d'étanchéité visibles apparaissent en bon état. Les joints de calfeutrage autour des ouvertures sont souples et assurent une bonne barrière contre les intempéries."
+                "Le revêtement extérieur mural, les solins et les éléments d'étanchéité visibles apparaissent en bon état. Les joints de calfeutrage autour des ouvertures sont souples et assurent une bonne barrière contre les intempéries.",
+                "Le revêtement de briques ou de maçonnerie est bien attaché, les joints de mortier sont intacts et aucune brique délogée ou fissure d'importance n'a été observée. Les larmiers et solins de linteau semblent correctement installés.",
+                "Le lambris de vinyle ou de fibrociment est bien fixé, sans déformation ni section manquante. Les coins et raccords d'angles sont couverts de moulures appropriées assurant l'étanchéité de l'enveloppe."
             ],
             negative: [
                 "Le revêtement extérieur présente des dommages et/ou des sections détériorées. Ces ouvertures dans l'enveloppe du bâtiment permettent l'infiltration d'eau et d'humidité dans la structure murale, ce qui peut causer de la pourriture cachée et le développement de moisissures. Une réparation immédiate par un menuisier ou un entrepreneur spécialisé est requise.",
@@ -408,10 +416,114 @@ const COMMENT_TEMPLATES = {
 
         ss_pl_1: { // Alimentation et Entrée d'eau
             positive: [
-                "L'entrée d'eau principale visible (en cuivre ou plastique) et sa valve d'arrêt d'urgence sont en bon état et ne présentent aucune fuite."
+                "L'entrée d'eau principale visible (en cuivre ou plastique) et sa valve d'arrêt d'urgence sont en bon état et ne présentent aucune fuite.",
+                "Le robinet d'arrêt principal est localisé, accessible et fonctionne normalement. La pression d'eau mesurée aux points de distribution est adéquate.",
+                "Aucun signe de corrosion ou de réduction de diamètre intérieur n'a été observé sur la tuyauterie d'alimentation visible."
             ],
             negative: [
-                "La conduite de l'entrée d'eau principale est en plomb. Les vieilles conduites en plomb contaminent l'eau potable, causant des risques sérieux pour la santé, en particulier pour les enfants et les femmes enceintes, et sont plus susceptibles de se rompre. Il est recommandé de faire tester l'eau et de planifier le remplacement de l'entrée d'eau jusqu'à la ligne de ville par un entrepreneur."
+                "La conduite de l'entrée d'eau principale est en plomb. Les vieilles conduites en plomb contaminent l'eau potable, causant des risques sérieux pour la santé, en particulier pour les enfants et les femmes enceintes, et sont plus susceptibles de se rompre. Il est recommandé de faire tester l'eau et de planifier le remplacement de l'entrée d'eau jusqu'à la ligne de ville par un entrepreneur.",
+                "Le robinet d'arrêt principal est introuvable, inaccessible ou ne ferme pas complètement. En cas de fuite majeure, il sera impossible de couper rapidement l'alimentation en eau. Il est urgent de localiser et de remettre en état ce dispositif de sécurité essentiel.",
+                "La pression d'eau est insuffisante à plusieurs points d'utilisation simultanés. Cette situation peut indiquer un dépôt de tartre dans la tuyauterie galvanisée, un problème de réducteur de pression ou une faible pression au réseau municipal. Une vérification par un plombier est recommandée."
+            ]
+        },
+
+        // ─── NOUVELLES SOUS-SECTIONS ────────────────────────────────────────────
+
+        ss_st_4: { // Fondation sur Pilotis
+            positive: [
+                "Les pilotis visibles et leurs appuis de solives sont en bon état. Le bois traité ne présente aucun signe de pourriture, de déplacement ou d'affaissement notable. La gestion des eaux de pluie semble adéquate sous la structure.",
+                "L'espace sous le bâtiment sur pilotis est accessible et bien ventilé. Aucune détérioration structurelle majeure n'a été observée sur les éléments de fondation visibles."
+            ],
+            negative: [
+                "Des pilotis présentent des signes de pourriture, d'écrasement ou de déplacement latéral. Cette situation compromet l'intégrité structurelle du plancher et de l'ensemble du bâtiment. Une évaluation par un ingénieur en structure est recommandée avant toute autre intervention.",
+                "La pente du terrain sous le bâtiment sur pilotis dirige les eaux de ruissellement vers le centre plutôt que vers l'extérieur. L'accumulation d'eau favorise la dégradation accélérée du bois non traité. Des corrections de drainage et l'application d'un traitement préservatif sont recommandés.",
+                "Des appuis de solives (beam pockets) sont manquants, écrasés ou mal positionnés sous le plancher. Cette déficience peut causer un affaissement localisé du plancher. Une intervention par un charpentier ou un entrepreneur en fondation est requise."
+            ]
+        },
+
+        ss_st_6: { // Électricité et Plomberie Extérieures
+            positive: [
+                "Les robinets extérieurs sont du type antigel et les prises électriques extérieures sont munies de boîtiers étanches de type « en cours d'utilisation » (in-use) avec protection DDFT/GFCI. Aucune anomalie n'a été observée à ces installations.",
+                "L'ensemble des équipements extérieurs (éclairage, prises, robinetterie) est en bon état apparent et conforme aux bonnes pratiques d'installation."
+            ],
+            negative: [
+                "Les robinets extérieurs ne sont pas du type antigel. Durant les périodes de gel, l'eau résiduelle dans les tuyaux peut geler, se dilater et fracturer les conduites à l'intérieur du mur. Le remplacement par des robinets antigel à tige longue par un plombier est recommandé avant la saison froide.",
+                "Les prises électriques extérieures sont sans protection DDFT/GFCI ou leur boîtier de protection n'est pas de type étanche (in-use). L'exposition à l'humidité et à la pluie rend cette situation potentiellement mortelle. Le remplacement et la mise aux normes par un électricien sont requis.",
+                "Des luminaires ou équipements électriques extérieurs présentent des fils dénudés, des boîtiers ouverts ou des fixations manquantes. L'exposition aux intempéries augmente le risque de choc électrique et d'incendie. Une inspection et une remise en état par un électricien qualifié sont requises."
+            ]
+        },
+
+        ss_st_7: { // Dépendances et Aménagements
+            positive: [
+                "Les bâtiments accessoires visibles (cabanon, remise) sont en état satisfaisant pour leur usage. Aucun affaissement de structure ou détérioration majeure n'a été noté lors de l'inspection visuelle.",
+                "Les clôtures et aménagements extérieurs sont en bon état général. La piscine ou le spa, si présent, est entouré d'une clôture conforme avec porte auto-verrouillante."
+            ],
+            negative: [
+                "Le cabanon ou garage détaché présente des signes d'affaissement de la structure (murs penchés, toiture affaissée, fondation effondrée). Ces bâtiments peuvent devenir dangereux et leur réfection ou démolition devrait être planifiée.",
+                "La clôture entourant la piscine ne répond pas aux exigences réglementaires (hauteur minimale de 1,2 m, porte auto-fermante et auto-verrouillante). Cette non-conformité constitue un risque grave de noyade pour les jeunes enfants. Une mise aux normes immédiate est requise conformément au Code de sécurité du Québec.",
+                "Des poteaux de clôture sont pourris, cassés ou fortement penchés, rendant la clôture instable. Des sections importantes présentent des ouvertures ou des affaissements. La réfection de la clôture est recommandée pour assurer la sécurité du périmètre."
+            ]
+        },
+
+        ss_in_4: { // Sécurité — Détecteurs et Alarmes
+            positive: [
+                "Les détecteurs de fumée sont présents à chaque étage et dans les chambres, et les détecteurs de monoxyde de carbone sont installés conformément aux exigences légales. Tous les appareils testés ont répondu normalement.",
+                "L'installation des dispositifs de sécurité (fumée, CO, extincteur) respecte les emplacements requis par le Code de sécurité du Québec. Les piles ou l'alimentation électrique semblent fonctionnelles."
+            ],
+            negative: [
+                "Des détecteurs de fumée sont absents à des emplacements requis (au moins un par étage et un dans chaque chambre à coucher). Cette non-conformité constitue un risque vital en cas d'incendie. L'installation de détecteurs certifiés ULC est requise dans les plus brefs délais.",
+                "Aucun détecteur de monoxyde de carbone n'est installé, malgré la présence d'un garage attaché ou d'appareils à combustion. Le CO est inodore et incolore et peut être mortel en quelques minutes. L'installation d'un détecteur de CO certifié est obligatoire selon le Code de sécurité du Québec.",
+                "Les détecteurs de fumée présents sont anciens (plus de 10 ans), ont été peints par-dessus, ou n'ont pas répondu au test. Des appareils défaillants n'offrent aucune protection. Le remplacement par des modèles récents combinés (fumée + CO) est vivement recommandé.",
+                "Aucun extincteur portatif n'est présent dans la cuisine ou la salle mécanique. Un extincteur de type ABC en bon état et facilement accessible est un équipement de sécurité de base recommandé pour toute résidence."
+            ]
+        },
+
+        ss_in_5: { // Salle Mécanique / Sous-sol
+            positive: [
+                "La salle mécanique est accessible, propre et bien organisée. Les équipements (fournaise, chauffe-eau, tableau électrique) sont identifiés et accessibles. Aucun signe d'humidité excessive ou de moisissures n'a été observé.",
+                "Le sous-sol présente un niveau d'humidité acceptable au moment de l'inspection. Les murs de fondation sont secs, la pompe de puisard est en état fonctionnel et aucun signe de pénétration d'eau récente n'a été noté."
+            ],
+            negative: [
+                "Une humidité excessive ou des traces de moisissures ont été observées dans le sous-sol ou la salle mécanique. Cette condition dégrade la qualité de l'air de tout le bâtiment et peut causer des problèmes respiratoires. La source d'humidité (infiltration, condensation, fuite de plomberie) doit être identifiée et corrigée avant tout travail de finition.",
+                "La salle mécanique est encombrée au point de restreindre l'accès aux équipements et au panneau électrique. Le dégagement minimal devant le panneau (1 mètre) n'est pas respecté. Un désencombrement et une réorganisation de l'espace sont requis pour assurer la sécurité et faciliter l'entretien.",
+                "Des traces de calorifugeage suspect (gris ou blanc) ont été observées sur des tuyaux de plomberie ou des conduits de chauffage dans la salle mécanique. Ce matériau, courant dans les maisons construites avant 1980, peut contenir de l'amiante. Une analyse par un laboratoire accrédité est recommandée avant toute intervention ou rénovation dans cet espace."
+            ]
+        },
+
+        ss_ga_2: { // Systèmes et Sécurité du Garage
+            positive: [
+                "La porte de garage motorisée fonctionne normalement. Le mécanisme d'inversion automatique réagit à un obstacle, ce qui confirme que la sécurité anti-écrasement est opérationnelle. La ventilation du garage semble adéquate.",
+                "Les prises électriques du garage sont munies de protections DDFT/GFCI conformes. Un détecteur de CO est présent et semble fonctionnel dans la zone de vie adjacente."
+            ],
+            negative: [
+                "Le mécanisme d'inversion automatique de la porte de garage motorisée est absent ou ne fonctionne pas correctement. Une porte qui ne s'arrête pas et ne s'inverse pas en cas d'obstacle peut causer des blessures graves, voire la mort. Cette déficience de sécurité doit être corrigée immédiatement par un technicien en portes de garage.",
+                "Le garage ne possède pas de ventilation mécanique ou naturelle adéquate. Dans un espace fermé, les gaz d'échappement d'un véhicule peuvent atteindre des concentrations mortelles de monoxyde de carbone en quelques minutes. L'installation d'une ventilation conforme est requise.",
+                "Aucun détecteur de monoxyde de carbone n'est installé dans la zone de vie directement adjacente au garage attaché. Le CO peut migrer silencieusement depuis le garage vers les espaces habitables. L'installation d'un détecteur de CO certifié est obligatoire selon le Code de sécurité du Québec."
+            ]
+        },
+
+        ss_pl_3: { // Systèmes Sanitaires Autonomes
+            positive: [
+                "Le système d'assainissement autonome (fosse septique et champ d'épuration) ne présente aucun signe visible de débordement, d'odeur excessive ou de surface détrempée au moment de l'inspection. La date du dernier vidange est connue et raisonnable.",
+                "Le puits artésien et l'équipement de pompage semblent en bon état. Aucune odeur ni coloration anormale de l'eau n'a été signalée. Un test bactériologique annuel demeure recommandé."
+            ],
+            negative: [
+                "La fosse septique ou le champ d'épuration n'a pas été vidangé depuis plus de deux ans, ou la date du dernier vidange est inconnue. Une fosse non entretenue déborde prématurément et contamine le sol et les nappes phréatiques. Un vidange par une entreprise certifiée et une inspection de l'état de la fosse sont recommandés sans délai.",
+                "Des signes de débordement ou de saturation du champ d'épuration ont été observés (surface détrempée, odeur d'égout à l'extérieur, végétation anormalement verte au-dessus du champ). Ce système en fin de vie ou en défaillance constitue un risque sanitaire et environnemental. Une évaluation par un technologue agréé en environnement est requise.",
+                "Le puits autonome est situé à moins de 30 mètres du système d'épuration ou d'une source de contamination potentielle. Cette proximité augmente significativement le risque de contamination bactériologique de l'eau potable. Un test d'eau complet (bactériologie + chimie) par un laboratoire accrédité est fortement recommandé.",
+                "L'installation du système sanitaire autonome semble ancienne et ne répond possiblement plus aux normes actuelles de la Loi sur la qualité de l'environnement (LQE) et du Règlement sur l'évacuation et le traitement des eaux usées des résidences isolées (Q-2, r. 22). Une évaluation de conformité par un professionnel est recommandée."
+            ]
+        },
+
+        ss_el_3: { // Énergie Solaire
+            positive: [
+                "Les panneaux solaires sont bien fixés à la toiture et ne présentent aucun signe de dommage visible ni de fuite aux points d'ancrage. L'onduleur et le câblage apparents semblent conformes et en bon état.",
+                "L'installation photovoltaïque inclut un interrupteur d'urgence (déconnexion rapide) accessible à l'extérieur, conformément aux exigences du Code national du bâtiment et aux pratiques de sécurité pour les services d'urgence."
+            ],
+            negative: [
+                "Des dommages à la toiture ont été observés aux points d'ancrage des fixations de panneaux solaires (fissures de bardeaux, joints décollés, rouille). Ces zones constituent des voies d'infiltration potentielles. Une inspection par un couvreur et vérification par l'installateur du système solaire sont recommandées.",
+                "Aucun interrupteur d'urgence (déconnexion rapide) n'est visible à l'extérieur du bâtiment. En cas d'incendie, les pompiers doivent pouvoir couper rapidement le circuit photovoltaïque pour intervenir en sécurité. Cette installation est non conforme aux exigences de sécurité incendie. Une mise aux normes par l'installateur est requise.",
+                "L'onduleur ou la banque de batteries est installé dans un espace non ventilé. Les batteries au lithium ou au plomb dégagent des gaz potentiellement inflammables lors de la charge. Une ventilation adéquate de cet espace est requise pour prévenir tout risque d'explosion ou d'incendie."
             ]
         }
     }
