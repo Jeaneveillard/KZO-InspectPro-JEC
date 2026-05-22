@@ -5,7 +5,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     let _isDirty = false;
 
     // --- 0. Sécurité et Utilitaires ---
-    
+
+    // Géocodage Nominatim — gère le format québécois "unité-civique" (ex: 100-834 → essaie 834)
+    async function _geocodeAddress(address) {
+        if (!address || !address.trim()) return null;
+        const variants = [address.trim()];
+        // Format québécois "X-Y rue..." → essayer aussi "Y rue..." (X = unité, Y = numéro civique)
+        const m = address.trim().match(/^\d+-(\d+\s+.+)/);
+        if (m) variants.push(m[1]);
+        for (const q of variants) {
+            try {
+                const r = await _fetchWithTimeout(
+                    'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=1&countrycodes=ca',
+                    { headers: { 'Accept': 'application/json', 'Accept-Language': 'fr' } },
+                    8000
+                );
+                if (!r.ok) continue;
+                const data = await r.json();
+                if (data && data[0]) return data[0];
+            } catch(e) { /* continuer avec la variante suivante */ }
+        }
+        return null;
+    }
+
     // Anti-XSS : Échapper tout contenu utilisateur avant insertion HTML
     function sanitizeHTML(str) {
         if (!str) return '';
@@ -1363,20 +1385,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 mapLink.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(a);
                                 mapWrap.style.display = 'block';
                                 // Géocodage Nominatim → coordonnées pour la carte du rapport
-                                try {
-                                    const r = await _fetchWithTimeout(
-                                        'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(a) + '&format=json&limit=1&countrycodes=ca',
-                                        { headers: { 'Accept': 'application/json', 'Accept-Language': 'fr' } },
-                                        8000
-                                    );
-                                    if (r.ok) {
-                                        const data = await r.json();
-                                        if (data && data[0]) {
-                                            inspectionData.clientInfo.lat = data[0].lat;
-                                            inspectionData.clientInfo.lon = data[0].lon;
-                                        }
-                                    }
-                                } catch(e) { /* silencieux — carte de secours utilisée */ }
+                                const _geoResult = await _geocodeAddress(a);
+                                if (_geoResult) {
+                                    inspectionData.clientInfo.lat = _geoResult.lat;
+                                    inspectionData.clientInfo.lon = _geoResult.lon;
+                                }
                             }, 800);
                         };
 
@@ -3773,20 +3786,11 @@ Réponds en français.`;
 
         // Géocodage automatique si lat/lon manquants (projet chargé sans retaper l'adresse)
         if (address && !inspectionData.clientInfo.lat) {
-            try {
-                const _geoR = await _fetchWithTimeout(
-                    'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(address) + '&format=json&limit=1&countrycodes=ca',
-                    { headers: { 'Accept': 'application/json', 'Accept-Language': 'fr' } },
-                    8000
-                );
-                if (_geoR.ok) {
-                    const _geoData = await _geoR.json();
-                    if (_geoData && _geoData[0]) {
-                        inspectionData.clientInfo.lat = _geoData[0].lat;
-                        inspectionData.clientInfo.lon = _geoData[0].lon;
-                    }
-                }
-            } catch(e) { /* carte de secours utilisée si géocodage échoue */ }
+            const _geoAuto = await _geocodeAddress(address);
+            if (_geoAuto) {
+                inspectionData.clientInfo.lat = _geoAuto.lat;
+                inspectionData.clientInfo.lon = _geoAuto.lon;
+            }
         }
 
         // Inline report preview
