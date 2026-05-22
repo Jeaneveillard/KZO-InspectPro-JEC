@@ -3731,7 +3731,7 @@ Réponds en français.`;
         document.getElementById('closeReportBtn').onclick = () => { reportModal.style.display = 'none'; };
     }
 
-    function _renderPreviewPage(container) {
+    async function _renderPreviewPage(container) {
         // Filigrane diagonal fixe
         const watermark = document.createElement('div');
         watermark.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:5rem;font-weight:900;color:rgba(251,191,36,0.07);pointer-events:none;z-index:0;white-space:nowrap;user-select:none;';
@@ -3769,6 +3769,24 @@ Réponds en français.`;
             warn.textContent = '⚠️ boilerplate.js manquant — prévisualisation indisponible.';
             container.appendChild(warn);
             return;
+        }
+
+        // Géocodage automatique si lat/lon manquants (projet chargé sans retaper l'adresse)
+        if (address && !inspectionData.clientInfo.lat) {
+            try {
+                const _geoR = await _fetchWithTimeout(
+                    'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(address) + '&format=json&limit=1&countrycodes=ca',
+                    { headers: { 'Accept': 'application/json', 'Accept-Language': 'fr' } },
+                    8000
+                );
+                if (_geoR.ok) {
+                    const _geoData = await _geoR.json();
+                    if (_geoData && _geoData[0]) {
+                        inspectionData.clientInfo.lat = _geoData[0].lat;
+                        inspectionData.clientInfo.lon = _geoData[0].lon;
+                    }
+                }
+            } catch(e) { /* carte de secours utilisée si géocodage échoue */ }
         }
 
         // Inline report preview
