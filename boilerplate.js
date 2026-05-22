@@ -259,59 +259,25 @@ const BOILERPLATE = {
         const encodedAddress = encodeURIComponent(address);
         const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodedAddress;
 
-        // Carte OpenStreetMap si les coordonnées sont disponibles (géocodées via Nominatim)
-        let mapBlock = '';
-        if (lat && lon) {
-            const latF = parseFloat(lat);
-            const lonF = parseFloat(lon);
-            const delta = 0.004;
-            const bbox  = `${lonF - delta},${latF - delta},${lonF + delta},${latF + delta}`;
-            // Pas de &marker= → on enlève le ballon vert OSM et on met notre propre pin rouge
-            const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik`;
-            // Pin rouge SVG style Google Maps
-            const redPin = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="40" viewBox="0 0 28 40">
-                <path d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 26 14 26S28 24.5 28 14C28 6.27 21.73 0 14 0z" fill="#ea4335"/>
-                <circle cx="14" cy="14" r="6" fill="white"/>
-                <circle cx="14" cy="14" r="3.5" fill="#ea4335"/>
-            </svg>`;
-            mapBlock = `
-            <div style="border:1px solid #cbd5e1; border-radius:10px; overflow:hidden; box-shadow:0 4px 8px rgba(0,0,0,0.07); margin-bottom:10px;">
-                <div style="position:relative;">
-                    <iframe src="${osmUrl}" width="100%" height="350" frameborder="0" scrolling="no"
-                        style="display:block; border:none;" loading="lazy"
-                        title="Localisation — ${address}"></iframe>
-                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-90%);pointer-events:none;z-index:10;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));">
-                        ${redPin}
-                    </div>
-                </div>
-                <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
-                   style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#f8fafc;border-top:1px solid #e2e8f0;text-decoration:none;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 28 40" style="flex-shrink:0;">
-                        <path d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 26 14 26S28 24.5 28 14C28 6.27 21.73 0 14 0z" fill="#ea4335"/>
-                        <circle cx="14" cy="14" r="6" fill="white"/>
-                        <circle cx="14" cy="14" r="3.5" fill="#ea4335"/>
-                    </svg>
-                    <span style="font-size:0.9rem;color:#1d4ed8;font-weight:600;">Ouvrir dans Google Maps — ${address}</span>
-                    <span style="margin-left:auto;color:#94a3b8;">↗</span>
-                </a>
-            </div>`;
-        } else {
-            // Fallback si pas de coordonnées : carte stylisée avec lien
-            mapBlock = `
-            <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
+        // Carte stylisée cliquable (fiable sur tous les navigateurs, aucune dépendance externe)
+        const mapsUrlCoords = (lat && lon)
+            ? `https://www.google.com/maps?q=${parseFloat(lat)},${parseFloat(lon)}`
+            : mapsUrl;
+        const mapBlock = `
+            <a href="${mapsUrlCoords}" target="_blank" rel="noopener noreferrer"
                style="display:block;border:2px solid #3b82f6;border-radius:12px;overflow:hidden;text-decoration:none;box-shadow:0 4px 12px rgba(59,130,246,0.12);margin-bottom:10px;">
-                <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe,#bfdbfe);padding:36px 20px;text-align:center;position:relative;">
-                    <div style="font-size:3rem;margin-bottom:12px;">📍</div>
-                    <div style="font-size:1.1rem;font-weight:700;color:#1e40af;margin-bottom:6px;">${address}</div>
+                <div style="background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 50%,#bfdbfe 100%);padding:44px 20px;text-align:center;position:relative;">
+                    <div style="font-size:3.8rem;margin-bottom:14px;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.18));">📍</div>
+                    <div style="font-size:1.15rem;font-weight:700;color:#1e40af;margin-bottom:8px;line-height:1.4;">${address}</div>
                     <div style="font-size:0.85rem;color:#3b82f6;font-weight:600;">Québec, Canada</div>
+                    <div style="position:absolute;top:12px;right:16px;font-size:0.7rem;color:#93c5fd;font-weight:700;letter-spacing:0.5px;">CARTE INTERACTIVE</div>
                 </div>
-                <div style="padding:11px 16px;background:#1e40af;display:flex;align-items:center;gap:8px;">
-                    <span style="font-size:1rem;">🗺️</span>
-                    <span style="font-size:0.9rem;color:white;font-weight:600;">Voir sur Google Maps</span>
-                    <span style="margin-left:auto;color:#93c5fd;">↗</span>
+                <div style="padding:12px 18px;background:#1e40af;display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:1.1rem;">🗺️</span>
+                    <span style="font-size:0.9rem;color:white;font-weight:600;">Voir la localisation sur Google Maps</span>
+                    <span style="margin-left:auto;color:#93c5fd;font-size:1rem;">↗</span>
                 </div>
             </a>`;
-        }
 
         return `
         <div class="page-break" style="padding-top: 50px;">
