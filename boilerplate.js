@@ -257,17 +257,26 @@ const BOILERPLATE = {
     localisation: (address) => {
         if (!address || address.trim() === '') return '';
         const encodedAddress = encodeURIComponent(address);
+        const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + encodedAddress;
         return `
         <div class="page-break" style="padding-top: 50px;">
             <h2 style="color: #3b82f6; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; margin-bottom: 30px; font-size: 1.8rem;">Localisation de la propriété</h2>
             <p style="margin-bottom: 20px; font-size: 1.1rem; color: #334155;">L'inspection visuelle référencée dans ce rapport s'applique au bâtiment situé à :</p>
-            <p style="margin-bottom: 30px; font-size: 1.25rem; font-weight: bold; color: #0f172a; padding-left: 20px; border-left: 4px solid #3b82f6;">${address}</p>
-            <div style="border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; height: 450px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
-                    src="https://maps.google.com/maps?q=${encodedAddress}&t=&z=16&ie=UTF8&iwloc=&output=embed">
-                </iframe>
-            </div>
-            <p style="margin-top: 12px; font-style: italic; color: #64748b; font-size: 0.88rem;">* Localisation générée par Google Maps selon l'adresse saisie à l'ouverture du dossier.</p>
+            <p style="margin-bottom: 24px; font-size: 1.25rem; font-weight: bold; color: #0f172a; padding-left: 20px; border-left: 4px solid #3b82f6;">${address}</p>
+            <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
+               style="display:block; border:1px solid #cbd5e1; border-radius:10px; overflow:hidden; text-decoration:none; box-shadow:0 4px 6px rgba(0,0,0,0.06);">
+                <img
+                    src="https://maps.googleapis.com/maps/api/staticmap?center=${encodedAddress}&zoom=16&size=800x380&maptype=roadmap&markers=color:red%7C${encodedAddress}&scale=2"
+                    onerror="this.parentElement.innerHTML='<div style=\\'height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8fafc;gap:12px;\\'><span style=\\'font-size:2.5rem;\\'>📍</span><span style=\\'font-size:1rem;color:#334155;font-weight:600;\\'>${address.replace(/'/g, "&#39;")}</span><span style=\\'font-size:0.85rem;color:#3b82f6;\\'>Cliquer pour ouvrir dans Google Maps</span></div>'"
+                    alt="Carte — ${address}"
+                    style="width:100%; height:280px; object-fit:cover; display:block;">
+                <div style="padding:10px 16px; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:1rem;">📍</span>
+                    <span style="font-size:0.9rem; color:#3b82f6; font-weight:600;">Voir sur Google Maps — ${address}</span>
+                    <span style="margin-left:auto; font-size:0.8rem; color:#94a3b8;">↗</span>
+                </div>
+            </a>
+            <p style="margin-top: 10px; font-style: italic; color: #64748b; font-size: 0.85rem;">* Cliquer sur la carte pour ouvrir dans Google Maps. Localisation basée sur l'adresse du dossier.</p>
         </div>
         `;
     },
