@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kzo-inspect-v46';
+const CACHE_NAME = 'kzo-inspect-v47';
 const ASSETS = [
   'index.html',
   'KZO_Inspect.html',

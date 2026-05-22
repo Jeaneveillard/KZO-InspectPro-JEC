@@ -17,7 +17,7 @@ const inspectionData = {
         },
         { id: "s_admin", title: "1. Documents & Pré-inspection", key: "admin", icon: "📝",
           subSections: [
-            { id: "ss_admin_prop", title: "Propriété inspectée", fields: [
+            { id: "ss_admin_prop", title: "Propriété inspectée", noComment: true, fields: [
                 { id: "prop_address",  type: "text",   label: "Adresse du bâtiment",        placeholder: "Adresse complète..." },
                 { id: "prop_type",     type: "select", label: "Type de bâtiment",            options: ["Maison unifamiliale","Bungalow","Cottage / Split-level","Duplex","Triplex","Condo / Appartement","Maison de ville (Townhouse)","Chalet / Résidence secondaire"] },
                 { id: "prop_year",     type: "number", label: "Année de construction",       placeholder: "Ex: 1985" },
@@ -26,7 +26,7 @@ const inspectionData = {
                 { id: "condo_syndicat", type: "checkbox", label: "Déclaration de copropriété reçue", showIf: { field: 'prop_type', values: ['Condo / Appartement'] } },
                 { id: "condo_fonds",   type: "checkbox", label: "Fonds de prévoyance — Carnet d'entretien demandé au syndicat", showIf: { field: 'prop_type', values: ['Condo / Appartement'] } }
             ]},
-            { id: "ss_admin_client", title: "Client & Contrat", fields: [
+            { id: "ss_admin_client", title: "Client & Contrat", noComment: true, fields: [
                 { id: "client_names",      type: "clients", label: "Nom du/des Client(e)s" },
                 { id: "client_email",      type: "text",    label: "Email du client",           placeholder: "client@email.com" },
                 { id: "prix_inspection",   type: "number",  label: "Prix de l'inspection ($)",  placeholder: "Montant avant taxes (ex: 550)" },
@@ -35,7 +35,7 @@ const inspectionData = {
                 { id: "client_remote_sign",type: "action",  label: "Envoyer pour signature à distance" },
                 { id: "client_docs",       type: "file",    label: "Déclaration du vendeur / Documents remis" }
             ]},
-            { id: "ss_admin_insp", title: "Inspecteur & Conditions", fields: [
+            { id: "ss_admin_insp", title: "Inspecteur & Conditions", noComment: true, fields: [
                 { id: "inspection_code",  type: "text",   label: "Numéro de code de l'inspection", placeholder: "Ex: KZO-12345" },
                 { id: "inspection_date",  type: "date",   label: "Date de l'inspection" },
                 { id: "inspector_name",   type: "text",   label: "Nom de l'inspecteur",            placeholder: "Votre nom complet..." },

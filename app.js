@@ -1825,6 +1825,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             div.appendChild(galleryContainer);
 
             // --- Champ Commentaire + Sévérité (sous-section) ---
+            // Sous-sections administratives (données contractuelles) : pas de zone commentaire
+            if (sub.noComment) { container.appendChild(div); return; }
             const subCommentBlock = document.createElement('div');
             subCommentBlock.style.cssText = 'margin-top: 16px; padding: 14px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px;';
             // Construire les options du dropdown de modèles pour cette sous-section.
