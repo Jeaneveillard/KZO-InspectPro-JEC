@@ -1973,7 +1973,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         // --- Champ Commentaire + Sévérité (section principale) ---
-        if (!section.isCoverPage) {
+        if (!section.isCoverPage && !section.noComment) {
             const secCommentBlock = document.createElement('div');
             secCommentBlock.style.cssText = 'margin-top: 8px; margin-bottom: 24px; padding: 18px; background: #eff6ff; border: 2px solid #93c5fd; border-radius: 10px;';
             const secId = 'section_' + index;

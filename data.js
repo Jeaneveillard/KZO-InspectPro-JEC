@@ -15,7 +15,7 @@ const inspectionData = {
             { id: "cover_photo_4", type: "file", label: "Arrière du bâtiment" }
           ]}]
         },
-        { id: "s_admin", title: "1. Documents & Pré-inspection", key: "admin", icon: "📝",
+        { id: "s_admin", title: "1. Documents & Pré-inspection", key: "admin", icon: "📝", noComment: true,
           subSections: [
             { id: "ss_admin_prop", title: "Propriété inspectée", noComment: true, fields: [
                 { id: "prop_address",  type: "text",   label: "Adresse du bâtiment",        placeholder: "Adresse complète..." },
