@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' blob: data:; connect-src https://generativelanguage.googleapis.com https://api.openai.com https://api.anthropic.com https://api.groq.com https://oauth2.googleapis.com https://www.googleapis.com https://accounts.google.com https://script.google.com https://api.emailjs.com; frame-src https://accounts.google.com;">
     <title>KZO InspectPro — Projets</title>
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -514,17 +515,42 @@
         }
     }
 
+    function showConfirm(msg, onConfirm) {
+        const ov = document.createElement('div');
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;z-index:9999;';
+        const box = document.createElement('div');
+        box.style.cssText = 'background:#1e293b;border-radius:12px;padding:28px 24px;max-width:340px;width:90%;color:#f1f5f9;box-shadow:0 8px 32px rgba(0,0,0,0.5);';
+        const p = document.createElement('p');
+        p.style.cssText = 'margin-bottom:20px;font-size:0.95rem;line-height:1.5;';
+        p.textContent = msg;
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;';
+        const cancel = document.createElement('button');
+        cancel.textContent = 'Annuler';
+        cancel.style.cssText = 'padding:9px 18px;background:#334155;color:#f1f5f9;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;';
+        const ok = document.createElement('button');
+        ok.textContent = 'Supprimer';
+        ok.style.cssText = 'padding:9px 18px;background:#dc2626;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:700;';
+        cancel.onclick = () => ov.remove();
+        ok.onclick = () => { ov.remove(); onConfirm(); };
+        row.append(cancel, ok);
+        box.append(p, row);
+        ov.appendChild(box);
+        document.body.appendChild(ov);
+    }
+
     async function deleteProject(id) {
         const project = allProjects.find(p => p.id === id);
         const name = project ? project.clientName : id;
-        if (!confirm('Supprimer l\'inspection de "' + name + '" ?\nCette action est irréversible.')) return;
-        try {
-            await KZOStorage.deleteProject(id);
-            showToast('🗑️ Inspection supprimée');
-            await loadAndRender();
-        } catch (e) {
-            showToast('❌ Erreur suppression : ' + e.message, '#7f1d1d');
-        }
+        showConfirm('Supprimer l\'inspection de « ' + name + ' » ?\nCette action est irréversible.', async () => {
+            try {
+                await KZOStorage.deleteProject(id);
+                showToast('🗑️ Inspection supprimée');
+                await loadAndRender();
+            } catch (e) {
+                showToast('❌ Erreur suppression : ' + e.message, '#7f1d1d');
+            }
+        });
     }
 
     function triggerImport() {

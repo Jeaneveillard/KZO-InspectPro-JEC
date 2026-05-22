@@ -1,6 +1,5 @@
-const CACHE_NAME = 'kzo-inspect-v44';
+const CACHE_NAME = 'kzo-inspect-v45';
 const ASSETS = [
-  '/',
   'index.html',
   'KZO_Inspect.html',
   'style.css',
@@ -21,7 +20,8 @@ const ASSETS = [
   'google_calendar.js',
   'agenda.js',
   'photo_editor.js',
-  'login.html'
+  'login.html',
+  'login.js'
   // config.js exclu intentionnellement : contient des clés API sensibles
 ];
 

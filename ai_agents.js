@@ -1,5 +1,12 @@
 // Agents IA (Simulés pour le frontend)
 
+// Fetch avec timeout (45 s) — évite les blocages infinis si l'API ne répond pas
+function _fetchWithTimeout(url, options, ms = 45000) {
+    const ctrl = new AbortController();
+    const id = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { ...options, signal: ctrl.signal }).finally(() => clearTimeout(id));
+}
+
 // --- Base de données : Durées de vie typiques des équipements (Québec) ---
 const EQUIPMENT_LIFESPAN = {
     // Chauffage & CVAC
@@ -580,7 +587,7 @@ Règles :
                 // Étape 1 : Auto-découverte des modèles (pour contourner les restrictions régionales/de clés API)
                 let selectedModelName = "models/gemini-1.5-flash"; // Par défaut
                 try {
-                    const checkModelsRes = await fetch("https://generativelanguage.googleapis.com/v1beta/models?key=" + apiKey);
+                    const checkModelsRes = await _fetchWithTimeout("https://generativelanguage.googleapis.com/v1beta/models?key=" + apiKey);
                     if (checkModelsRes.ok) {
                         const modelsData = await checkModelsRes.json();
                         if (modelsData.models && modelsData.models.length > 0) {
@@ -600,7 +607,7 @@ Règles :
                 const url = "https://generativelanguage.googleapis.com/v1beta/" + selectedModelName + ":generateContent?key=" + apiKey;
                 const systemPrompt = "Tu es l'assistant IA expert d'un Inspecteur en Bâtiment d'Habitation certifié RBQ au Québec. Tu maîtrises parfaitement : la norme BNQ 3009-500 (Pratiques pour l'inspection en vue d'une transaction immobilière), le REIBH 2024 (RBQ), le Code National du Bâtiment (CNB 2020), le Code de Construction du Québec, le Code Électrique du Québec, le Code de Plomberie, et les normes InterNACHI, ainsi que les réglementations spécifiques au Québec (pyrite, amiante, radon, plomb). Tu connais les normes cheminée (NFPA 211), gaz (CSA B149.1), garage attaché, matières dangereuses et systèmes mécaniques. Réponds de manière experte, précise et concise en référençant toujours la norme ou le code applicable. Recommande toujours la sécurité.\n\nQuestion de l'inspecteur : " + question;
                 
-                const response = await fetch(url, {
+                const response = await _fetchWithTimeout(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -617,7 +624,7 @@ Règles :
                 textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
             } else if (provider === 'openai') {
-                const response = await fetch("https://api.openai.com/v1/chat/completions", {
+                const response = await _fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
                     body: JSON.stringify({ model: "gpt-4o", messages: [{role: "system", content: "Tu es l'assistant IA expert d'un Inspecteur en Bâtiment d'Habitation certifié RBQ au Québec. Tu maîtrises parfaitement : la norme BNQ 3009-500, le REIBH 2024 (RBQ), le Code National du Bâtiment (CNB 2020), le Code Électrique du Québec, le Code de Plomberie, et les normes InterNACHI, ainsi que les réglementations québécoises (pyrite, amiante, radon, plomb, garage, cheminée, matières dangereuses). Réponds de manière experte, précise et concise en citant toujours la norme applicable. Recommande toujours la sécurité et l'évaluation par un spécialiste si nécessaire."}, {role: "user", content: question }]})
@@ -630,7 +637,7 @@ Règles :
                 textResponse = data.choices?.[0]?.message?.content;
 
             } else if (provider === 'anthropic') {
-                const response = await fetch("https://api.anthropic.com/v1/messages", {
+                const response = await _fetchWithTimeout("https://api.anthropic.com/v1/messages", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -653,7 +660,7 @@ Règles :
                 textResponse = data.content?.[0]?.text;
 
             } else if (provider === 'groq') {
-                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                const response = await _fetchWithTimeout("https://api.groq.com/openai/v1/chat/completions", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
                     body: JSON.stringify({
@@ -780,7 +787,7 @@ Règles :
                   ]
                 : textPart;
 
-            const resp = await fetch('https://api.anthropic.com/v1/messages', {
+            const resp = await _fetchWithTimeout('https://api.anthropic.com/v1/messages', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -807,7 +814,7 @@ Règles :
             // Auto-découverte du modèle (même logique que askAssistant)
             let modelName = 'models/gemini-1.5-flash';
             try {
-                const checkRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + apiKey);
+                const checkRes = await _fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models?key=' + apiKey);
                 if (checkRes.ok) {
                     const modelsData = await checkRes.json();
                     const validModels = (modelsData.models || []).filter(m =>
@@ -828,7 +835,7 @@ Règles :
             parts.push({ text: textPart });
 
             const url = 'https://generativelanguage.googleapis.com/v1beta/' + modelName + ':generateContent?key=' + apiKey;
-            const resp = await fetch(url, {
+            const resp = await _fetchWithTimeout(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -852,7 +859,7 @@ Règles :
                   ]
                 : textPart;
 
-            const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+            const resp = await _fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -876,7 +883,7 @@ Règles :
 
         // ── GROQ (texte seulement) ─────────────────────────────────
         } else if (provider === 'groq') {
-            const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            const resp = await _fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

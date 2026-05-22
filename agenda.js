@@ -143,7 +143,10 @@
                     const msg = email
                         ? `Déconnecter le compte ${email} de Google Agenda ?`
                         : 'Déconnecter la synchronisation Google Agenda ?';
-                    if (confirm(msg)) {
+                    const ok = window._confirmModal
+                        ? await window._confirmModal(msg)
+                        : confirm(msg);
+                    if (ok) {
                         _gcal().disableSync();
                         _updateCalBtn();
                         _showToast('Google Agenda déconnecté.', 'info');
@@ -176,7 +179,7 @@
             btn.addEventListener('mouseleave', () => { btn.style.background = 'none'; });
             btn.addEventListener('click', async () => {
                 if (_notifStatus() === 'granted') {
-                    alert('Pour désactiver les notifications, allez dans les paramètres de votre navigateur.');
+                    _showToast('Pour désactiver les notifications, allez dans les paramètres de votre navigateur.', 'info');
                 } else {
                     const ok = await _requestNotifPermission();
                     if (ok) await _notifyTodayEvents();
@@ -452,7 +455,7 @@
         };
         if (window._confirmModal) {
             window._confirmModal('Supprimer ce rendez-vous ?').then(ok => { if (ok) doDelete(); });
-        } else if (confirm('Supprimer ce rendez-vous ?')) {
+        } else {
             doDelete();
         }
     };
