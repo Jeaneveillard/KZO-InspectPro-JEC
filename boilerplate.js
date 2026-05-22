@@ -266,15 +266,31 @@ const BOILERPLATE = {
             const lonF = parseFloat(lon);
             const delta = 0.004;
             const bbox  = `${lonF - delta},${latF - delta},${lonF + delta},${latF + delta}`;
-            const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latF},${lonF}`;
+            // Pas de &marker= → on enlève le ballon vert OSM et on met notre propre pin rouge
+            const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik`;
+            // Pin rouge SVG style Google Maps
+            const redPin = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="40" viewBox="0 0 28 40">
+                <path d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 26 14 26S28 24.5 28 14C28 6.27 21.73 0 14 0z" fill="#ea4335"/>
+                <circle cx="14" cy="14" r="6" fill="white"/>
+                <circle cx="14" cy="14" r="3.5" fill="#ea4335"/>
+            </svg>`;
             mapBlock = `
             <div style="border:1px solid #cbd5e1; border-radius:10px; overflow:hidden; box-shadow:0 4px 8px rgba(0,0,0,0.07); margin-bottom:10px;">
-                <iframe src="${osmUrl}" width="100%" height="350" frameborder="0" scrolling="no"
-                    style="display:block; border:none;" loading="lazy"
-                    title="Localisation — ${address}"></iframe>
+                <div style="position:relative;">
+                    <iframe src="${osmUrl}" width="100%" height="350" frameborder="0" scrolling="no"
+                        style="display:block; border:none;" loading="lazy"
+                        title="Localisation — ${address}"></iframe>
+                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-90%);pointer-events:none;z-index:10;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.35));">
+                        ${redPin}
+                    </div>
+                </div>
                 <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
                    style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#f8fafc;border-top:1px solid #e2e8f0;text-decoration:none;">
-                    <span style="font-size:1rem;">📍</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 28 40" style="flex-shrink:0;">
+                        <path d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 26 14 26S28 24.5 28 14C28 6.27 21.73 0 14 0z" fill="#ea4335"/>
+                        <circle cx="14" cy="14" r="6" fill="white"/>
+                        <circle cx="14" cy="14" r="3.5" fill="#ea4335"/>
+                    </svg>
                     <span style="font-size:0.9rem;color:#1d4ed8;font-weight:600;">Ouvrir dans Google Maps — ${address}</span>
                     <span style="margin-left:auto;color:#94a3b8;">↗</span>
                 </a>
