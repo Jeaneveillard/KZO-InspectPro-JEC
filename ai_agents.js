@@ -598,7 +598,7 @@ Règles :
                 } catch (e) { console.error("Erreur découverte des modèles: ", e); }
 
                 const url = "https://generativelanguage.googleapis.com/v1beta/" + selectedModelName + ":generateContent?key=" + apiKey;
-                const systemPrompt = "Tu es l'assistant IA expert d'un Inspecteur en Bâtiment d'Habitation certifié RBQ au Québec. Tu maîtrises parfaitement : la norme BNQ 3009-500 (Pratiques pour l'inspection en vue d'une transaction immobilière), le REIBH 2024 (RBQ), le Code National du Bâtiment (CNB 2020), le Code de Construction du Québec, le Code Électrique du Québec, le Code de Plomberie, les normes AIBQ et InterNACHI, ainsi que les réglementations spécifiques au Québec (pyrite, amiante, radon, plomb). Tu connais les normes cheminée (NFPA 211), gaz (CSA B149.1), garage attaché, matières dangereuses et systèmes mécaniques. Réponds de manière experte, précise et concise en référençant toujours la norme ou le code applicable. Recommande toujours la sécurité.\n\nQuestion de l'inspecteur : " + question;
+                const systemPrompt = "Tu es l'assistant IA expert d'un Inspecteur en Bâtiment d'Habitation certifié RBQ au Québec. Tu maîtrises parfaitement : la norme BNQ 3009-500 (Pratiques pour l'inspection en vue d'une transaction immobilière), le REIBH 2024 (RBQ), le Code National du Bâtiment (CNB 2020), le Code de Construction du Québec, le Code Électrique du Québec, le Code de Plomberie, et les normes InterNACHI, ainsi que les réglementations spécifiques au Québec (pyrite, amiante, radon, plomb). Tu connais les normes cheminée (NFPA 211), gaz (CSA B149.1), garage attaché, matières dangereuses et systèmes mécaniques. Réponds de manière experte, précise et concise en référençant toujours la norme ou le code applicable. Recommande toujours la sécurité.\n\nQuestion de l'inspecteur : " + question;
                 
                 const response = await fetch(url, {
                     method: "POST",
@@ -620,7 +620,7 @@ Règles :
                 const response = await fetch("https://api.openai.com/v1/chat/completions", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
-                    body: JSON.stringify({ model: "gpt-4o", messages: [{role: "system", content: "Tu es l'assistant IA expert d'un Inspecteur en Bâtiment d'Habitation certifié RBQ au Québec. Tu maîtrises parfaitement : la norme BNQ 3009-500, le REIBH 2024 (RBQ), le Code National du Bâtiment (CNB 2020), le Code Électrique du Québec, le Code de Plomberie, les normes AIBQ et InterNACHI, ainsi que les réglementations québécoises (pyrite, amiante, radon, plomb, garage, cheminée, matières dangereuses). Réponds de manière experte, précise et concise en citant toujours la norme applicable. Recommande toujours la sécurité et l'évaluation par un spécialiste si nécessaire."}, {role: "user", content: question }]})
+                    body: JSON.stringify({ model: "gpt-4o", messages: [{role: "system", content: "Tu es l'assistant IA expert d'un Inspecteur en Bâtiment d'Habitation certifié RBQ au Québec. Tu maîtrises parfaitement : la norme BNQ 3009-500, le REIBH 2024 (RBQ), le Code National du Bâtiment (CNB 2020), le Code Électrique du Québec, le Code de Plomberie, et les normes InterNACHI, ainsi que les réglementations québécoises (pyrite, amiante, radon, plomb, garage, cheminée, matières dangereuses). Réponds de manière experte, précise et concise en citant toujours la norme applicable. Recommande toujours la sécurité et l'évaluation par un spécialiste si nécessaire."}, {role: "user", content: question }]})
                 });
                 if (!response.ok) {
                     const errData = await response.json();
@@ -640,7 +640,7 @@ Règles :
                     },
                     body: JSON.stringify({
                         model: "claude-sonnet-4-5",
-                        system: "Tu es l'assistant IA expert d'un Inspecteur en Bâtiment d'Habitation certifié RBQ au Québec. Tu maîtrises parfaitement : la norme BNQ 3009-500 (Pratiques pour l'inspection en vue d'une transaction immobilière), le REIBH 2024 (RBQ), le Code National du Bâtiment (CNB 2020), le Code de Construction du Québec, le Code Électrique du Québec (CEQ), le Code de Plomberie du Québec, les normes AIBQ, InterNACHI et Réseau IBC, ainsi que les réglementations spécifiques au Québec (pyrite, pyrrhotite, amiante, radon, plomb). Tu connais les normes cheminée (NFPA 211), gaz (CSA B149.1), garage attaché (porte coupe-feu, gypse Type X, CO), matières dangereuses et systèmes mécaniques. Réponds de manière experte, précise, concise en référençant toujours la norme ou le code applicable. Recommande toujours la sécurité et l'évaluation par un spécialiste si nécessaire.",
+                        system: "Tu es l'assistant IA expert d'un Inspecteur en Bâtiment d'Habitation certifié RBQ au Québec. Tu maîtrises parfaitement : la norme BNQ 3009-500 (Pratiques pour l'inspection en vue d'une transaction immobilière), le REIBH 2024 (RBQ), le Code National du Bâtiment (CNB 2020), le Code de Construction du Québec, le Code Électrique du Québec (CEQ), le Code de Plomberie du Québec, les normes InterNACHI et Réseau IBC, ainsi que les réglementations spécifiques au Québec (pyrite, pyrrhotite, amiante, radon, plomb). Tu connais les normes cheminée (NFPA 211), gaz (CSA B149.1), garage attaché (porte coupe-feu, gypse Type X, CO), matières dangereuses et systèmes mécaniques. Réponds de manière experte, précise, concise en référençant toujours la norme ou le code applicable. Recommande toujours la sécurité et l'évaluation par un spécialiste si nécessaire.",
                         messages: [{role: "user", content: question }],
                         max_tokens: 1024
                     })
@@ -659,7 +659,7 @@ Règles :
                     body: JSON.stringify({
                         model: "llama-3.3-70b-versatile",
                         messages: [
-                            { role: "system", content: "Tu es l'assistant IA expert d'un Inspecteur en Bâtiment d'Habitation certifié RBQ au Québec. Tu maîtrises parfaitement : la norme BNQ 3009-500 (Pratiques pour l'inspection en vue d'une transaction immobilière), le REIBH 2024 (RBQ), le Code National du Bâtiment (CNB 2020), le Code de Construction du Québec, le Code Électrique du Québec (CEQ), le Code de Plomberie du Québec, les normes AIBQ, InterNACHI et Réseau IBC, ainsi que les réglementations spécifiques au Québec (pyrite, pyrrhotite, amiante, radon, plomb). Tu connais les normes cheminée (NFPA 211), gaz (CSA B149.1), garage attaché (porte coupe-feu, gypse Type X, CO), matières dangereuses et systèmes mécaniques. Réponds de manière experte, précise, concise en référençant toujours la norme ou le code applicable. Recommande toujours la sécurité et l'évaluation par un spécialiste si nécessaire." },
+                            { role: "system", content: "Tu es l'assistant IA expert d'un Inspecteur en Bâtiment d'Habitation certifié RBQ au Québec. Tu maîtrises parfaitement : la norme BNQ 3009-500 (Pratiques pour l'inspection en vue d'une transaction immobilière), le REIBH 2024 (RBQ), le Code National du Bâtiment (CNB 2020), le Code de Construction du Québec, le Code Électrique du Québec (CEQ), le Code de Plomberie du Québec, les normes InterNACHI et Réseau IBC, ainsi que les réglementations spécifiques au Québec (pyrite, pyrrhotite, amiante, radon, plomb). Tu connais les normes cheminée (NFPA 211), gaz (CSA B149.1), garage attaché (porte coupe-feu, gypse Type X, CO), matières dangereuses et systèmes mécaniques. Réponds de manière experte, précise, concise en référençant toujours la norme ou le code applicable. Recommande toujours la sécurité et l'évaluation par un spécialiste si nécessaire." },
                             { role: "user", content: question }
                         ],
                         max_tokens: 1024
@@ -1011,12 +1011,12 @@ Règles :
         progress('agent2_done', 'Agent 2 terminé — Niveau global : ' + (agent2Result.niveau_global || '?'));
 
         // ──────────────────────────────────────────────────────────
-        // AGENT 3 — Rédacteur Pro (rapport AIBQ)
+        // AGENT 3 — Rédacteur Pro
         // ──────────────────────────────────────────────────────────
         progress('agent3', 'Agent 3 en cours — Rédaction du texte de rapport professionnel...');
 
         const systemAgent3 = [
-            'Tu es un rédacteur expert en rapports d\'inspection en bâtiment au Québec (style AIBQ / InterNACHI).',
+            'Tu es un rédacteur expert en rapports d\'inspection en bâtiment au Québec (style professionnel / InterNACHI).',
             'Rédige un texte de rapport professionnel en français, ton neutre et factuel, maximum 300 mots.',
             'Utilise toujours la formule "à la date de l\'inspection" — jamais de garanties ni de prédictions absolues.',
             'Ne retourne QUE le texte du rapport. Pas d\'introduction, pas de JSON, pas de titres ni de puces.',
@@ -1109,7 +1109,7 @@ Règles :
         if (conformeCount > 0) parts.push(`Éléments conformes : ${conformeCount}`);
         if (notesExistantes) parts.push(`Notes de l'inspecteur : ${notesExistantes}`);
 
-        const prompt = `Tu es un inspecteur en bâtiment certifié RBQ au Québec, rédigeant un rapport selon la norme REIBH 2024 et BNQ 3009-500.\n\nSection inspectée : "${section.title}"\n${parts.join('\n')}\n\nRédige un paragraphe de synthèse professionnel en français québécois (voix impersonnelle, style AIBQ) qui :\n1. Décrit les défauts observés et leur nature\n2. Évalue la sévérité globale (URGENT / MAJEUR / À SURVEILLER selon la gravité)\n3. Recommande les actions correctives et le type de spécialiste à consulter\n4. Conclut par : "Cette observation est basée sur une inspection visuelle et non destructive selon REIBH 2024."\n\nLongueur : 150 à 250 mots. Ton : factuel, professionnel, non alarmiste. Ne pas inventer de défauts non mentionnés.`;
+        const prompt = `Tu es un inspecteur en bâtiment certifié RBQ au Québec, rédigeant un rapport selon la norme REIBH 2024 et BNQ 3009-500.\n\nSection inspectée : "${section.title}"\n${parts.join('\n')}\n\nRédige un paragraphe de synthèse professionnel en français québécois (voix impersonnelle) qui :\n1. Décrit les défauts observés et leur nature\n2. Évalue la sévérité globale (URGENT / MAJEUR / À SURVEILLER selon la gravité)\n3. Recommande les actions correctives et le type de spécialiste à consulter\n4. Conclut par : "Cette observation est basée sur une inspection visuelle et non destructive selon REIBH 2024."\n\nLongueur : 150 à 250 mots. Ton : factuel, professionnel, non alarmiste. Ne pas inventer de défauts non mentionnés.`;
 
         return await AIAgents.askAssistant(prompt);
     },

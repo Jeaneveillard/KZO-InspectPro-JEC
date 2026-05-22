@@ -226,6 +226,15 @@ window.KZOStorage = (function () {
         const data = inspection.data;
         (data.units || []).forEach(unit => { unit.sectionPhotos = {}; });
 
+        // Assainir les URLs sensibles du clientInfo (provenant d'un JSON non validé)
+        if (data.clientInfo) {
+            const _safeUrl = u => (typeof u === 'string' && (u.startsWith('data:image/') || u.startsWith('blob:'))) ? u : null;
+            data.clientInfo.coverPhotoUrl      = _safeUrl(data.clientInfo.coverPhotoUrl);
+            data.clientInfo.signatureUrl       = _safeUrl(data.clientInfo.signatureUrl);
+            data.clientInfo.sealUrl            = _safeUrl(data.clientInfo.sealUrl);
+            data.clientInfo.clientSignatureUrl = _safeUrl(data.clientInfo.clientSignatureUrl);
+        }
+
         for (const entry of (inspection.photoIndex || [])) {
             const zipEntry = zip.file(entry.file);
             if (!zipEntry) continue;
@@ -244,9 +253,10 @@ window.KZOStorage = (function () {
         // Vérifier si un projet existant a le même ID
         const existing = await loadProject(projectId);
         if (existing) {
-            const overwrite = confirm(
-                'Un projet "' + existing.clientName + '" (' + projectId + ') existe déjà.\nÉcraser avec le fichier importé ?'
-            );
+            const msg = 'Un projet "' + existing.clientName + '" (' + projectId + ') existe déjà.\nÉcraser avec le fichier importé ?';
+            const overwrite = window._confirmModal
+                ? await window._confirmModal(msg)
+                : confirm(msg);
             if (!overwrite) return null;
         }
 

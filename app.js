@@ -64,6 +64,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // Exposer les utilitaires UI sur window pour les modules externes (photo_editor.js, agenda.js, kzo_modals.js)
+    window._promptModal  = _promptModal;
+    window._confirmModal = _confirmModal;
+    window.showToast     = showToast;
+    window.sanitizeHTML  = sanitizeHTML;
+
     // Validation de fichier (taille max 10 Mo, types image uniquement)
     function validateFile(file) {
         const MAX_SIZE = 10 * 1024 * 1024;
@@ -317,18 +323,52 @@ document.addEventListener('DOMContentLoaded', async () => {
         inspectionData.id = window.currentProjectId;
     }
 
-    // Charger les données persistées depuis localStorage
-    const savedInspectorName = localStorage.getItem('inspectpro_inspector_name') || '';
+    // Charger les préférences inspecteur — localStorage en priorité, sinon fallback IndexedDB
+    // (Si localStorage est vidé, les valeurs du projet IndexedDB sont conservées)
+    const savedInspectorName = localStorage.getItem('inspectpro_inspector_name')
+        || inspectionData.clientInfo.inspectorName || '';
     let savedClientNames = [];
     try { savedClientNames = JSON.parse(localStorage.getItem('inspectpro_client_names')) || []; } catch(e) { savedClientNames = []; }
-    if (!Array.isArray(savedClientNames) || savedClientNames.length === 0) savedClientNames = [''];
-    const savedClientAddress = localStorage.getItem('inspectpro_client_address') || '';
-    const savedClientEmail   = localStorage.getItem('inspectpro_client_email') || '';
+    if (!Array.isArray(savedClientNames) || savedClientNames.length === 0) {
+        savedClientNames = (Array.isArray(inspectionData.clientInfo.names) && inspectionData.clientInfo.names.filter(Boolean).length)
+            ? inspectionData.clientInfo.names
+            : [''];
+    }
+    const savedClientAddress = localStorage.getItem('inspectpro_client_address')
+        || inspectionData.clientInfo.address || '';
+    const savedClientEmail = localStorage.getItem('inspectpro_client_email')
+        || inspectionData.clientInfo.email || '';
+
     inspectionData.clientInfo.inspectorName = savedInspectorName;
-    inspectionData.clientInfo.names = savedClientNames;
-    inspectionData.clientInfo.name = savedClientNames.filter(n => n).join(' & ');
+    inspectionData.clientInfo.names   = savedClientNames;
+    inspectionData.clientInfo.name    = savedClientNames.filter(n => n).join(' & ');
     inspectionData.clientInfo.address = savedClientAddress;
     inspectionData.clientInfo.email   = savedClientEmail;
+
+    // Resynchroniser localStorage depuis IndexedDB si des valeurs manquaient
+    if (savedInspectorName) localStorage.setItem('inspectpro_inspector_name', savedInspectorName);
+    if (savedClientAddress)  localStorage.setItem('inspectpro_client_address', savedClientAddress);
+    if (savedClientEmail)    localStorage.setItem('inspectpro_client_email', savedClientEmail);
+    if (savedClientNames.filter(Boolean).length)
+        localStorage.setItem('inspectpro_client_names', JSON.stringify(savedClientNames));
+
+    // --- Remplissage via Agenda (URL params) ---
+    if (_isNewProject) {
+        const agendaClient = _urlParams.get('client');
+        const agendaAddr = _urlParams.get('address');
+        if (agendaClient) {
+            inspectionData.clientInfo.names = [agendaClient];
+            inspectionData.clientInfo.name = agendaClient;
+        }
+        if (agendaAddr) {
+            inspectionData.clientInfo.address = agendaAddr;
+            // Pré-remplir l'adresse dans le champ du formulaire
+            if (inspectionData.units && inspectionData.units[0]) {
+                if (!inspectionData.units[0].fieldStates) inspectionData.units[0].fieldStates = {};
+                inspectionData.units[0].fieldStates['prop_address'] = agendaAddr;
+            }
+        }
+    }
 
     // Initialiser les objets de commentaires si absents
     if (!inspectionData.comments) inspectionData.comments = {};
@@ -1056,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // Menu déroulant d'état
                     const stateSelect = document.createElement('select');
                     stateSelect.id = field.id + '_state';
-                    stateSelect.style.cssText = 'padding: 6px 10px; border-radius: 8px; border: 2px solid #e2e8f0; font-size: 0.88rem; font-weight: 600; cursor: pointer; background: white; min-width: 160px; flex-shrink: 0;';
+                    stateSelect.style.cssText = 'padding: 6px 10px; border-radius: 8px; border: 2px solid #e2e8f0; font-size: 0.88rem; font-weight: 600; cursor: pointer; background: white; width: max-content; min-width: 160px; flex-shrink: 0;';
 
                     const states = [
                         { value: '', label: '— Sélectionner —', color: '#94a3b8', bg: '#f8fafc' },
@@ -1488,25 +1528,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     } else if (field.id === 'client_remote_sign') {
                         const remoteBtn = document.createElement('button');
                         remoteBtn.type = 'button';
-                        remoteBtn.textContent = '📧 Envoyer pour signature à distance';
+                        remoteBtn.textContent = '📧 Envoyer la convention à distance';
                         remoteBtn.style.cssText = 'width:100%;padding:11px;background:#334155;color:#cbd5e1;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer;margin-top:8px;';
-                        remoteBtn.onclick = async () => {
-                            const clientEmail = inspectionData.clientInfo.email || '';
-                            if (!clientEmail) { showToast('Veuillez saisir l\'email du client d\'abord.', 'warning'); return; }
-                            remoteBtn.disabled = true;
-                            remoteBtn.textContent = '…';
-                            try {
-                                const html = _buildReportHTML(inspectionData.currentUnitId);
-                                const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-                                if (typeof GoogleDrive !== 'undefined') {
-                                    await GoogleDrive.syncInspection(window.currentProjectId, blob, inspectionData.currentUnitId);
-                                }
-                                await sendReportByEmail(inspectionData.currentUnitId);
-                                remoteBtn.textContent = '✅ Envoyé pour signature';
-                            } catch (e) {
-                                showToast('Erreur : ' + (e.text || e.message || 'inconnu'), 'error');
-                                remoteBtn.disabled = false;
-                                remoteBtn.textContent = '📧 Envoyer pour signature à distance';
+                        remoteBtn.onclick = () => {
+                            if (typeof window.openRemoteSignModal === 'function') {
+                                window.openRemoteSignModal();
+                            } else {
+                                showToast('Modale de signature indisponible.', 'error');
                             }
                         };
                         fieldGroup.appendChild(remoteBtn);
@@ -1821,6 +1849,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <optgroup label="✅ Conforme">${_posOptions}</optgroup>
                             <optgroup label="❌ Défaut">${_negOptions}</optgroup>
                         </select>
+                        <button type="button" id="lib_aibq_${sub.id}" style="padding:6px 14px; background:linear-gradient(135deg,#047857,#059669); color:white; border:none; border-radius:20px; font-size:0.8rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;" title="Ouvrir la bibliothèque de remarques professionnelles">
+                            📚 Biblio de Défauts
+                        </button>
                         <button type="button" id="ia_redige_${sub.id}" style="padding:6px 14px; background:linear-gradient(135deg,#1d4ed8,#7c3aed); color:white; border:none; border-radius:20px; font-size:0.8rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
                             ✨ IA Rédige
                         </button>
@@ -1863,6 +1894,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     await generateSubSectionComment(sub, textarea);
                     iaBtn.textContent = '✨ IA Rédige';
                     iaBtn.disabled = false;
+                });
+            }
+
+            // Brancher le bouton Biblio
+            const libBtn = subCommentBlock.querySelector(`#lib_aibq_${sub.id}`);
+            if (libBtn) {
+                libBtn.addEventListener('click', () => {
+                    const textarea = subCommentBlock.querySelector(`#comment_txt_${sub.id}`);
+                    openAIBQLibraryModal(sub.id, sub.title, _tpls, textarea);
                 });
             }
 
@@ -2255,7 +2295,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Reset states
         photoArea.classList.remove('taken');
         photoText.style.display = 'block';
-        photoText.innerHTML = 'Appuyez pour prendre une photo du défaut';
+        photoText.textContent = 'Appuyez pour prendre une photo du défaut';
         simulatedImg.style.display = 'none';
         drawCanvas.style.display = 'none';
         drawToolbar.style.display = 'none';
@@ -2587,7 +2627,7 @@ Réponds en français.`;
                 await writable.write(blob);
                 await writable.close();
                 const savedName = _kzoFileHandle.name || filename;
-                exportKzoBtn.textContent = '💾 .kzo';
+                exportKzoBtn.textContent = '💾 Exporter (.kzo)';
                 exportKzoBtn.title = 'Enregistrer — ' + savedName;
                 if (exportKzoAsBtn) exportKzoAsBtn.classList.remove('tb-hidden');
                 showToast('💾 Enregistré : ' + savedName, 'success');
@@ -2865,8 +2905,8 @@ Réponds en français.`;
         const prix = prixElement ? prixElement.value : "500";
         const normeElement = document.getElementById('norme_pratique');
         const norme = (normeElement && normeElement.value) ? normeElement.value : "BNQ 3009-500 (RBQ)";
-        const signatureUrl = inspectionData.clientInfo.signatureUrl || null;
-        const sealUrl = inspectionData.clientInfo.sealUrl || null;
+        const signatureUrl = _isSafePhotoUrl(inspectionData.clientInfo.signatureUrl) ? inspectionData.clientInfo.signatureUrl : null;
+        const sealUrl      = _isSafePhotoUrl(inspectionData.clientInfo.sealUrl)      ? inspectionData.clientInfo.sealUrl      : null;
         const inspectorName = inspectionData.clientInfo.inspectorName || (typeof KZO_OWNER_PROFILE !== 'undefined' ? KZO_OWNER_PROFILE.inspectorName : 'Jean Eveillard Cazeau');
 
         // Utiliser la date de l'inspection saisie, pas aujourd'hui
@@ -2931,7 +2971,7 @@ Réponds en français.`;
                     </div>
                     ` : `<div style="margin-bottom:20px;"></div>`}
 
-                    ${inspectionData.clientInfo.coverPhotoUrl
+                    ${_isSafePhotoUrl(inspectionData.clientInfo.coverPhotoUrl)
                         ? `<img src="${inspectionData.clientInfo.coverPhotoUrl}" style="width: 100%; max-height: 380px; object-fit: cover; border-radius: 12px; border: 2px solid #1A56DB; margin-bottom: 50px;">`
                         : `<div style="width: 100%; height: 280px; background: #1e293b; border: 2px dashed #334155; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #475569; font-size: 1.1rem; margin-bottom: 50px;">📷 Photo de façade non fournie</div>`}
 
@@ -3248,7 +3288,7 @@ Réponds en français.`;
         // ATTESTATION
         if (BOILERPLATE.attestation) html += BOILERPLATE.attestation(clientName, safeInspectorName, signatureUrl, sealUrl);
 
-        const clientSigUrl = inspectionData.clientInfo.clientSignatureUrl || null;
+        const clientSigUrl = _isSafePhotoUrl(inspectionData.clientInfo.clientSignatureUrl) ? inspectionData.clientInfo.clientSignatureUrl : null;
         if (clientSigUrl) {
             const sigDate = new Date().toLocaleDateString('fr-CA');
             html += `<div style="margin-top:40px;padding:24px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;page-break-inside:avoid;">
@@ -3435,20 +3475,20 @@ Réponds en français.`;
     }
 
     // --- Bouton Nouvelle Inspection ---
-    function resetInspection() {
-        if (confirm('Retourner à l\'accueil ? L\'inspection en cours a été sauvegardée.')) {
-            window.location.href = 'index.html';
-        }
+    async function resetInspection() {
+        const ok = await _confirmModal('Retourner à l\'accueil ? L\'inspection en cours a été sauvegardée.');
+        if (ok) window.location.href = 'index.html';
     }
 
     // Ajouter bouton Nouvelle Inspection dans la topbar
     const topBar = document.querySelector('.top-bar');
     if (topBar) {
         const newInspBtn = document.createElement('button');
+        newInspBtn.type = 'button';
         newInspBtn.textContent = '🆕 Nouvelle inspection';
         newInspBtn.style.cssText = 'background: #059669; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; margin-right: 8px;';
-        newInspBtn.onclick = resetInspection;
-        topBar.insertBefore(newInspBtn, topBar.querySelector('.assistant-btn'));
+        newInspBtn.addEventListener('click', resetInspection);
+        topBar.insertBefore(newInspBtn, document.getElementById('assistantBtn'));
     }
 
     // Capture de tous les changements du formulaire
@@ -3857,10 +3897,10 @@ Réponds en français.`;
             };
         }
 
-        function startDraw(e) {
+        async function startDraw(e) {
             const pos = getCanvasPos(e);
             if (activeTool === 'text') {
-                const text = window.prompt('Texte :', '');
+                const text = await _promptModal('Texte :', '');
                 if (text) shapes.push({ type: 'text', startX: pos.x, startY: pos.y, endX: pos.x, endY: pos.y, color: activeColor, text });
                 redrawCanvas();
                 return;
@@ -3952,6 +3992,80 @@ Réponds en français.`;
 
         cancelBtn.onclick = () => overlay.remove();
     }
+
+    // Modal Bibliothèque
+    function openAIBQLibraryModal(subId, subTitle, tpls, targetTextarea) {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.8);z-index:99999;display:flex;justify-content:center;align-items:center;padding:20px;backdrop-filter:blur(3px);';
+        
+        const box = document.createElement('div');
+        box.style.cssText = 'background:white;width:100%;max-width:800px;max-height:85vh;border-radius:12px;display:flex;flex-direction:column;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);overflow:hidden;';
+
+        const header = document.createElement('div');
+        header.style.cssText = 'padding:16px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;';
+        header.innerHTML = `<h3 style="margin:0;font-size:1.1rem;color:#0f172a;">📚 Bibliothèque Pro — ${sanitizeHTML(subTitle)}</h3>
+                            <button id="closeLibBtn" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#64748b;">✕</button>`;
+
+        const content = document.createElement('div');
+        content.style.cssText = 'padding:20px;overflow-y:auto;flex:1;background:#fff;';
+
+        const renderItem = (text, type) => {
+            const card = document.createElement('div');
+            card.style.cssText = `margin-bottom:12px;padding:16px;border-left:4px solid ${type === 'positive' ? '#10b981' : '#ef4444'};background:#f8fafc;border-radius:0 8px 8px 0;display:flex;flex-direction:column;gap:10px;`;
+            
+            const p = document.createElement('p');
+            p.textContent = text;
+            p.style.cssText = 'margin:0;font-size:0.95rem;color:#334155;line-height:1.5;';
+            
+            const btn = document.createElement('button');
+            btn.textContent = '📥 Insérer dans le rapport';
+            btn.type = 'button';
+            btn.style.cssText = 'align-self:flex-start;padding:6px 12px;background:#e2e8f0;color:#0f172a;border:none;border-radius:6px;font-weight:600;font-size:0.85rem;cursor:pointer;transition:background 0.2s;';
+            btn.onmouseover = () => btn.style.background = '#cbd5e1';
+            btn.onmouseout = () => btn.style.background = '#e2e8f0';
+            btn.onclick = () => {
+                targetTextarea.value = targetTextarea.value.trim() 
+                    ? targetTextarea.value.trimEnd() + '\\n\\n' + text 
+                    : text;
+                targetTextarea.dispatchEvent(new Event('input')); // trigger save
+                targetTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                overlay.remove();
+            };
+
+            card.appendChild(p);
+            card.appendChild(btn);
+            return card;
+        };
+
+        if (tpls.negative.length > 0) {
+            const hDefaut = document.createElement('h4');
+            hDefaut.textContent = '❌ Défauts et Recommandations';
+            hDefaut.style.cssText = 'margin:0 0 12px 0;color:#b91c1c;font-size:1rem;';
+            content.appendChild(hDefaut);
+            tpls.negative.forEach(t => content.appendChild(renderItem(t, 'negative')));
+        }
+
+        if (tpls.positive.length > 0) {
+            const hConforme = document.createElement('h4');
+            hConforme.textContent = '✅ Observations Conformes';
+            hConforme.style.cssText = 'margin:20px 0 12px 0;color:#047857;font-size:1rem;';
+            content.appendChild(hConforme);
+            tpls.positive.forEach(t => content.appendChild(renderItem(t, 'positive')));
+        }
+
+        if (tpls.positive.length === 0 && tpls.negative.length === 0) {
+            content.innerHTML = '<p style="color:#64748b;font-style:italic;">Aucun modèle disponible pour cette section.</p>';
+        }
+
+        box.appendChild(header);
+        box.appendChild(content);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+
+        overlay.querySelector('#closeLibBtn').onclick = () => overlay.remove();
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+    }
+
 });
 
 

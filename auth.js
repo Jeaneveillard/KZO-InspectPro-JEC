@@ -24,7 +24,7 @@
     }
 
     let _loginAttempts = 0;
-    let _lockoutUntil  = 0;
+    let _lockoutUntil  = parseInt(sessionStorage.getItem('kzo_lockout_until') || '0', 10);
 
     async function login(password) {
         if (Date.now() < _lockoutUntil) {
@@ -40,6 +40,7 @@
         _loginAttempts++;
         if (_loginAttempts >= 5) {
             _lockoutUntil  = Date.now() + 30 * 1000;
+            sessionStorage.setItem('kzo_lockout_until', String(_lockoutUntil));
             _loginAttempts = 0;
             throw new Error('5 tentatives échouées. Compte bloqué 30 secondes.');
         }
@@ -92,7 +93,7 @@
     }
 
     async function sendResetEmail() {
-        const code = generateResetCode();
+        const code = await generateResetCode();
         const cfg  = (typeof KZO_CONFIG !== 'undefined') ? KZO_CONFIG : {};
         if (!cfg.EMAILJS_SERVICE_ID || !cfg.EMAILJS_PUBLIC_KEY) {
             console.warn('[KZOAuth] EmailJS non configuré dans config.js');

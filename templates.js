@@ -1,6 +1,6 @@
 // ============================================================
 //  KZO InspectPro — Bibliothèque de modèles de commentaires
-//  Phrases pré-écrites en style AIBQ (voix impersonnelle, factuelle)
+//  Phrases pré-écrites (voix impersonnelle, factuelle)
 //  pour accélérer la saisie sur le terrain.
 // ============================================================
 
@@ -160,32 +160,258 @@ const COMMENT_TEMPLATES = {
     // Surcharge ponctuelle pour les sous-sections très spécifiques.
     bySubSection: {
 
-        ss_da_1: { // Amiante
+        ss_st_0: { // Aménagement et Pente
             positive: [
-                "Aucun matériau suspect d'amiante n'a été identifié visuellement au moment de l'inspection. Note : seul un échantillonnage en laboratoire accrédité peut confirmer l'absence d'amiante."
+                "L'aménagement paysager, les entrées et la pente du terrain autour du bâtiment favorisent un bon écoulement des eaux de ruissellement loin des fondations. Aucune condition propice aux infiltrations d'eau n'a été observée à ce niveau."
             ],
             negative: [
-                "De la vermiculite Zonolite est suspectée dans l'isolant du grenier. Le risque de contamination à l'amiante (mine Libby, Montana) est de l'ordre de 70 % selon les études disponibles. Aucune perturbation ne doit être effectuée avant analyse en laboratoire accrédité.",
-                "Du calorifugeage en amiante est suspecté sur la tuyauterie ou les équipements de chauffage. S'il est intact, il peut être laissé en place sous surveillance. S'il est endommagé ou friable, une décontamination par entrepreneur certifié est requise."
+                "Il a été observé une pente de terrain négative vers le bâtiment. Cette condition dirige les eaux de ruissellement directement vers les murs de fondation, augmentant considérablement le risque d'infiltration d'eau au sous-sol et de dégradation prématurée des matériaux. Nous recommandons de revoir l'aménagement paysager afin de créer une pente positive s'éloignant du bâtiment sur une distance d'au moins 1.5 mètre (5 pieds).",
+                "Les descentes de gouttières déversent l'eau trop près des fondations. Cette concentration d'eau saturera le sol près des murs de fondation, ce qui peut surcharger le système de drainage (drain français) et provoquer des infiltrations. Nous recommandons l'installation de rallonges ou de blocs parapluies pour éloigner l'eau d'au moins 1.5 mètre du bâtiment."
+            ]
+        },
+
+        ss_st_1: { // Fondations
+            positive: [
+                "L'inspection visuelle de la portion exposée des murs de fondation n'a révélé aucun signe de mouvement structural, d'efflorescence majeure ou de fissuration active au moment de l'inspection."
+            ],
+            negative: [
+                "Des fissures ont été observées sur les murs de fondation. Bien que certaines fissures puissent être attribuables au retrait normal du béton, toute ouverture dans la fondation représente une voie potentielle pour les infiltrations d'eau et les insectes. Nous recommandons de faire sceller ces fissures par l'extérieur ou par injection d'époxy/polyuréthane par un entrepreneur spécialisé afin de garantir l'étanchéité.",
+                "La présence d'efflorescence (dépôts de sels minéraux blanchâtres) a été notée sur les murs de fondation intérieurs. Ce phénomène indique une migration d'humidité à travers le béton, souvent due à un drainage périphérique déficient ou en fin de vie utile. Nous recommandons de faire évaluer la condition du drain français par inspection télévisée (caméra) afin d'en vérifier la fonctionnalité."
+            ]
+        },
+
+        ss_st_2: { // Revêtement extérieur
+            positive: [
+                "Le revêtement extérieur mural, les solins et les éléments d'étanchéité visibles apparaissent en bon état. Les joints de calfeutrage autour des ouvertures sont souples et assurent une bonne barrière contre les intempéries."
+            ],
+            negative: [
+                "Le revêtement extérieur présente des dommages et/ou des sections détériorées. Ces ouvertures dans l'enveloppe du bâtiment permettent l'infiltration d'eau et d'humidité dans la structure murale, ce qui peut causer de la pourriture cachée et le développement de moisissures. Une réparation immédiate par un menuisier ou un entrepreneur spécialisé est requise.",
+                "Les joints de calfeutrage autour des portes, des fenêtres ou des pénétrations extérieures sont desséchés, fissurés ou manquants. L'intégrité de l'enveloppe est compromise. Nous recommandons de retirer le calfeutrage existant et de refaire tous les joints avec un scellant de haute qualité (ex. polyuréthane) pour prévenir toute infiltration d'eau."
+            ]
+        },
+
+        ss_to_0: { // Toiture
+            positive: [
+                "La couverture du toit présente une usure normale pour son âge. Les bardeaux, les solins et les éléments de ventilation au toit sont bien en place et ne montrent aucune déficience d'importance immédiate."
+            ],
+            negative: [
+                "La couverture du toit présente des signes d'usure avancée (gondolement, perte importante de granules, bardeaux fendillés ou manquants). Le revêtement a atteint ou dépassé sa fin de vie utile et ne garantit plus l'étanchéité du bâtiment. Le remplacement complet de la couverture du toit doit être planifié et exécuté à court terme par un couvreur qualifié.",
+                "Des anomalies ont été observées au niveau des solins métalliques (cheminée, murs adjacents, noues, évents). Les solins sont souvent la première cause d'infiltration d'eau au toit s'ils sont mal installés ou détériorés. Une intervention d'entretien correctif par un ferblantier ou un couvreur est fortement recommandée pour assurer l'étanchéité à ces jonctions."
+            ]
+        },
+
+        ss_to_1: { // Grenier
+            positive: [
+                "L'inspection du grenier n'a révélé aucun signe d'infiltration d'eau active ni de condensation excessive. La ventilation semble adéquate et l'isolant est bien réparti."
+            ],
+            negative: [
+                "Une mauvaise ventilation de l'entretoit a été constatée (soffites bloqués par l'isolant, nombre insuffisant d'évents de toit). Une ventilation déficiente entraîne une surchauffe du grenier en été et de la condensation en hiver, pouvant mener à la formation de barrages de glace et au développement de moisissures sur la charpente. Il est recommandé de dégager les corniches et de s'assurer d'un flux d'air continu selon les normes du bâtiment.",
+                "Des taches sombres s'apparentant à des moisissures ont été observées sur le pontage de toit et les fermes de toit. Ceci est généralement symptomatique d'une ventilation déficiente combinée à des fuites d'air chaud et humide provenant de l'espace habitable (ex. ventilateur de salle de bain évacuant dans le grenier). Nous recommandons d'investiguer et de corriger les sources d'humidité, d'améliorer la ventilation, et de faire nettoyer le bois par une entreprise spécialisée en décontamination."
+            ]
+        },
+
+        ss_pl_0: { // Chauffe-eau
+            positive: [
+                "Le chauffe-eau est d'installation récente, ne présente aucun signe de fuite ni de corrosion, et son alimentation électrique ainsi que sa tuyauterie apparaissent conformes aux bonnes pratiques."
+            ],
+            negative: [
+                "Le chauffe-eau a atteint ou dépassé l'âge limite généralement reconnu par les assureurs (10 à 12 ans). Les risques de rupture du réservoir et de dégâts d'eau majeurs augmentent considérablement après cette période. Nous recommandons le remplacement préventif de cet appareil par un plombier certifié.",
+                "Il n'y a pas de tuyau de décharge relié à la soupape de sûreté (température et pression) du chauffe-eau, ou celui-ci est mal dirigé. En cas de surpression, de l'eau bouillante pourrait être projetée, causant un risque grave de brûlure. Il faut faire installer un tuyau de décharge rigide orienté vers le sol (à environ 15 cm du plancher) par un plombier."
+            ]
+        },
+        
+        ss_el_1: { // Panneau électrique
+            positive: [
+                "Le panneau de distribution électrique principal et ses composantes visibles sont en bon état. La capacité semble suffisante pour une utilisation résidentielle standard, et aucune surchauffe ni bricolage dangereux n'a été observé."
+            ],
+            negative: [
+                "Le panneau électrique contient des disjoncteurs surchargés (double-tap), où plus d'un fil est connecté sur un disjoncteur conçu pour un seul conducteur. Cette situation peut causer des arcs électriques, un échauffement et un risque d'incendie. Une vérification et une correction par un maître électricien sont recommandées.",
+                "La capacité de l'entrée électrique (ex: 60 ampères) est considérée comme désuète et insuffisante selon les standards de vie modernes. L'ajout d'appareils électriques sera limité ou impossible. Nous recommandons de planifier la modernisation de l'entrée électrique à au moins 100 ou 200 ampères par un maître électricien certifié."
+            ]
+        },
+
+        ss_cv_1: { // Chauffage
+            positive: [
+                "Le système de chauffage principal est fonctionnel au moment de l'inspection. Il répond normalement aux commandes du thermostat et la chaleur est distribuée adéquatement."
+            ],
+            negative: [
+                "Le système de chauffage est ancien et approche la fin de sa vie utile estimée. Bien qu'il fonctionne actuellement, son efficacité énergétique est moindre et le risque de bris est accru. Il est recommandé de prévoir un budget pour son remplacement à moyen terme et d'assurer un entretien annuel rigoureux d'ici là.",
+                "Un manque d'entretien du système de chauffage a été noté (filtre très encrassé, composantes poussiéreuses). Un appareil mal entretenu perd en efficacité, s'use prématurément et peut altérer la qualité de l'air intérieur. Un nettoyage professionnel complet et un entretien mécanique par un technicien qualifié sont recommandés immédiatement."
+            ]
+        },
+
+        ss_da_1: { // Amiante
+            positive: [
+                "Aucun matériau suspect d'amiante n'a été identifié visuellement au moment de l'inspection. Note : seul un échantillonnage en laboratoire accrédité peut confirmer de façon certaine l'absence d'amiante dans les matériaux anciens."
+            ],
+            negative: [
+                "De la vermiculite a été observée dans l'entretoit. Considérant que la majorité de la vermiculite vendue au Canada avant 1990 (ex: marque Zonolite) provenait d'une mine contaminée à l'amiante, il faut présumer que cet isolant contient des fibres d'amiante. Nous recommandons vivement de faire analyser un échantillon par un laboratoire indépendant avant toute intervention dans le grenier.",
+                "Des matériaux de calorifugeage (isolation de tuyauterie/conduits) d'apparence suspecte ont été notés. Ce type de matériau, fréquent dans les maisons anciennes, contient souvent un fort pourcentage d'amiante. S'il est friable ou endommagé, il présente un risque important pour la santé respiratoire. Une évaluation par un expert en décontamination est requise."
             ]
         },
 
         ss_da_2: { // Plomb et Pyrite
             positive: [
-                "Aucun signe visible de peinture au plomb ni de pyrite dans le remblai n'a été identifié au moment de l'inspection."
+                "Aucun signe visuel évident n'indique la présence de problèmes liés à la peinture au plomb ou à la pyrite dans les remblais sous-dalle au moment de l'inspection."
             ],
             negative: [
-                "La pyrite dans le remblai sous la dalle de béton réagit chimiquement et peut faire gonfler et fissurer la dalle de façon irréversible. Une caractérisation pétrographique du remblai (norme CTQ-M200) est recommandée pour les bâtiments construits dans les zones à risque.",
-                "La peinture en place dans une maison construite avant 1980 peut contenir du plomb. Si elle est écaillée ou si des travaux sont prévus, un test au plomb est recommandé, particulièrement pour la sécurité des enfants."
+                "Des fissures en forme d'étoile ou de toile d'araignée ainsi qu'un soulèvement de la dalle de plancher au sous-sol (ou dans le garage) ont été observés. Ces signes sont fortement associés à la présence de pyrite dans le remblai granulaire. Le gonflement dû à l'oxydation de la pyrite est irréversible. Un test de caractérisation (norme CTQ-M200) par un laboratoire spécialisé est fortement recommandé pour confirmer la présence et l'Indice Pétrographique de Potentiel de Gonflement (IPPG).",
+                "Considérant l'âge du bâtiment (construit avant 1978), il est fort probable que certaines couches de peinture contiennent du plomb. La peinture au plomb écaillée ou la poussière générée lors de rénovations est toxique, particulièrement pour les jeunes enfants. Des précautions strictes doivent être prises lors de futurs travaux."
             ]
         },
 
         ss_da_3: { // Radon
             positive: [
-                "Aucun indicateur visuel n'a été noté, mais un test de radon de 90 jours en saison de chauffage est tout de même recommandé. Le radon est inodore et incolore, et seul un test peut le détecter."
+                "Aucun indicateur visuel n'a été noté, mais il est important de rappeler que le radon est un gaz radioactif naturel inodore et incolore. Un test de dépistage à long terme (90 jours) en saison de chauffage est toujours recommandé pour toute résidence."
             ],
             negative: [
-                "Un test de radon est fortement recommandé. Le radon est la deuxième cause de cancer du poumon au Canada (3200 décès/an) et le bouclier canadien est une zone à risque connue. Si la concentration dépasse 200 Bq/m³, des mesures correctives (dépressurisation sous-dalle) sont requises."
+                "Il n'y a aucune preuve qu'un test de radon a été effectué dans ce bâtiment. Le radon s'infiltre par les fissures des fondations et est la deuxième cause de cancer du poumon au pays. Nous vous recommandons fortement de vous procurer un dosimètre de Santé Canada pour effectuer une mesure sur 90 jours durant la saison hivernale. Si les niveaux dépassent 200 Bq/m³, des travaux d'atténuation seront nécessaires."
+            ]
+        },
+
+        ss_in_3: { // Portes et Fenêtres
+            positive: [
+                "Les portes et fenêtres testées sont fonctionnelles, s'ouvrent et se ferment adéquatement. Les vitrages thermiques (thermos) examinés ne présentent aucun signe évident de descellement au moment de l'inspection."
+            ],
+            negative: [
+                "Une ou plusieurs fenêtres présentent de la condensation ou un voile blanchâtre entre les vitres. Cela indique que le scellant thermique (thermos) est brisé et que le gaz isolant s'est échappé. La valeur isolante est réduite et la visibilité est altérée. Le remplacement de l'unité scellée par un vitrier est recommandé.",
+                "Les coupe-froid de plusieurs portes et/ou fenêtres sont usés, affaissés ou manquants. Cela entraîne d'importantes pertes thermiques, des courants d'air froids en hiver et peut permettre des infiltrations d'eau lors de fortes pluies poussées par le vent. Il est recommandé de remplacer les coupe-froid pour améliorer le confort et l'efficacité énergétique."
+            ]
+        },
+
+        ss_ga_1: { // Garage
+            positive: [
+                "La structure du garage, y compris la dalle de plancher et les murs de séparation avec la zone habitable, apparaît conforme. La porte de garage fonctionne bien et le système d'inversion automatique réagit correctement."
+            ],
+            negative: [
+                "Il manque un coupe-feu adéquat (gypse scellé) ou la porte de communication n'est pas étanche et munie d'un ferme-porte automatique entre le garage et l'espace habitable. Cette situation est dangereuse car elle permet aux gaz d'échappement (monoxyde de carbone) et aux flammes de se propager rapidement vers la maison. Nous recommandons de corriger cette situation immédiatement pour votre sécurité.",
+                "La dalle du garage présente d'importantes fissures avec dénivellation et/ou s'incline vers les murs de fondation plutôt que vers la porte de garage ou le drain. L'eau de fonte des véhicules risque de s'accumuler contre les murs, causant de la détérioration et un risque d'infiltration. Des travaux de correction du drainage ou de la dalle sont à prévoir."
+            ]
+        },
+
+        ss_cu_1: { // Cuisine
+            positive: [
+                "Les armoires, les comptoirs et la robinetterie de la cuisine sont en bon état et fonctionnels. La hotte évacue adéquatement l'air vers l'extérieur et aucun signe de fuite n'a été détecté sous l'évier."
+            ],
+            negative: [
+                "Des traces d'humidité active, des cernes d'eau ou de la détérioration ont été notés dans le meuble sous l'évier de la cuisine. Cela indique une fuite de la robinetterie, du renvoi ou du joint d'étanchéité de l'évier. Une intervention rapide par un plombier est recommandée pour éviter le développement de moisissures et de pourriture.",
+                "La hotte de cuisinière n'évacue pas l'air vers l'extérieur (système à recirculation) ou le conduit de sortie est non conforme (ex: tuyau flexible en plastique). La cuisson génère beaucoup d'humidité et de polluants qui doivent être expulsés à l'extérieur du bâtiment pour maintenir une bonne qualité d'air. L'installation d'un conduit d'évacuation extérieur rigide et lisse est recommandée."
+            ]
+        },
+
+        ss_cu_2: { // Salles de bain
+            positive: [
+                "Les appareils sanitaires (bain, douche, toilette, lavabo) ont été testés et s'écoulent normalement. Les joints de silicone sont étanches et le ventilateur d'extraction fonctionne et évacue l'air vers l'extérieur."
+            ],
+            negative: [
+                "Les joints de coulis et/ou le calfeutrage (silicone) autour du bain ou de la douche sont fissurés, moisis ou manquants par endroits. L'eau s'infiltre derrière la céramique, ce qui peut causer des dommages considérables à la structure murale et au plancher de façon invisible. Nous recommandons de retirer l'ancien scellant, d'assécher, et de refaire tous les joints avec un calfeutrage de qualité sanitaire.",
+                "La toilette n'est pas solidement ancrée au plancher (elle bouge lorsqu'on s'y appuie). Ce mouvement écrase et détruit l'anneau de cire situé en dessous, provoquant des fuites d'eau usée et de gaz d'égout dans le plancher. Il faut retirer la toilette, remplacer l'anneau de cire et la fixer solidement au sol par un plombier."
+            ]
+        },
+
+        ss_pl_2: { // Tuyauterie
+            positive: [
+                "La tuyauterie d'alimentation en eau visible est en cuivre ou en PEX et la tuyauterie de renvoi est en plastique ABS ou PVC. Aucune fuite, corrosion avancée ni raccordement fautif n'ont été observés lors de l'inspection visuelle."
+            ],
+            negative: [
+                "Des sections de la tuyauterie d'alimentation d'origine en acier galvanisé sont encore présentes. Ces tuyaux ont largement dépassé leur vie utile; ils rouillent de l'intérieur, ce qui réduit considérablement la pression d'eau et augmente le risque imminent de perforation et de dégât d'eau. Le remplacement complet par un plombier est recommandé.",
+                "Des connexions non conformes (ex: raccords flexibles, pentes inversées, absence d'évents) ont été observées sur la tuyauterie de renvoi. Cela peut causer des blocages fréquents, un refoulement d'égout ou le siphonnage des siphons laissant entrer les gaz d'égout toxiques dans la maison. Une révision du système par un maître plombier est requise."
+            ]
+        },
+
+        ss_el_2: { // Câblage et Prises
+            positive: [
+                "Les prises de courant, les interrupteurs et le câblage visible inspectés sont fonctionnels, bien fixés et conformes. Les prises situées près des sources d'eau sont protégées par des disjoncteurs de fuite à la terre (DDFT/GFCI)."
+            ],
+            negative: [
+                "Des prises de courant situées à moins de 1.5m d'une source d'eau (comptoir de cuisine, salle de bain, extérieur) ne sont pas munies de protection contre les fuites à la terre (GFCI/DDFT). Cette protection est essentielle pour prévenir les chocs électriques mortels en milieu humide. Le remplacement de ces prises par un électricien est une question de sécurité prioritaire.",
+                "Du câblage électrique comportant des jonctions à l'air libre (sans boîte de jonction) ou du filage de type \"bouton et tube\" (knob and tube) a été identifié. Ces conditions représentent un risque d'arc électrique et d'incendie majeur. De plus, le filage bouton et tube est souvent refusé par les assureurs. Une évaluation complète et une mise aux normes par un maître électricien sont recommandées."
+            ]
+        },
+
+        ss_cv_2: { // Ventilation
+            positive: [
+                "Le système de ventilation mécanique (échangeur d'air ou VRC) est fonctionnel. Les bouches d'aspiration et de refoulement sont propres et permettent un renouvellement adéquat de l'air intérieur."
+            ],
+            negative: [
+                "L'échangeur d'air (VRC) ne semble pas fonctionnel ou le noyau récupérateur de chaleur et les filtres sont complètement obstrués par la poussière et les débris. Un système de ventilation déficient entraîne une hausse de l'humidité relative, de la condensation sur les fenêtres et une mauvaise qualité de l'air (accumulation de CO2 et de COV). Un nettoyage en profondeur et un entretien mécanique sont recommandés.",
+                "Le conduit de ventilation de la sécheuse est fait de plastique ou d'aluminium ondulé flexible. Ce type de conduit accumule rapidement la charpie, restreint le flux d'air, allonge les temps de séchage et représente un risque d'incendie important. L'installation d'un conduit en métal rigide, lisse et scellé au ruban d'aluminium est requise selon les normes."
+            ]
+        },
+
+        ss_in_1: { // Planchers, Murs et Plafonds
+            positive: [
+                "Les planchers, murs et plafonds inspectés ne présentent aucun défaut structurel majeur ni trace d'infiltration d'eau active. L'usure observée correspond à l'âge normal du bâtiment."
+            ],
+            negative: [
+                "Une pente importante ou un affaissement prononcé a été remarqué au niveau de certains planchers. Cela peut être le signe d'un problème structurel sous-jacent (poutre maîtresse affaissée, colonnes inadéquates ou solives sous-dimensionnées). Une investigation plus poussée par un ingénieur en structure est recommandée pour déterminer la cause et les correctifs appropriés.",
+                "Des cernes d'eau ou des traces d'humidité séchées sont visibles sur certains plafonds ou murs. Bien qu'il n'y ait pas d'humidité active détectée au moment de l'inspection, cela indique qu'une fuite s'est produite dans le passé. Nous vous recommandons de questionner le propriétaire actuel sur la nature de cette fuite et les réparations qui ont été effectuées."
+            ]
+        },
+
+        ss_in_2: { // Escaliers et Garde-corps
+            positive: [
+                "Les escaliers, les mains courantes et les garde-corps intérieurs sont solides, bien fixés et ne présentent aucun risque immédiat pour la sécurité des occupants."
+            ],
+            negative: [
+                "Les balustres du garde-corps sont espacés de plus de 10 cm (4 pouces) ou le garde-corps présente des éléments horizontaux créant un effet d'échelle. Ceci ne répond pas aux normes de sécurité actuelles car un jeune enfant pourrait s'y coincer la tête ou l'escalader, avec un risque grave de chute. Il est fortement recommandé de modifier ou remplacer ce garde-corps pour des raisons de sécurité.",
+                "L'escalier ne possède pas de main courante continue ou celle-ci est mal fixée. L'absence d'un point d'appui solide représente un risque élevé de chute, particulièrement pour les jeunes enfants et les personnes âgées. L'installation d'une main courante robuste sur toute la longueur de la volée d'escalier est requise."
+            ]
+        },
+
+        ss_st_3: { // Vide Sanitaire
+            positive: [
+                "L'inspection du vide sanitaire n'a révélé aucune accumulation d'eau, et l'espace semble adéquatement ventilé. La présence d'un pare-vapeur au sol aide à contrôler le niveau d'humidité."
+            ],
+            negative: [
+                "Il n'y a aucune pellicule pare-vapeur sur le sol de terre battue du vide sanitaire, ou celle-ci est endommagée et incomplète. L'humidité du sol s'évapore continuellement dans cet espace clos, ce qui favorise la pourriture de la structure de bois (solives) et la prolifération de moisissures. L'installation d'une membrane de polyéthylène scellée de 6 mil minimum est requise.",
+                "Une accumulation d'eau stagnante a été observée dans le vide sanitaire. Cette situation entraîne une humidité excessive, détériore les fondations et attire les insectes ou la vermine. Il est impératif d'identifier la source de l'eau (drainage extérieur déficient, fuite de plomberie) et d'installer un système de drainage adéquat avec une pompe de puisard."
+            ]
+        },
+
+        ss_st_5: { // Insectes et Vermine
+            positive: [
+                "Aucun signe évident ou activité d'infestation par des insectes destructeurs du bois (fourmis charpentières, termites) ou par de la vermine n'a été observé lors de l'inspection visuelle."
+            ],
+            negative: [
+                "Des signes probables d'activité de rongeurs (excréments, matériaux isolants grugés, nids) ont été découverts dans le grenier ou le vide sanitaire. La vermine peut causer des dommages considérables à l'isolation et au câblage électrique (risque d'incendie), en plus de représenter un risque sanitaire. Les services d'un exterminateur professionnel sont recommandés.",
+                "De la sciure de bois très fine et des galeries creusées dans certaines pièces de bois (solives, sablières) suggèrent la présence d'insectes xylophages, telles que les fourmis charpentières. Ces insectes affaiblissent la structure du bâtiment. Une évaluation immédiate et un traitement par un spécialiste en gestion parasitaire sont nécessaires."
+            ]
+        },
+
+        ss_ch_1: { // Cheminée extérieure
+            positive: [
+                "La maçonnerie de la cheminée extérieure, la couronne de béton et les solins à la base semblent en bon état. Aucun effritement majeur ou désalignement n'a été noté."
+            ],
+            negative: [
+                "La couronne de béton au sommet de la cheminée est fissurée ou effritée, et les joints de mortier de la maçonnerie sont détériorés. L'eau s'infiltre dans ces ouvertures et les cycles de gel/dégel accélèrent la dégradation de la structure, ce qui peut mener à l'effondrement de briques. Une réfection par un maçon qualifié est recommandée afin de prévenir des dommages plus importants."
+            ]
+        },
+
+        ss_ch_2: { // Foyer et Âtre
+            positive: [
+                "Les composantes visibles du foyer à l'intérieur, telles que l'âtre et le registre, sont fonctionnelles. L'espace de dégagement par rapport aux matériaux combustibles semble adéquat."
+            ],
+            negative: [
+                "Des fissures importantes ont été notées dans les briques réfractaires de l'âtre du foyer. De plus, une accumulation importante de créosote est visible dans le conduit. La créosote est hautement inflammable et cause de nombreux incendies de cheminée. Nous vous recommandons de ne pas utiliser le foyer avant d'avoir fait effectuer un ramonage complet et une inspection par caméra (WETT) par un spécialiste."
+            ]
+        },
+
+        ss_to_2: { // Isolation du Grenier
+            positive: [
+                "L'épaisseur et la répartition de l'isolant dans l'entretoit offrent une résistance thermique convenable selon les standards de l'époque de construction du bâtiment."
+            ],
+            negative: [
+                "La quantité d'isolant dans le grenier est très faible par rapport aux normes d'efficacité énergétique actuelles. Une mauvaise isolation entraîne d'importantes pertes de chaleur, augmente les coûts de chauffage et peut causer la formation de glaçons destructeurs en bordure du toit durant l'hiver. L'ajout d'isolant par un entrepreneur qualifié est recommandé, tout en s'assurant de maintenir une bonne ventilation."
+            ]
+        },
+
+        ss_pl_1: { // Alimentation et Entrée d'eau
+            positive: [
+                "L'entrée d'eau principale visible (en cuivre ou plastique) et sa valve d'arrêt d'urgence sont en bon état et ne présentent aucune fuite."
+            ],
+            negative: [
+                "La conduite de l'entrée d'eau principale est en plomb. Les vieilles conduites en plomb contaminent l'eau potable, causant des risques sérieux pour la santé, en particulier pour les enfants et les femmes enceintes, et sont plus susceptibles de se rompre. Il est recommandé de faire tester l'eau et de planifier le remplacement de l'entrée d'eau jusqu'à la ligne de ville par un entrepreneur."
             ]
         }
     }

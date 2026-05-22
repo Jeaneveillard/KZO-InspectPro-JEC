@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kzo-inspect-v36';
+const CACHE_NAME = 'kzo-inspect-v43';
 const ASSETS = [
   '/',
   'index.html',
@@ -14,7 +14,13 @@ const ASSETS = [
   'manifest.json',
   'storage.js',
   'jszip.min.js',
+  'auth.js',
+  'kzo_auth_check.js',
+  'kzo_modals.js',
   'google_drive.js',
+  'google_calendar.js',
+  'agenda.js',
+  'photo_editor.js',
   'login.html'
   // config.js exclu intentionnellement : contient des clés API sensibles
 ];
@@ -40,7 +46,11 @@ self.addEventListener('activate', (event) => {
 });
 
 // Fetch Event
-// IMPORTANT : ne JAMAIS intercepter ni cacher les requêtes vers les API IA externes.
+// Stratégie : stale-while-revalidate pour les assets statiques same-origin.
+// - Si l'asset est en cache → réponse immédiate + mise à jour silencieuse en arrière-plan
+// - Si pas en cache → fetch réseau + mise en cache pour la prochaine fois
+//
+// IMPORTANT : ne JAMAIS intercepter les requêtes vers les API IA externes.
 // Les URLs Gemini contiennent la clé API en query string ("?key=AIzaSy...") — les
 // mettre en cache exposerait la clé dans CacheStorage.
 self.addEventListener('fetch', (event) => {
@@ -54,12 +64,19 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        const responseClone = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+    caches.match(event.request).then((cachedResponse) => {
+      // Mise à jour réseau en arrière-plan (silencieuse)
+      const networkFetch = fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.ok) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
         return networkResponse;
-      })
-      .catch(() => caches.match(event.request))
+      }).catch(() => null);
+
+      // Servir depuis le cache immédiatement si disponible (démarrage instantané hors ligne)
+      // Sinon attendre la réponse réseau
+      return cachedResponse || networkFetch;
+    })
   );
 });

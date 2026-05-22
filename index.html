@@ -217,6 +217,75 @@
             z-index: 999; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
             border-left: 3px solid #10b981;
         }
+        /* ── Agenda Modal ────────────────────────────── */
+        .agenda-modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+        }
+        .agenda-content {
+            background: #0f172a; width: 95%; max-width: 900px; max-height: 90vh;
+            border-radius: 16px; border: 1px solid #1e3a5f; display: flex; flex-direction: column;
+            overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+        }
+        .agenda-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 24px; background: #111d2e; border-bottom: 1px solid #1e3a5f;
+        }
+        .agenda-header h2 { font-size: 1.25rem; color: #f1f5f9; display: flex; align-items: center; gap: 10px; }
+        .agenda-close { background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; }
+        .agenda-close:hover { color: #f87171; }
+        
+        .agenda-body {
+            display: flex; flex: 1; min-height: 500px; overflow: hidden;
+            flex-direction: row;
+        }
+        @media (max-width: 768px) { .agenda-body { flex-direction: column; overflow-y: auto; } }
+
+        /* Calendar Side */
+        .agenda-calendar {
+            flex: 2; padding: 20px; border-right: 1px solid #1e3a5f; display: flex; flex-direction: column;
+        }
+        .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .cal-nav button { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        .cal-nav button:hover { background: #334155; }
+        .cal-month-title { font-weight: 700; font-size: 1.1rem; color: #60a5fa; text-transform: capitalize; }
+        
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; flex: 1; }
+        .cal-day-header { text-align: center; font-weight: 600; font-size: 0.8rem; color: #94a3b8; padding-bottom: 8px; }
+        .cal-cell {
+            background: #111d2e; border: 1px solid #1e3a5f; border-radius: 6px; padding: 6px;
+            min-height: 80px; display: flex; flex-direction: column; cursor: pointer; transition: 0.2s;
+        }
+        .cal-cell:hover { border-color: #3b82f6; background: #16243b; }
+        .cal-cell.today { border-color: #f59e0b; background: #f59e0b11; }
+        .cal-cell.selected { border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
+        .cal-cell.other-month { opacity: 0.4; }
+        .cal-date-num { font-weight: 700; font-size: 0.85rem; color: #cbd5e1; align-self: flex-end; }
+        .cal-events-dots { display: flex; gap: 3px; flex-wrap: wrap; margin-top: auto; }
+        .cal-dot { width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; }
+
+        /* Panel Side */
+        .agenda-panel {
+            flex: 1; padding: 20px; background: #0c1222; display: flex; flex-direction: column;
+        }
+        .panel-date-title { font-weight: 700; font-size: 1.1rem; color: #f1f5f9; margin-bottom: 16px; border-bottom: 1px solid #1e3a5f; padding-bottom: 10px; }
+        .event-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+        .empty-events { color: #64748b; font-size: 0.9rem; text-align: center; margin-top: 20px; }
+        
+        .event-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 12px; position: relative; }
+        .event-card h4 { color: #60a5fa; font-size: 0.95rem; margin-bottom: 4px; }
+        .event-card .time { color: #cbd5e1; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+        .event-card .addr { color: #94a3b8; font-size: 0.8rem; margin-bottom: 10px; }
+        .event-card .start-btn { width: 100%; background: #10b981; color: white; border: none; padding: 6px 0; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+        .event-card .start-btn:hover { background: #059669; }
+        .event-card .del-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.1rem; }
+
+        .add-event-form { background: #111d2e; border-radius: 8px; border: 1px solid #1e3a5f; padding: 12px; }
+        .add-event-form h4 { color: #cbd5e1; font-size: 0.9rem; margin-bottom: 10px; }
+        .form-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .form-row input { flex: 1; padding: 6px 10px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f1f5f9; font-size: 0.85rem; }
+        .add-event-btn { width: 100%; background: #2563eb; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+        .add-event-btn:hover { background: #1d4ed8; }
 
         @media (max-width: 600px) {
             .topbar { padding: 0 14px; }
@@ -234,6 +303,10 @@
         <span class="logo-sub">InspectPro</span>
     </div>
     <div class="topbar-actions">
+        <button type="button" class="tb-btn-home" style="background:#0f766e;color:#ccfbf1;border:1px solid #0f766e;" onclick="window.openAgendaModal()">
+            📅 <span>Agenda</span>
+        </button>
+        <div class="tb-divider-v"></div>
         <button type="button" class="tb-btn-home tb-btn-import" onclick="triggerImport()">
             📂 <span>Ouvrir .kzo</span>
         </button>
@@ -259,10 +332,67 @@
 <div id="toast-home"></div>
 <input type="file" id="importInput" accept=".kzo" style="display:none" onchange="handleImport(event)">
 
+<!-- Agenda Modal HTML -->
+<div id="agendaModal" class="agenda-modal">
+    <div class="agenda-content">
+        <div class="agenda-header">
+            <h2>📅 Calendrier des Inspections</h2>
+            <button class="agenda-close" onclick="window.closeAgendaModal()">×</button>
+        </div>
+        <div class="agenda-body">
+            <!-- Calendrier -->
+            <div class="agenda-calendar">
+                <div class="cal-nav">
+                    <button onclick="window.agendaPrevMonth()">◀</button>
+                    <div class="cal-month-title" id="calMonthTitle">Mai 2026</div>
+                    <button onclick="window.agendaNextMonth()">▶</button>
+                </div>
+                <div class="cal-grid">
+                    <div class="cal-day-header">Lun</div>
+                    <div class="cal-day-header">Mar</div>
+                    <div class="cal-day-header">Mer</div>
+                    <div class="cal-day-header">Jeu</div>
+                    <div class="cal-day-header">Ven</div>
+                    <div class="cal-day-header">Sam</div>
+                    <div class="cal-day-header">Dim</div>
+                    <!-- Cells injected by JS -->
+                </div>
+            </div>
+            
+            <!-- Panel latéral (Rendez-vous du jour sélectionné) -->
+            <div class="agenda-panel">
+                <div class="panel-date-title" id="panelDateTitle">Sélectionnez une date</div>
+                
+                <div class="event-list" id="eventList">
+                    <!-- Events injected by JS -->
+                </div>
+
+                <div class="add-event-form" id="addEventForm" style="display:none;">
+                    <h4>Ajouter un rendez-vous</h4>
+                    <div class="form-row">
+                        <input type="time" id="evTime" required>
+                    </div>
+                    <div class="form-row">
+                        <input type="text" id="evClient" placeholder="Nom du client" required>
+                    </div>
+                    <div class="form-row">
+                        <input type="text" id="evAddress" placeholder="Adresse complète" required>
+                    </div>
+                    <button type="button" class="add-event-btn" onclick="window.agendaSaveEvent()">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="auth.js"></script>
 <script>if (!sessionStorage.getItem('kzo_auth')) { window.location.replace('login.html'); }</script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="jszip.min.js"></script>
 <script src="storage.js"></script>
+<script src="config.js"></script>
+<script src="google_calendar.js"></script>
+<script src="agenda.js"></script>
 <script>
     let allProjects = [];
     let currentFilter = 'all';
@@ -423,6 +553,11 @@
     }
 
     KZOStorage.migrateLegacy().then(() => loadAndRender()).catch(() => loadAndRender());
+
+    // Vérifier silencieusement les inspections du jour et notifier si permission déjà accordée
+    if (window.kzoCheckTodayNotifications) {
+        window.kzoCheckTodayNotifications();
+    }
 </script>
 </body>
 </html>

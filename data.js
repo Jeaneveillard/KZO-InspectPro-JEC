@@ -30,6 +30,7 @@ const inspectionData = {
                 { id: "client_names",      type: "clients", label: "Nom du/des Client(e)s" },
                 { id: "client_email",      type: "text",    label: "Email du client",           placeholder: "client@email.com" },
                 { id: "prix_inspection",   type: "number",  label: "Prix de l'inspection ($)",  placeholder: "Montant avant taxes (ex: 550)" },
+                { id: "paiement_statut",   type: "text",    label: "Reçu / Statut du Paiement", placeholder: "Généré automatiquement..." },
                 { id: "client_sign",       type: "action",  label: "Signature du client" },
                 { id: "client_remote_sign",type: "action",  label: "Envoyer pour signature à distance" },
                 { id: "client_docs",       type: "file",    label: "Déclaration du vendeur / Documents remis" }

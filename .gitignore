@@ -1,5 +1,6 @@
 # Données sensibles
 config.js
+.env
 
 # Cache navigateur / PWA
 *.cache
@@ -27,6 +28,9 @@ yarn-error.log*
 *.bak
 *.tmp
 *.fixed
+
+# Doublon HTML (copie avec fins de ligne différentes)
+KZO_insp.html
 
 # Claude Code — fichiers de travail internes
 .claude/worktrees/
